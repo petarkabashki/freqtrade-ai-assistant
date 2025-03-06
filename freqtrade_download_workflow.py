@@ -83,6 +83,39 @@ class CollectPairNode(Node): # <<<--- DEFINITION FOR CollectPairNode IS ADDED HE
         shared['pair'] = exec_res.get('pair')
         return 'validate_pair'
 
+class ValidatePairNode(Node): # <<<--- DEFINITION FOR ValidatePairNode IS ADDED HERE
+    def prep(self, shared):
+        exchange = shared.get('exchange')
+        pair = shared.get('pair')
+        return {
+            'exchange': exchange,
+            'pair': pair,
+        }
+
+    def exec(self, prep_res):
+        pair = prep_res['pair']
+
+        if not pair: # Check if pair is empty after input
+            return {'action': 'invalid_pair', 'message': "Pair cannot be empty."}
+
+        if not pair or '/' not in pair:
+            pair = f"{pair}/USDT" # Assume USDT quote if only base is provided
+            print(f"Assuming USDT quote, using pair: {pair}") # Inform user about assumption
+
+        base, quote = pair.split('/')
+        if not (base and quote): # simple check for base and quote not empty
+            return {'action': 'invalid_pair', 'message': "Invalid pair format. Both base and quote are required."} # More specific message
+
+        # TODO: Add logic to try and convert base to short form if needed
+
+        return {'action': 'collect_timeframe', 'exchange': prep_res['exchange'], 'pair': pair}
+
+    def post(self, shared, prep_res, exec_res):
+        if exec_res.get('action') == 'invalid_pair':
+            print(f"Input Error: {exec_res.get('message')}")
+            return 'retry_pair'
+        return 'collect_timeframe'
+
 
 validate_exchange_node = ValidateExchangeNode()
 collect_pair_node = CollectPairNode()
