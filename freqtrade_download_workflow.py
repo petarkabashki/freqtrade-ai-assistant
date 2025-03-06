@@ -1,14 +1,26 @@
 from pocketflow import Flow, Node
 import subprocess
 import yaml
+import os
+from dotenv import load_dotenv
 
-# Placeholder for LLM call utility - REPLACE THIS WITH YOUR ACTUAL IMPLEMENTATION
+load_dotenv()
+
+# Utility function for LLM calls
 def call_llm(prompt):
-    print("LLM Prompt:", prompt)  # Debug: Print the prompt
-    return """
-validation_status: OK
-next_action: execute_download
-"""
+    import openai
+    openai.api_key = os.getenv("OPENAI_API_KEY")  # Read API key from environment variable
+    if not openai.api_key:
+        raise ValueError("OPENAI_API_KEY not found in environment variables.")
+    try:
+        response = openai.chat.completions.create(
+            model="gpt-4o",  # Specify the model
+            messages=[{"role": "user", "content": prompt}]
+        )
+        return response.choices[0].message.content
+    except Exception as e:
+        print(f"LLM call failed: {e}")
+        return None
 
 class CollectExchangeNode(Node):
     def prep(self, shared):
@@ -93,7 +105,10 @@ class ExecuteDownloadNode(Node):
     def post(self, shared, prep_res, exec_res):
         if exec_res.get('action') == 'success':
             print(f"Download successful!\nOutput:\n{exec_res.get('output')}")
-            return 'start_over'
+            shared['last_exchange'] = prep_res['exchange']
+            shared['last_pair'] = prep_res['pair']
+            shared['last_timeframe'] = prep_res['timeframe']
+            return 'collect_exchange'
         else:
             print(f"Download Error: {exec_res.get('message')}")
             return 'collect_exchange'
@@ -123,21 +138,26 @@ class ValidateAllInputsNode(Node):
         timeframe = prep_res['timeframe']
 
         prompt = f"""
-        Validate the following user inputs for a freqtrade download command:
+        You are a validation assistant for the Freqtrade download assistant.
+        Validate the following user inputs for a freqtrade download command.
+        Return a YAML structure with a validation status and instructions for the next action.
+
         Exchange: {exchange}
         Pair: {pair}
         Timeframe: {timeframe}
 
-        Valid exchanges are: binance, ftx, kucoin, coinbase.
-        Pair should be in format BASE/QUOTE, e.g., BTC/USDT. Assume USDT if quote is missing.
-        Valid timeframes are: 1d, 3d, 1w, 2w, 1M, 3M, 6M, 1y.
+        Here are the validation rules:
+        - Exchange: Must be one of (binance, ftx, kucoin, coinbase).
+        - Pair: Must be in the form of BASE/QUOTE, in which BTC is the base and USDT is the quote. If no quote part is given, assume USDT.
+        - Timeframe: Must be one of (1d, 3d, 1w, 2w, 1M, 3M, 6M, 1y).
 
-        Return a YAML structure with:
-        - 'validation_status': OK or NOT_OK
+        The YAML structure should contain:
+        - 'validation_status': OK or NOT_OK.
         - If NOT_OK, include:
-            - 'error_messages': a list of error messages for each invalid field.
-            - 'next_action':  'retry_exchange', 'retry_pair', 'retry_timeframe', or 'retry_all' if unclear.
-        - If OK, 'next_action': 'execute_download'
+            - 'error_messages': A list of dictionaries, each with 'field' and 'message' keys, describing the validation errors.
+            - 'next_action':  A string indicating which input to retry: 'retry_exchange', 'retry_pair', 'retry_timeframe', or 'retry_all' if unclear.
+        - If OK, include:
+            - 'next_action': 'execute_download'
 
         Example for invalid exchange and timeframe:
         ```yaml
@@ -151,8 +171,19 @@ class ValidateAllInputsNode(Node):
         ```
         """
         llm_response = call_llm(prompt)
-        validation_result = yaml.safe_load(llm_response)
-        return validation_result
+        if llm_response:
+            try:
+                validation_result = yaml.safe_load(llm_response)
+                return validation_result
+            except yaml.YAMLError as e:
+                print(f"Error parsing LLM response as YAML: {e}")
+                return {'validation_status': 'NOT_OK',
+                        'error_messages': [{'field': 'all', 'message': 'Failed to parse LLM response.'}],
+                        'next_action': 'retry_all'}
+        else:
+            return {'validation_status': 'NOT_OK',
+                    'error_messages': [{'field': 'all', 'message': 'LLM call failed.'}],
+                    'next_action': 'retry_all'}
 
     def post(self, shared, prep_res, exec_res):
         if exec_res.get('validation_status') == 'NOT_OK':
@@ -166,9 +197,14 @@ class ValidateAllInputsNode(Node):
                 return 'collect_pair'
             elif next_action == 'retry_timeframe':
                 return 'collect_timeframe'
+            elif next_action == 'retry_all':
+                return 'collect_exchange'  # Default to retry exchange
             else:
                 return 'collect_exchange'  # Default to retry exchange
-        return 'execute_download'
+        elif exec_res.get('next_action') == 'execute_download':
+            return 'execute_download'
+        else:
+            return 'collect_exchange'
 
 # Instantiate nodes
 validate_all_inputs_node = ValidateAllInputsNode()
@@ -184,8 +220,10 @@ collect_exchange_node >> collect_pair_node
 collect_pair_node >> collect_timeframe_node
 collect_timeframe_node >> validate_all_inputs_node
 validate_all_inputs_node - "execute_download" >> execute_download_node
-execute_download_node - "start_over" >> collect_exchange_node
-execute_download_node >> collect_exchange_node # on error, retry from the beginning
+validate_all_inputs_node - "collect_exchange" >> collect_exchange_node
+validate_all_inputs_node - "collect_pair" >> collect_pair_node
+validate_all_inputs_node - "collect_timeframe" >> collect_timeframe_node
+execute_download_node >> collect_exchange_node # on success or error, retry from the beginning
 
 download_flow = Flow(start=collect_exchange_node)
 
