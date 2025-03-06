@@ -31,6 +31,10 @@ class UserInputNode(Node):
 
         # Function to get input for a field, considering validation errors and defaults
         def get_input_for_field(field_name, default_value=None, is_valid=True):
+            if is_valid and default_value:
+                print(f"{field_name} is valid from previous input.")
+                return default_value # Reuse valid input, don't ask again
+
             while True:
                 if not is_valid: # Only show prompt if the field is invalid
                     prompt_text = f"{field_name} (re-enter)"
