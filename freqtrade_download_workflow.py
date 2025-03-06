@@ -209,6 +209,7 @@ summary_node - 'input' >> input_node
 
 download_flow = Flow(start=input_node)
 
+import asyncio
 
 async def main():
     shared_data = {} # Initialize shared data
