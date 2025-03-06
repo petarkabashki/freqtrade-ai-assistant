@@ -17,7 +17,10 @@ def call_llm(prompt):
     print("Raw LLM Response:", raw_response_content) # Print raw response for debugging
 
     # Remove markdown code fences if present
-    if raw_response_content.startswith("```json") and raw_response_content.endswith("```"):
+    if raw_response_content.startswith("```yaml") and raw_response_content.endswith("```"):
+        raw_response_content = raw_response_content[7:-3].strip() # Remove ```yaml and ``` and any extra whitespace
+    elif raw_response_content.startswith("```json") and raw_response_content.endswith("```"):
         raw_response_content = raw_response_content[7:-3].strip() # Remove ```json and ``` and any extra whitespace
+
 
     return raw_response_content
