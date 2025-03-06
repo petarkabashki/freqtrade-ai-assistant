@@ -8,7 +8,7 @@ API_KEY = os.getenv("OPENAI_API_KEY")
 
 def call_llm(prompt):
     client = OpenAI(api_key=API_KEY)
-    response = client.chat.completions.create(
+    response = client.chat.completions.with_raw_response.create( # use with_raw_response
         model="gpt-4o-mini",
         messages=[{"role": "user", "content": prompt}]
     )

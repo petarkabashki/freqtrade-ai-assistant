@@ -34,7 +34,7 @@ class Node(BaseNode):
                 if self.wait>0: time.sleep(self.wait)
 
 class BatchNode(Node):
-    def _exec(self,items, shared): return [super(BatchNode,self)._exec(i, shared) for i in (items or [])]
+    def _exec(self,items, shared): return [(super(BatchNode,self)._exec(i, shared)) for i in (items or [])]
 
 class Flow(BaseNode):
     def __init__(self,start): super().__init__();self.start=start
