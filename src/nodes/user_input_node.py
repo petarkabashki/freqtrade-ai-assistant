@@ -7,7 +7,7 @@ SHARED_MEMORY_FILE = "shared_memory.json"
 def load_shared_memory():
     try:
         with open(SHARED_MEMORY_FILE, "r") as f:
-        return json.load(f)
+            return json.load(f)
     except FileNotFoundError:
         return {}
 
