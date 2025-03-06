@@ -1,77 +1,65 @@
 from pocketflow import Node
-from utils.call_llm import call_llm # Direct import from utils
-import json
+from utils.call_llm import call_llm
+import yaml # For structured prompt output
 
 class ValidationNode(Node):
     def prep(self, shared):
-        field_name = shared['field_to_validate']
-        field_value = shared['field_value']
-        return {'field_name': field_name, 'field_value': field_value}
+        # --- Retrieve data from shared store ---
+        # this should be passed according to the pocketflow guidelines. AI!
+        if 'field_to_validate' not in shared:
+            print("Error: 'field_to_validate' key missing in shared data.")
+            return 'missing_field_to_validate' # Indicate missing field
+        if 'field_value' not in shared:
+            print("Error: 'field_value' key missing in shared data.")
+            return 'missing_field_value' # Indicate missing field
+
+        self.field_name = shared['field_to_validate']
+        self.field_value = shared['field_value']
+        self.validation_prompt_path = self.params.get('validation_prompt_path')
+
+        return self.field_value
 
     def exec(self, prep_res, shared):
-        field_name = prep_res['field_name']
-        field_value = prep_res['field_value']
+        if prep_res in ['missing_field_to_validate', 'missing_field_value']:
+            return prep_res # Return error indicator to post
 
-        def constraints_for_field(field_name):
-            if field_name == 'exchange':
-                return "Must be one of: binance, ftx, kucoin, or coinbase."
-            elif field_name == 'asset_pair':
-                return "Must be in BASE/QUOTE format (e.g., BTC/USDT). If the quote currency is missing, default to USDT. Standardize the base and quote currency to their short forms if necessary."
-            elif field_name == 'timeframe':
-                return "Must be one of: 1d, 3d, 1w, 2w, 1M, 3M, 6M, or 1y. Convert to the standard format if necessary (e.g., '1 month' to '1M')."
-            return "No specific constraints defined for this field."
-
-        # --- LLM Validation ---
-        validation_prompt = f"""
-        You are a system for validating user inputs for downloading cryptocurrency data.
-        Validate the user input for the field: '{field_name}'.
-        Input Value: {field_value}
-
-        Constraints:
-        For '{field_name}', the constraints are:
-        {constraints_for_field(field_name)}
-
-        Response Format:
-        Return a JSON object that strictly adheres to this format:
-        {{
-          "is_valid": true/false,
-          "error": "error message if invalid" // Only include if is_valid is false
-        }}
-
-        Example of valid response for exchange 'binance':
-        ```json
-        {{
-          "is_valid": true
-        }}
-        ```
-
-        Example of invalid response for exchange 'invalid_exchange':
-        ```json
-        {{
-          "is_valid": false,
-          "error": "Invalid exchange: invalid_exchange. Must be one of binance, ftx, kucoin, or coinbase."
-        }}
-        ```
-
-        Begin!
-        """
-        validation_prompt_with_constraints = validation_prompt.format( # use .format instead of .replace
-            constraints_for_field(field_name)
-        )
-
-        validation_response = call_llm(validation_prompt_with_constraints) # Assuming call_llm is defined
-        validation_result = {} # Initialize as empty dict to handle potential errors
+        # --- Load validation prompt from file ---
         try:
-            validation_result = json.loads(validation_response)
-            return validation_result
-        except json.JSONDecodeError:
-            return {'is_valid': False, 'error': "LLM validation response was not valid JSON."}
+            with open(self.validation_prompt_path, 'r') as f:
+                prompt_template = f.read()
+        except FileNotFoundError:
+            error_message = f"Validation prompt file not found: {self.validation_prompt_path}"
+            print(f"Error: {error_message}")
+            shared['validation_error_message'] = error_message # Store error in shared for user feedback
+            return 'validate_failure' # Indicate validation failure
 
+        # --- Construct prompt and call LLM ---
+        prompt = prompt_template.format(field_value=prep_res) # Use prep_res which is field_value
+        llm_response_text = call_llm(prompt)
+
+        try:
+            llm_response = yaml.safe_load(llm_response_text)
+        except yaml.YAMLError as e:
+            error_message = f"LLM response YAML parsing error: {e}"
+            print(f"Error: {error_message}\nResponse text: {llm_response_text}") # Include response text for debugging
+            shared['validation_error_message'] = error_message # Store error in shared for user feedback
+            return 'validate_failure' # Indicate validation failure
+
+
+        # --- Validate LLM response structure ---
+        if not isinstance(llm_response, dict) or 'is_valid' not in llm_response or 'reason' not in llm_response:
+            error_message = f"LLM response structure invalid. Expected 'is_valid' and 'reason' keys. Response: {llm_response}"
+            print(f"Error: {error_message}")
+            shared['validation_error_message'] = error_message # Store error in shared for user feedback
+            return 'validate_failure' # Indicate validation failure
+
+        if llm_response['is_valid']:
+            return 'validate_success' # Validation success
+        else:
+            shared['validation_error_message'] = llm_response['reason'] # Store validation reason for user feedback
+            return 'validate_failure' # Validation failure
 
     def post(self, shared, prep_res, exec_res):
-        field_name = prep_res['field_name']
-        if exec_res['is_valid']:
-            return 'validate_success'
-        else:
-            shared['validation_error_message'] = f"Invalid {field_name}: {exec_res.get('error', 'Unknown error')}" # Store specific error message
-            return 'validate_failure'
+        if exec_res in ['missing_field_to_validate', 'missing_field_value', 'validate_success', 'validate_failure']:
+            return exec_res # Pass action status directly
+        return 'default' # Default action if none of the above
