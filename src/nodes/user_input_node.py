@@ -20,7 +20,6 @@ class UserInputNode(Node):
     RESET_COLOR_CODE = "\033[0m"         # ANSI escape code to reset color
 
     def prep(self, shared):
-        # Why circulate here ? AI!
         last_inputs = load_shared_memory()
         shared['last_inputs'] = last_inputs
         return None
