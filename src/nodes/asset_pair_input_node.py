@@ -88,4 +88,6 @@ class AssetPairInputNode(Node):
         if exec_res == 'quit':
             return 'quit'
         shared['asset_pair_input'] = exec_res # Store validated input in shared memory
-        return 'validate_asset_pair'
+        if exec_res == 'validate_asset_pair': # typo fix: should be validate_asset_pair action
+            return 'validate_asset_pair'
+        return 'invalid_asset_pair' # New action for invalid input

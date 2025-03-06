@@ -89,4 +89,6 @@ class ExchangeInputNode(Node):
         if exec_res == 'quit':
             return 'quit'
         shared['exchange_input'] = exec_res # Store validated input in shared memory
-        return 'validate_exchange'
+        if exec_res == 'validate_exchange': # typo fix: should be validate_exchange action
+            return 'validate_exchange'
+        return 'invalid_exchange' # New action for invalid input

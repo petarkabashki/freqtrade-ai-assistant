@@ -3,7 +3,7 @@ import os # Import the os module
 # Add the project root to the Python path
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__))) # Add script directory to path
 
-import json  # For shared memory (using a file for simplicity)
+import json  # For shared memory (using a JSON file for simplicity)
 from pocketflow import Node, Flow
 # Assuming call_llm, call_llm_async, and search_web are defined in utils.call_llm (or similar)
 # from utils.call_llm import call_llm # moved to nodes
@@ -47,14 +47,16 @@ exit_node = ExitNode()
 download_flow = Flow(start=exchange_input_node) # Start with exchange input node
 download_flow.params = {} # Initialize flow params
 
-# how about separate actions for invalid input that loops back to the input nodes ? AI!
 # --- Flow Definition ---
 exchange_input_node - 'quit' >> exit_node
 exchange_input_node - 'validate_exchange' >> asset_pair_input_node # Go to asset_pair input after exchange
+exchange_input_node - 'invalid_exchange' >> exchange_input_node # Loop back to exchange input on invalid input
 asset_pair_input_node - 'quit' >> exit_node
 asset_pair_input_node - 'validate_asset_pair' >> timeframe_input_node # Go to timeframe input after asset_pair
+asset_pair_input_node - 'invalid_asset_pair' >> asset_pair_input_node # Loop back to asset_pair input on invalid input
 timeframe_input_node - 'quit' >> exit_node
 timeframe_input_node - 'validate_timeframe' >> confirmation_node # Go to confirmation after timeframe
+timeframe_input_node - 'invalid_timeframe' >> timeframe_input_node # Loop back to timeframe input on invalid input
 confirmation_node - 'download' >> download_execution_node
 confirmation_node - 'input' >> exchange_input_node # Go back to exchange input if not confirmed
 download_execution_node - 'summarize' >> summary_node

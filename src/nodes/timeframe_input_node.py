@@ -88,4 +88,6 @@ class TimeframeInputNode(Node):
         if exec_res == 'quit':
             return 'quit'
         shared['timeframe_input'] = exec_res # Store validated input in shared memory
-        return 'validate_timeframe'
+        if exec_res == 'validate_timeframe': # typo fix: should be validate_timeframe action
+            return 'validate_timeframe'
+        return 'invalid_timeframe' # New action for invalid input
