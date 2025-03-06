@@ -34,14 +34,18 @@ class ValidationNode(Node):
 
         Response Format:
         Return a JSON object that strictly adheres to this format:
+        ```json
         {{
+          "field_name": "{field_name}", // MUST be exactly the field_name being validated
           "is_valid": true/false,
           "error": "error message if invalid" // Only include if is_valid is false
         }}
+        ```
 
         Example of valid response for exchange 'binance':
         ```json
         {{
+          "field_name": "exchange",
           "is_valid": true
         }}
         ```
@@ -49,6 +53,7 @@ class ValidationNode(Node):
         Example of invalid response for exchange 'invalid_exchange':
         ```json
         {{
+          "field_name": "exchange",
           "is_valid": false,
           "error": "Invalid exchange: invalid_exchange. Must be one of binance, ftx, kucoin, or coinbase."
         }}
@@ -66,17 +71,17 @@ class ValidationNode(Node):
             validation_result = json.loads(validation_response)
             return validation_result
         except json.JSONDecodeError:
-            return {'is_valid': False, 'error': "LLM validation response was not valid JSON."}
+            return {'field_name': field_name, 'is_valid': False, 'error': "LLM validation response was not valid JSON."}
 
 
     def post(self, shared, prep_res, exec_res):
         field_name = prep_res['field_name']
         if exec_res['is_valid']:
             # --- Put validation result into shared store ---
-            shared['validation_result'] = 'validate_success'
+            shared['validation_result'] = exec_res # Store the entire validation result in shared
             return 'validate_success' # Action is still needed for flow control if used in a flow
         else:
             # --- Put validation result and error message into shared store ---
-            shared['validation_result'] = 'validate_failure'
+            shared['validation_result'] = exec_res # Store the entire validation result in shared
             shared['validation_error_message'] = f"Invalid {field_name}: {exec_res.get('error', 'Unknown error')}" # Store specific error message
             return 'validate_failure' # Action is still needed for flow control if used in a flow
