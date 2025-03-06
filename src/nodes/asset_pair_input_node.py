@@ -77,4 +77,4 @@ class AssetPairInputNode(Node):
         if exec_res == 'quit':
             return 'quit'
         shared['field_value'] = exec_res # Store input in shared memory for validation
-        return 'validate_asset_pair' # Action to trigger validation node
+        return 'validate' # Action to trigger validation node
