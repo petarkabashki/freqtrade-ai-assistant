@@ -55,13 +55,17 @@ class UserInputNode(Node):
                 else:
                     shared['field_to_validate'] = field_name # Prepare shared data for validation node
                     shared['field_value'] = user_input
-                    validation_action = self >> self.params['validation_node'] # Dynamically get validation node from params
-                    validation_result_action = validation_action.run(shared) # Run validation node
+                    # --- Removed dynamic flow construction ---
+                    # validation_action = self >> self.params['validation_node']
+                    # validation_result_action = validation_action.run(shared)
 
-                    if validation_result_action == 'validate_success':
+                    validation_node = self.params['validation_node'] # Get ValidationNode from params
+                    validation_result = validation_node.run(shared) # Call ValidationNode.run directly
+
+                    if validation_result == 'validate_success': # Check against the action string returned by ValidationNode.post
                         input_data[field_name] = user_input
                         break # Input is valid, move to next field
-                    elif validation_result_action == 'validate_failure':
+                    elif validation_result == 'validate_failure': # Check against the action string returned by ValidationNode.post
                         validation_error_message = shared.get('validation_error_message') # Get specific error message
                         continue # Re-prompt for the same field
 

@@ -4,9 +4,10 @@ import json
 
 class ValidationNode(Node):
     def prep(self, shared):
-        field_name = shared['field_to_validate']
-        field_value = shared['field_value']
-        return {'field_name': field_name, 'field_value': field_value}
+        # --- Retrieve data from shared store ---
+        self.field_name = shared['field_to_validate']
+        self.field_value = shared['field_value']
+        return {'field_name': self.field_name, 'field_value': self.field_value}
 
     def exec(self, prep_res, shared):
         field_name = prep_res['field_name']
@@ -71,7 +72,11 @@ class ValidationNode(Node):
     def post(self, shared, prep_res, exec_res):
         field_name = prep_res['field_name']
         if exec_res['is_valid']:
-            return 'validate_success'
+            # --- Put validation result into shared store ---
+            shared['validation_result'] = 'validate_success'
+            return 'validate_success' # Action is still needed for flow control if used in a flow
         else:
+            # --- Put validation result and error message into shared store ---
+            shared['validation_result'] = 'validate_failure'
             shared['validation_error_message'] = f"Invalid {field_name}: {exec_res.get('error', 'Unknown error')}" # Store specific error message
-            return 'validate_failure'
+            return 'validate_failure' # Action is still needed for flow control if used in a flow
