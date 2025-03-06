@@ -24,7 +24,7 @@ def call_llm(prompt):
 
 class CollectExchangeNode(Node):
     def prep(self, shared):
-        default_exchange = shared.get('exchange', '')
+        default_exchange = shared.get('last_exchange', '')
         return {'default_exchange': default_exchange}
 
     def exec(self, prep_res):
@@ -42,7 +42,7 @@ class CollectExchangeNode(Node):
 
 class CollectPairNode(Node):
     def prep(self, shared):
-        default_pair = shared.get('pair', '')
+        default_pair = shared.get('last_pair', '')
         return {'default_pair': default_pair}
 
     def exec(self, prep_res):
@@ -56,7 +56,7 @@ class CollectPairNode(Node):
 
 class CollectTimeframeNode(Node):
     def prep(self, shared):
-        default_timeframe = shared.get('timeframe', '')
+        default_timeframe = shared.get('last_timeframe', '')
         return {'default_timeframe': default_timeframe}
 
     def exec(self, prep_res):
@@ -138,38 +138,38 @@ class ValidateAllInputsNode(Node):
         timeframe = prep_res['timeframe']
 
         prompt = f"""
-        You are a validation assistant for the Freqtrade download assistant.
-        Validate the following user inputs for a freqtrade download command.
-        Return a YAML structure with a validation status and instructions for the next action.
+You are a validation assistant for the Freqtrade download assistant.
+Validate the following user inputs for a freqtrade download command.
+Return a YAML structure with a validation status and instructions for the next action.
 
-        Exchange: {exchange}
-        Pair: {pair}
-        Timeframe: {timeframe}
+Exchange: {exchange}
+Pair: {pair}
+Timeframe: {timeframe}
 
-        Here are the validation rules:
-        - Exchange: Must be one of (binance, ftx, kucoin, coinbase).
-        - Pair: Must be in the form of BASE/QUOTE, in which BTC is the base and USDT is the quote. If no quote part is given, assume USDT.
-        - Timeframe: Must be one of (1d, 3d, 1w, 2w, 1M, 3M, 6M, 1y).
+Here are the validation rules:
+- Exchange: Must be one of (binance, ftx, kucoin, coinbase).
+- Pair: Must be in the form of BASE/QUOTE, in which BTC is the base and USDT is the quote. If no quote part is given, assume USDT. If no quote part is given, assume USDT.
+- Timeframe: Must be one of (1d, 3d, 1w, 2w, 1M, 3M, 6M, 1y).
 
-        The YAML structure should contain:
-        - 'validation_status': OK or NOT_OK.
-        - If NOT_OK, include:
-            - 'error_messages': A list of dictionaries, each with 'field' and 'message' keys, describing the validation errors.
-            - 'next_action':  A string indicating which input to retry: 'retry_exchange', 'retry_pair', 'retry_timeframe', or 'retry_all' if unclear.
-        - If OK, include:
-            - 'next_action': 'execute_download'
+The YAML structure should contain:
+- validation_status: OK or NOT_OK.
+- If NOT_OK, include:
+  - error_messages: A list of dictionaries, each with 'field' and 'message' keys, describing the validation errors.
+  - next_action: A string indicating which input to retry: 'retry_exchange', 'retry_pair', 'retry_timeframe', or 'retry_all' if unclear.
+- If OK, include:
+  - next_action: 'execute_download'
 
-        Example for invalid exchange and timeframe:
-        ```yaml
-        validation_status: NOT_OK
-        error_messages:
-          - field: exchange
-            message: "Invalid exchange. Choose from binance, ftx, kucoin, coinbase."
-          - field: timeframe
-            message: "Invalid timeframe. Choose from 1d, 3d, 1w, 2w, 1M, 3M, 6M, 1y."
-        next_action: retry_exchange
-        ```
-        """
+Example for invalid exchange and timeframe:
+```yaml
+validation_status: NOT_OK
+error_messages:
+  - field: exchange
+    message: "Invalid exchange. Choose from binance, ftx, kucoin, coinbase."
+  - field: timeframe
+    message: "Invalid timeframe. Choose from 1d, 3d, 1w, 2w, 1M, 3M, 6M, 1y."
+next_action: retry_exchange
+```
+"""
         llm_response = call_llm(prompt)
         if llm_response:
             try:
