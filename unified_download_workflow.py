@@ -11,51 +11,76 @@ def main():
 
         prompt_parts = []
         if previous_errors:
-            print("Validation Errors from previous input:")
-            for field, error in previous_errors.items():
-                print(f"- {field}: {error}")
-            print("Please re-enter the invalid fields.")
-
-        fields_to_prompt = ["exchange", "asset pair", "timeframe"] # Default to all fields
-        if previous_errors:
-            fields_to_prompt = list(previous_errors.keys()) # Only prompt for fields with errors
-
-        input_str_parts = []
-        for field in fields_to_prompt:
-            default_value_text = ""
-            if field == "exchange":
-                field_display_name = "exchange"
-                default_value = validated_input_values.get("exchange", "")
-            elif field == "asset pair":
-                field_display_name = "asset pair"
-                default_value = validated_input_values.get("asset_pair", "")
-            elif field == "timeframe":
-                field_display_name = "timeframe"
-                default_value = validated_input_values.get("timeframe", "")
-
-            if default_value:
-                default_value_text = f" (last valid: '{default_value}')"
-            prompt_parts.append(f"{field_display_name}{default_value_text}")
-
-        prompt_text = ", ".join(prompt_parts) + " (or 'q' to quit): "
-        user_input_str = input(prompt_text)
+            # No longer printing static error messages here
+            # The LLM will provide a user-friendly error message
+            print(previous_errors.get("user_error_message", "Validation Errors:")) # Fallback message
+            prompt_text = previous_errors.get("re_entry_prompt", "Please re-enter the invalid fields.") # Fallback prompt
+            print(prompt_text)
+        else:
+            prompt_text = ", ".join(["exchange", "asset pair", "timeframe"]) + " (or 'q' to quit): "
 
 
-        if user_input_str.lower() in ["q", "quit"]:
-            print("Thank you for using the Freqtrade Download Assistant!")
-            break
+        if not previous_errors: # Only ask for input if not re-prompting due to errors
+            user_input_str = input(prompt_text)
 
-        user_input_values = {}
-        input_parts = user_input_str.split(',')
-        for i, field in enumerate(fields_to_prompt):
-            if i < len(input_parts):
-                user_input_values[field] = input_parts[i].strip()
-            else:
-                user_input_values[field] = "" # Handle missing input if user just presses enter
+            if user_input_str.lower() in ["q", "quit"]:
+                print("Thank you for using the Freqtrade Download Assistant!")
+                break
 
-        # Merge new user input with previously validated values for fields not being re-prompted
-        current_input_to_validate = validated_input_values.copy()
-        current_input_to_validate.update(user_input_values)
+            user_input_values = {}
+            input_parts = user_input_str.split(',')
+            fields_to_prompt = ["exchange", "asset pair", "timeframe"] # Initial fields to prompt
+            for i, field in enumerate(fields_to_prompt):
+                if i < len(input_parts):
+                    user_input_values[field] = input_parts[i].strip()
+                else:
+                    user_input_values[field] = "" # Handle missing input if user just presses enter
+
+            # Merge new user input with previously validated values for fields not being re-prompted
+            current_input_to_validate = validated_input_values.copy()
+            current_input_to_validate.update(user_input_values)
+        else:
+            # Re-prompting for specific fields based on previous errors
+            fields_to_prompt = list(previous_errors.get("invalid_fields_list", [])) # Get invalid fields from LLM response
+            if not fields_to_prompt:
+                fields_to_prompt = ["exchange", "asset pair", "timeframe"] # Fallback to all fields if no invalid_fields_list
+
+            prompt_parts = []
+            for field in fields_to_prompt:
+                default_value_text = ""
+                if field == "exchange":
+                    field_display_name = "exchange"
+                    default_value = validated_input_values.get("exchange", "")
+                elif field == "asset_pair":
+                    field_display_name = "asset pair"
+                    default_value = validated_input_values.get("asset_pair", "")
+                elif field == "timeframe":
+                    field_display_name = "timeframe"
+                    default_value = validated_input_values.get("timeframe", "")
+
+                if default_value:
+                    default_value_text = f" (last valid: '{default_value}')"
+                prompt_parts.append(f"{field_display_name}{default_value_text}")
+
+            re_prompt_text = ", ".join(prompt_parts) + " (or 'q' to quit): "
+            user_input_str = input(re_prompt_text)
+
+
+            if user_input_str.lower() in ["q", "quit"]:
+                print("Thank you for using the Freqtrade Download Assistant!")
+                break
+
+            user_input_values = {}
+            input_parts = user_input_str.split(',')
+            for i, field in enumerate(fields_to_prompt):
+                if i < len(input_parts):
+                    user_input_values[field] = input_parts[i].strip()
+                else:
+                    user_input_values[field] = "" # Handle missing input if user just presses enter
+
+            # Merge new user input with previously validated values for fields not being re-prompted
+            current_input_to_validate = validated_input_values.copy()
+            current_input_to_validate.update(user_input_values)
 
 
         # 2. Input Validation via LLM
@@ -70,12 +95,14 @@ def main():
         - Asset Pair must follow the 'BASE/QUOTE' format (default to 'USDT' if the quote is missing and convert the base to its standardized short form if needed).
         - Timeframe must be one of '1d', '3d', '1w', '2w', '1M', '3M', '6M', or '1y' (conversion applied as required).
 
-        Respond with a YAML object containing the following keys:
+        Based on the validation, respond with a YAML object containing the following keys:
         - "exchange": The validated exchange, or null if invalid.
         - "asset_pair": The validated asset pair, or null if invalid.
         - "timeframe": The validated timeframe, or null if invalid.
         - "errors": An array of error messages, one for each invalid field.
         - "invalid_fields": List the names of the fields that are invalid.
+        - "user_error_message": A user-friendly, concise message summarizing all validation errors, suitable for displaying to the user.
+        - "re_entry_prompt": A short, clear prompt asking the user to re-enter ONLY the invalid fields.  This prompt should be very brief and directly tell the user what to do next.
 
         Example Valid Response:
         ```yaml
@@ -84,17 +111,23 @@ def main():
         timeframe: 1d
         errors: []
         invalid_fields: []
+        user_error_message: ""
+        re_entry_prompt: ""
         ```
 
         Example Invalid Response:
         ```yaml
-        exchange: binance
+        exchange: null
         asset_pair: ADA/USDT
         timeframe: null
         errors:
+        - Invalid exchange
         - Invalid timeframe
         invalid_fields:
+        - exchange
         - timeframe
+        user_error_message: "There were errors in your input. Please correct the exchange and timeframe."
+        re_entry_prompt: "Re-enter exchange, timeframe"
         ```
         """
 
@@ -107,20 +140,25 @@ def main():
             timeframe = validation_result.get("timeframe")
             errors = validation_result.get("errors", [])
             invalid_fields = validation_result.get("invalid_fields", [])
+            user_error_message = validation_result.get("user_error_message", "")
+            re_entry_prompt = validation_result.get("re_entry_prompt", "")
         except yaml.YAMLError as e: # Catch YAML decode errors
             print(f"Error: Could not decode LLM response as YAML. Please try again. Error details: {e}")
             previous_errors = {"llm_response": "Could not decode LLM response as YAML. Please try again."} # Store decode error
             continue
 
         if errors:
-            print("Validation Errors:")
             current_errors = {}
-            for i in range(len(errors)):
+            for i in range(len(errors)): # Still process errors to store them, but rely on LLM's user_error_message for display
                 field_name = invalid_fields[i] if i < len(invalid_fields) else f"field_{i+1}" # Fallback field name
                 error_message = errors[i]
-                print(f"- {field_name}: {error_message}")
                 current_errors[field_name] = error_message # Store errors with field names
-            previous_errors = current_errors # Store errors for next prompt
+
+            previous_errors = { # Store LLM generated messages and invalid fields
+                "user_error_message": user_error_message,
+                "re_entry_prompt": re_entry_prompt,
+                "invalid_fields_list": invalid_fields # Store list of invalid fields to re-prompt
+            }
             continue
         else:
             previous_errors = {} # Clear errors if validation is successful
