@@ -49,7 +49,7 @@ class CollectExchangeNode(Node):
         if exec_res.get('action') == 'quit':
             return 'quit'
         shared['exchange'] = exec_res.get('exchange')
-        return 'validate_exchange'
+        return 'collect_pair'
 
 class ValidateExchangeNode(Node): # <<<--- DEFINITION FOR ValidateExchangeNode IS ADDED HERE
     def exec(self, prep_res):
@@ -83,7 +83,7 @@ class CollectPairNode(Node): # <<<--- DEFINITION FOR CollectPairNode IS ADDED HE
 
     def post(self, shared, prep_res, exec_res):
         shared['pair'] = exec_res.get('pair')
-        return 'validate_pair'
+        return 'collect_timeframe'
 
 class ValidatePairNode(Node): # <<<--- DEFINITION FOR ValidatePairNode IS ADDED HERE
     def prep(self, shared):
@@ -134,7 +134,7 @@ class CollectTimeframeNode(Node): # <<<--- DEFINITION FOR CollectTimeframeNode I
 
     def post(self, shared, prep_res, exec_res):
         shared['timeframe'] = exec_res.get('timeframe')
-        return 'validate_timeframe'
+        return 'validate_all_inputs'
 
 class ValidateTimeframeNode(Node): # <<<--- DEFINITION FOR ValidateTimeframeNode IS ADDED HERE
     def exec(self, prep_res):
@@ -202,39 +202,92 @@ class QuitNode(Node): # <<<--- DEFINITION FOR QuitNode IS ADDED HERE
 
     def post(self, shared, prep_res, exec_res):
         print(exec_res)
-        return None # End the flow
+        return None  # End the flow
 
 
-validate_exchange_node = ValidateExchangeNode()
+class ValidateAllInputsNode(Node):  # New ValidateAllInputsNode
+    def prep(self, shared):
+        exchange = shared.get('exchange')
+        pair = shared.get('pair')
+        timeframe = shared.get('timeframe')
+        return {
+            'exchange': exchange,
+            'pair': pair,
+            'timeframe': timeframe,
+        }
+
+    def exec(self, prep_res):
+        exchange = prep_res['exchange']
+        pair = prep_res['pair']
+        timeframe = prep_res['timeframe']
+
+        # --- LLM PROMPT --- (This is a placeholder, refine as needed)
+        prompt = f"""
+        Validate the following user inputs for a freqtrade download command:
+        Exchange: {exchange}
+        Pair: {pair}
+        Timeframe: {timeframe}
+
+        Valid exchanges are: binance, ftx, kucoin, coinbase.
+        Pair should be in format BASE/QUOTE, e.g., BTC/USDT. Assume USDT if quote is missing.
+        Valid timeframes are: 1d, 3d, 1w, 2w, 1M, 3M, 6M, 1y.
+
+        Return a YAML structure with:
+        - 'validation_status': OK or NOT_OK
+        - If NOT_OK, include:
+            - 'error_messages': a list of error messages for each invalid field.
+            - 'next_action':  'retry_exchange', 'retry_pair', 'retry_timeframe', or 'retry_all' if unclear.
+        - If OK, 'next_action': 'execute_download'
+
+        Example for invalid exchange and timeframe:
+        ```yaml
+        validation_status: NOT_OK
+        error_messages:
+          - field: exchange
+            message: "Invalid exchange. Choose from binance, ftx, kucoin, coinbase."
+          - field: timeframe
+            message: "Invalid timeframe. Choose from 1d, 3d, 1w, 2w, 1M, 3M, 6M, 1y."
+        next_action: retry_exchange
+        ```
+        """
+        llm_response = call_llm(prompt)  # Replace with your actual LLM call utility
+        validation_result = yaml.safe_load(llm_response)  # Assuming YAML output from LLM
+        return validation_result
+
+    def post(self, shared, prep_res, exec_res):
+        if exec_res.get('validation_status') == 'NOT_OK':
+            print("Validation errors:")
+            for error in exec_res.get('error_messages', []):
+                print(f"  - {error['field']}: {error['message']}")
+            return exec_res.get('next_action', 'retry_exchange')  # Default retry action
+        return 'execute_download'  # Proceed to download if validation OK
+
+validate_all_inputs_node = ValidateAllInputsNode()  # Instantiate ValidateAllInputsNode
 collect_pair_node = CollectPairNode()
 validate_pair_node = ValidatePairNode()
 collect_timeframe_node = CollectTimeframeNode()
-validate_timeframe_node = ValidateTimeframeNode()
 execute_download_node = ExecuteDownloadNode()
 quit_node = QuitNode()
-collect_exchange_node = CollectExchangeNode() # <<<--- MOVE INSTANTIATION HERE, BEFORE FLOW DEF
+collect_exchange_node = CollectExchangeNode()  # <<<--- MOVE INSTANTIATION HERE, BEFORE FLOW DEF
+validate_exchange_node = ValidateExchangeNode() # Instantiate ValidateExchangeNode - even if not used in flow anymore, for code completeness, can be removed later
 
-collect_exchange_node - "validate_exchange" >> validate_exchange_node
 collect_exchange_node - "quit" >> quit_node
+collect_exchange_node - "validate_exchange" >> collect_pair_node  # Go to collect pair directly
 
-validate_exchange_node - "collect_pair" >> collect_pair_node
-validate_exchange_node - "retry_exchange" >> collect_exchange_node
+collect_pair_node - "collect_timeframe" >> collect_timeframe_node  # Go to collect timeframe directly
 
-collect_pair_node - "validate_pair" >> validate_pair_node
-validate_pair_node - "collect_timeframe" >> collect_timeframe_node
-validate_pair_node - "retry_pair" >> collect_pair_node
+collect_timeframe_node - "validate_all_inputs" >> validate_all_inputs_node  # Go to validate all inputs
 
-collect_timeframe_node - "validate_timeframe" >> validate_timeframe_node
-validate_timeframe_node - "execute_download" >> execute_download_node
-validate_timeframe_node - "retry_timeframe" >> collect_timeframe_node
-
-execute_download_node - "start_over" >> collect_exchange_node
-execute_download_node - "retry_input" >> collect_exchange_node
+validate_all_inputs_node - "execute_download" >> execute_download_node  # Go to execute download if validation OK
+validate_all_inputs_node - "retry_exchange" >> collect_exchange_node  # Retry from exchange if exchange invalid
+validate_all_inputs_node - "retry_pair" >> collect_pair_node  # Retry pair if pair invalid
+validate_all_inputs_node - "retry_timeframe" >> collect_timeframe_node  # Retry timeframe if timeframe invalid
 
 download_flow = Flow(start=collect_exchange_node)
 
+
 def main():
-    shared_data = {} # Initialize shared data dictionary
+    shared_data = {}  # Initialize shared data dictionary
     download_flow.run(shared_data)
 
 if __name__ == "__main__":
