@@ -2,12 +2,12 @@ from pocketflow import Node
 
 class ConfirmationNode(Node):
     def prep(self, shared):
-        validated_input_values = shared['collected'] # AI: changed to 'collected'
+        collected_values = shared['collected'] # AI: changed to 'collected'
         self.confirmation_message = f"""
         \nConfirmation:
-        Exchange: {validated_input_values['exchange']}
-        Asset Pair: {validated_input_values['asset_pair']}
-        Timeframe: {validated_input_values['timeframe']}
+        Exchange: {collected_values['exchange']}
+        Asset Pair: {collected_values['asset_pair']}
+        Timeframe: {collected_values['timeframe']}
         Confirm download? (y/n): """
         return {}
 

@@ -3,8 +3,8 @@ import subprocess
 
 class DownloadExecutionNode(Node):
     def prep(self, shared):
-        validated_input_values = shared['collected'] # AI: changed to 'collected'
-        self.command = f"freqtrade download-data --userdir ./freq-user-data --data-format-ohlcv json --exchange {validated_input_values['exchange']} -t {validated_input_values['timeframe']} --timerange=20200101- -p {validated_input_values['asset_pair']}"
+        collected_values = shared['collected'] # AI: changed to 'collected'
+        self.command = f"freqtrade download-data --userdir ./freq-user-data --data-format-ohlcv json --exchange {collected_values['exchange']} -t {collected_values['timeframe']} --timerange=20200101- -p {collected_values['asset_pair']}"
         return {}
 
     def exec(self, prep_res, shared):
