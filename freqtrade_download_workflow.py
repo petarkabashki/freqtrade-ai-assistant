@@ -39,13 +39,13 @@ download_execution_node = DownloadExecutionNode()
 summary_node = SummaryNode()
 exit_node = ExitNode()
 
-# --- Dynamically set validation node in UserInputNode ---
-input_node.params['validation_node'] = validation_node # Set param immediately after input_node creation
-
 
 # --- Flow Definition ---
 download_flow = Flow(start=input_node)
 download_flow.params = {} # Initialize flow params
+
+# --- Dynamically set validation node in UserInputNode ---
+input_node.params['validation_node'] = validation_node # Set param AFTER download_flow is created
 
 
 # --- Flow Definition ---
