@@ -54,36 +54,43 @@ class UserInputNode(Node):
             return 'validate_failure', shared.get('validation_error_message') # Validation failed
         return 'unknown', None # Should not reach here, but handle unknown case
 
+    def _process_field_input(self, field_name, shared, last_inputs):
+        validation_error_message = None
+        while True:
+            user_input = self._get_user_input(field_name, last_inputs, validation_error_message)
+            if user_input.lower() == 'q':
+                return 'quit', None
+
+            validation_status, validation_response = self._validate_input(field_name, user_input, shared)
+
+            if validation_status == 'validate_success':
+                return 'success', validation_response # Input is valid
+            elif validation_status == 'validate_failure':
+                validation_error_message = validation_response # Set validation error message for next loop
+                continue # Re-prompt for the same field
+            elif validation_status == 'empty_input':
+                print(f"{field_name} cannot be empty. Please enter or 'q' to quit.")
+                validation_error_message = None # Clear any previous error
+                continue # Re-prompt for the same field
+            else: # 'unknown' or any other unexpected status
+                print(f"An unexpected validation status occurred: {validation_status}. Please try again.") # General error message
+                validation_error_message = None # Clear any previous error
+                continue # Re-prompt for the same field
+
+
     def exec(self, prep_res, shared): # Added 'shared' argument here
         print("\nPlease provide the required information.") # Subsequent guidance
         print("Enter 'q' to quit at any time.")
         last_inputs = shared['last_inputs']
 
         input_data = {} # Dictionary to store the input data
-        validation_error_message = None # Initialize error message
 
         for field_name in UserInputNode.INPUT_FIELDS: # Iterate through fields from class constant
-            while True:
-                user_input = self._get_user_input(field_name, last_inputs, validation_error_message)
-                if user_input.lower() == 'q': return 'quit'
-
-                validation_status, validation_response = self._validate_input(field_name, user_input, shared)
-
-                if validation_status == 'validate_success':
-                    input_data[field_name] = validation_response # Use validated input
-                    validation_error_message = None # Clear error message
-                    break # Input is valid, move to next field
-                elif validation_status == 'validate_failure':
-                    validation_error_message = validation_response # Set validation error message for next loop
-                    continue # Re-prompt for the same field
-                elif validation_status == 'empty_input':
-                    print(f"{field_name} cannot be empty. Please enter or 'q' to quit.")
-                    validation_error_message = None # Clear any previous error
-                    continue # Re-prompt for the same field
-                else: # 'unknown' or any other unexpected status
-                    print(f"An unexpected validation status occurred: {validation_status}. Please try again.") # General error message
-                    validation_error_message = None # Clear any previous error
-                    continue # Re-prompt for the same field
+            status, response = self._process_field_input(field_name, shared, last_inputs)
+            if status == 'quit':
+                return 'quit'
+            elif status == 'success':
+                input_data[field_name] = response # Store validated input
 
         # After successful input for all fields, save to shared memory
         save_shared_memory(input_data)
