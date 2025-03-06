@@ -85,6 +85,17 @@ class ValidateInputNode(Node):
         return 'execute_download' # Action to proceed to ExecuteDownloadNode
 
 class ExecuteDownloadNode(Node):
+    def prep(self, shared):
+        # Retrieve exchange, pair, and timeframe from shared memory
+        exchange = shared.get('exchange')
+        pair = shared.get('pair')
+        timeframe = shared.get('timeframe')
+        return {
+            'exchange': exchange,
+            'pair': pair,
+            'timeframe': timeframe,
+        }
+
     def exec(self, prep_res):
         exchange = prep_res['exchange']
         pair = prep_res['pair']
