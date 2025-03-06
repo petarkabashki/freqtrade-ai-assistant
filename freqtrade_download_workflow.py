@@ -49,6 +49,22 @@ class CollectExchangeNode(Node):
         shared['exchange'] = exec_res.get('exchange')
         return 'validate_exchange'
 
+class ValidateExchangeNode(Node): # <<<--- DEFINITION FOR ValidateExchangeNode IS ADDED HERE
+    def exec(self, prep_res):
+        exchange = prep_res['exchange']
+        valid_exchanges = ('binance', 'ftx', 'kucoin', 'coinbase')
+
+        if not exchange or exchange not in valid_exchanges:
+            return {'action': 'invalid_exchange', 'message': f"Invalid exchange. Choose from: {', '.join(valid_exchanges)}"}
+
+        return {'action': 'collect_pair', 'exchange': exchange}
+
+    def post(self, shared, prep_res, exec_res):
+        if exec_res.get('action') == 'invalid_exchange':
+            print(f"Input Error: {exec_res.get('message')}")
+            return 'retry_exchange'
+        return 'collect_pair'
+
 
 validate_exchange_node = ValidateExchangeNode()
 collect_pair_node = CollectPairNode()
