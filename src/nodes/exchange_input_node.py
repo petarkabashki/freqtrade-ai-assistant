@@ -46,6 +46,7 @@ class ExchangeInputNode(Node):
 
         shared['field_to_validate'] = field_name # Prepare shared data for validation node
         shared['field_value'] = user_input
+        # Why this nonsense ? AI!
         validation_node = self.params['validation_node'] # Get ValidationNode from params
         validation_result = validation_node.run(shared) # Call ValidationNode.run directly
 
