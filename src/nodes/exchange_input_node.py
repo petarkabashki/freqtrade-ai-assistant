@@ -77,4 +77,5 @@ class ExchangeInputNode(Node):
         if exec_res == 'quit':
             return 'quit'
         shared['field_value'] = exec_res # Store input in shared memory for validation
+        shared['field_to_validate'] = 'exchange' # <----- ADD THIS LINE
         return 'validate' # Action to trigger validation node
