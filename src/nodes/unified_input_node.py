@@ -53,4 +53,4 @@ class UnifiedInputNode(Node):
                 continue # Loop again if input is invalid
 
     def post(self, shared, prep_res, exec_res):
-        return {}
+        return exec_res
