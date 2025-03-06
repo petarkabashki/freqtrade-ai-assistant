@@ -94,9 +94,9 @@ def main():
         # 2. Input Validation via LLM
         validation_prompt = f"""
         Validate the following user inputs, considering the hints provided:
-        - Exchange: '{validated_input_values.get("exchange", "")}' (Hint: e.g., binance, kucoin, coinbase, ftx) # Exchange hint in LLM prompt AI!
-        - Asset Pair: '{validated_input_values.get("asset_pair", "")}' (Hint: e.g., BTC/USDT, ETH/BTC) # Asset pair hint in LLM prompt AI!
-        - Timeframe: '{validated_input_values.get("timeframe", "")}' (Hint: e.g., 1d, 1w, 1M) # Timeframe hint in LLM prompt AI!
+        - Exchange: '{current_input_to_validate.get("exchange", "")}' (Hint: e.g., binance, kucoin, coinbase, ftx) # Exchange hint in LLM prompt AI!
+        - Asset Pair: '{current_input_to_validate.get("asset_pair", "")}' (Hint: e.g., BTC/USDT, ETH/BTC) # Asset pair hint in LLM prompt AI!
+        - Timeframe: '{current_input_to_validate.get("timeframe", "")}' (Hint: e.g., 1d, 1w, 1M) # Timeframe hint in LLM prompt AI!
 
         Constraints:
         - Exchange must be one of 'binance', 'ftx', 'kucoin', or 'coinbase'.
