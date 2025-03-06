@@ -167,6 +167,10 @@ def main():
                 "asset_pair": asset_pair,
                 "timeframe": timeframe
             }
+            # Update variables to use validated values for confirmation and download
+            exchange = validated_input_values["exchange"]
+            asset_pair = validated_input_values["asset_pair"]
+            timeframe = validated_input_values["timeframe"]
 
         # 3. Download Confirmation
         print("\nConfirmation:")
