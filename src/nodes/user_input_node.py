@@ -102,4 +102,4 @@ class UserInputNode(Node):
         if exec_res == 'quit':
             return 'quit'
         shared['user_input'] = exec_res
-        return 'confirm' # Changed from 'validate' to 'confirm' to reflect flow change
+        return 'validate' # Changed back to 'validate'
