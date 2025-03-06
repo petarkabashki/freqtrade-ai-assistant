@@ -47,7 +47,7 @@ exit_node = ExitNode()
 download_flow = Flow(start=exchange_input_node) # Start with exchange input node
 download_flow.params = {} # Initialize flow params
 
-
+# how about separate actions for invalid input that loops back to the input nodes ? AI!
 # --- Flow Definition ---
 exchange_input_node - 'quit' >> exit_node
 exchange_input_node - 'validate_exchange' >> asset_pair_input_node # Go to asset_pair input after exchange
