@@ -27,17 +27,16 @@ def save_shared_memory(data):
     with open(SHARED_MEMORY_FILE, "w") as f:
         json.dump(data, f)
 
-# --- Node Definitions (moved to src/nodes/) ---
-# UserInputNode, ValidationNode, ConfirmationNode
-# DownloadExecutionNode, SummaryNode, ExitNode
-# are now defined in separate files under src/nodes/
-# and imported at the beginning of this file.
+# --- Node Definitions ---
+input_node = UserInputNode()
 validation_node = ValidationNode()
 confirmation_node = ConfirmationNode()
 download_execution_node = DownloadExecutionNode()
 summary_node = SummaryNode()
 exit_node = ExitNode()
 
+
+# --- Flow Definition ---
 input_node - 'validate' >> validation_node
 input_node - 'quit' >> exit_node
 validation_node - 'validate' >> confirmation_node # Corrected transition action to 'validate'
