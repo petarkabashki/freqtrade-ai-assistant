@@ -2,15 +2,24 @@ import subprocess
 from utils.call_llm import call_llm
 
 def main():
+    previous_errors = [] # Initialize to store previous errors
+
     while True:
         # 1. Unified Input Prompt
+
+        # Display previous errors if any
+        if previous_errors:
+            print("Validation Errors from previous input:")
+            for error in previous_errors:
+                print(f"- {error}")
+            print("Please re-enter all fields.")
+
         user_input = input("Enter exchange, asset pair, and timeframe (or 'q' to quit): ")
 
         if user_input.lower() in ["q", "quit"]:
             print("Thank you for using the Freqtrade Download Assistant!")
             break
 
-# This prompt needs to as only for the invalid fields. AI!
         # 2. Input Validation via LLM
         validation_prompt = f"""
         Validate the following user input, provided as a single string: '{user_input}'.
@@ -58,13 +67,17 @@ def main():
             errors = validation_result.get("errors", [])
         except json.JSONDecodeError:
             print("Error: Could not decode LLM response. Please try again.")
+            previous_errors = ["Could not decode LLM response. Please try again."] # Store decode error
             continue
 
         if errors:
             print("Validation Errors:")
             for error in errors:
                 print(f"- {error}")
+            previous_errors = errors # Store errors for next prompt
             continue
+        else:
+            previous_errors = [] # Clear errors if validation is successful
 
         # 3. Download Confirmation
         print("\nConfirmation:")
