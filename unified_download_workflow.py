@@ -16,32 +16,28 @@ def create_download_flow():
         "exit": ExitNode(),
     }
 
-    flow_definition = {
-        nodes["input"]: {
-            "validate_input": nodes["validation"],
-            "exit": nodes["exit"],
-        },
-        nodes["validation"]: {
-            "confirmation": nodes["confirmation"],
-            "reinput": nodes["input"],
-        },
-        nodes["confirmation"]: {
-            "execute_download": nodes["download"],
-            "reinput": nodes["input"],
-        },
-        nodes["download"]: {
-            "summary": nodes["summary"],
-        },
-        nodes["summary"]: {
-            "exit": nodes["exit"],
-        },
-    }
+    input_node = nodes["input"]
+    validation_node = nodes["validation"]
+    confirmation_node = nodes["confirmation"]
+    download_node = nodes["download"]
+    summary_node = nodes["summary"]
+    exit_node = nodes["exit"]
 
-    flow = Flow(start=nodes["input"])
-    for src_node, transitions in flow_definition.items():
-        for action, dest_node in transitions.items():
-            flow.add_successor(src_node, dest_node, action=action)
+    input_node - "validate_input" >> validation_node
+    input_node - "exit" >> exit_node
 
+    validation_node - "confirmation" >> confirmation_node
+    validation_node - "reinput" >> input_node
+
+    confirmation_node - "execute_download" >> download_node
+    confirmation_node - "reinput" >> input_node
+
+    download_node - "summary" >> summary_node
+
+    summary_node - "exit" >> exit_node
+
+
+    flow = Flow(start=input_node)
     return flow
 
 if __name__ == "__main__":
