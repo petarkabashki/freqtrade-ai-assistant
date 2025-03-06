@@ -31,8 +31,8 @@ class UnifiedInputNode(Node):
         if user_input.lower() in ['q', 'quit']:
             return "exit"
 
-        shared['user_input'] = user_input # Store raw user input in shared memory
-        shared['current_input_to_validate'] = {'user_input': user_input} # Initialize current_input_to_validate
+        shared['last_input'] = user_input # Store raw user input in shared memory, using 'last_input'
+        shared['current_input_to_validate'] = {'last_input': user_input} # Initialize current_input_to_validate with 'last_input'
         return "validate_input" # Always go to validation
 
     def post(self, shared, prep_res, exec_res):

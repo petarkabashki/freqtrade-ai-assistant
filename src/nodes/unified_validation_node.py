@@ -7,6 +7,7 @@ class UnifiedValidationNode(Node):
         current_input_to_validate = shared['current_input_to_validate']
         validation_prompt = f"""
         Validate the following user inputs, considering the hints provided:
+        - User Input: '{current_input_to_validate.get("last_input", "")}' (This is the user's raw input)
         - Exchange: '{current_input_to_validate.get("exchange", "")}' (Hint: e.g., binance, kucoin, coinbase, ftx)
         - Asset Pair: '{current_input_to_validate.get("asset_pair", "")}' (Hint: e.g., BTC/USDT, ETH/BTC)
         - Timeframe: '{current_input_to_validate.get("timeframe", "")}' (Hint: e.g., 1d, 1w, 1M)
