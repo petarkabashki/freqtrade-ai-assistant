@@ -45,6 +45,8 @@ input_node.params['validation_node'] = validation_node
 
 # --- Flow Definition ---
 download_flow = Flow(start=input_node)
+download_flow.params = {} # Initialize flow params
+
 
 # --- Flow Definition ---
 input_node - 'validate' >> validation_node # No longer used in this flow, validation is done within UserInputNode
