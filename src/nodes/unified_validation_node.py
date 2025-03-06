@@ -98,6 +98,12 @@ class UnifiedValidationNode(Node):
             shared['previous_errors'] = {"llm_response": "Could not decode LLM response as YAML. Please try again."}
             return "reinput"
 
+        shared['collected'] = {
+            "exchange": exchange,
+            "asset_pair": asset_pair,
+            "timeframe": timeframe
+        }
+        
         if errors:
             shared['previous_errors'] = {
                 "user_error_message": user_error_message,
@@ -107,12 +113,7 @@ class UnifiedValidationNode(Node):
             return "reinput"
         else:
             shared['previous_errors'] = {}
-            shared['collected'] = {
-                "exchange": exchange,
-                "asset_pair": asset_pair,
-                "timeframe": timeframe
-            }
             return "confirmation"
 
     def post(self, shared, prep_res, exec_res):
-        return {}
+        return exec_res
