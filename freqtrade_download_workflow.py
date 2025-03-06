@@ -28,9 +28,11 @@ class CollectExchangeNode(Node):
         # Debug: Print keys after ensuring it's a dict
         print(f"DEBUG: prep_res is a dict with keys: {prep_res.keys()}") # DEBUG: print keys
 
-        # VERY EXPLICIT CHECK RIGHT BEFORE ACCESS
-        if prep_res is None or not isinstance(prep_res, dict):
-            raise ValueError("CRITICAL ERROR: prep_res is None or not a dict right before accessing prep_res['exchange']!")
+        # VERY EXPLICIT CHECK RIGHT BEFORE ACCESS - EVEN MORE AGGRESSIVE
+        if prep_res is None:
+            raise ValueError("CRITICAL ERROR: prep_res is STILL None right before accessing it! Flow logic error?")
+        if not isinstance(prep_res, dict):
+            raise ValueError(f"CRITICAL ERROR: prep_res is STILL not a dict right before accessing it! Type: {type(prep_res)}")
 
 
         # No defensive check needed, rely on .get with default
