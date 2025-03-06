@@ -44,6 +44,9 @@ input_node.params['validation_node'] = validation_node
 
 
 # --- Flow Definition ---
+download_flow = Flow(start=input_node)
+
+# --- Flow Definition ---
 input_node - 'validate' >> validation_node # No longer used in this flow, validation is done within UserInputNode
 input_node - 'quit' >> exit_node
 validation_node - 'validate_success' >> confirmation_node # These transitions are also not directly used in the main flow anymore
@@ -53,8 +56,6 @@ confirmation_node - 'input' >> input_node
 download_execution_node - 'summarize' >> summary_node
 summary_node - 'input' >> input_node
 
-
-download_flow = Flow(start=input_node)
 
 def main():
     print("\nWelcome to the Freqtrade Download Assistant!") # Initial greeting
