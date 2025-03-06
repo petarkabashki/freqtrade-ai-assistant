@@ -3,7 +3,7 @@ import subprocess
 
 class DownloadExecutionNode(Node):
     def prep(self, shared):
-        collected_values = shared['collected'] # AI: changed to 'collected'
+        collected_values = shared['collected']
         self.command = f"freqtrade download-data --userdir ./freq-user-data --data-format-ohlcv json --exchange {collected_values['exchange']} -t {collected_values['timeframe']} --timerange=20200101- -p {collected_values['asset_pair']}"
         return {}
 

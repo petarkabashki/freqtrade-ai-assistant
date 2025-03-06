@@ -61,7 +61,7 @@ class UnifiedValidationNode(Node):
         invalid_fields:
         - exchange
         - timeframe
-        user_error_message: "Please provide a valid exchange (binance, ftx, kucoin, coinbase) and timeframe (1d, 3d, 1w, 2w, 1M, 3M, 6M, 1y)."
+        user_error_message: "Please provide a valid exchange (binance, kucoin) and timeframe (e.g., 1d, 1w)."
         re_entry_prompt: "Re-enter exchange and timeframe"
         ```
 
@@ -98,12 +98,14 @@ class UnifiedValidationNode(Node):
             shared['previous_errors'] = {"llm_response": "Could not decode LLM response as YAML. Please try again."}
             return "reinput"
 
-        shared['collected'] = {
-            "exchange": exchange,
-            "asset_pair": asset_pair,
-            "timeframe": timeframe
-        }
-        
+        # Update collected values incrementally
+        collected_values = shared.get('collected', {})
+        if exchange: collected_values['exchange'] = exchange
+        if asset_pair: collected_values['asset_pair'] = asset_pair
+        if timeframe: collected_values['timeframe'] = timeframe
+        shared['collected'] = collected_values
+
+
         if errors:
             shared['previous_errors'] = {
                 "user_error_message": user_error_message,

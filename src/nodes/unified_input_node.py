@@ -4,7 +4,6 @@ class UnifiedInputNode(Node):
     ORANGE_COLOR_CODE = "\033[38;5;208m"  # ANSI escape code for orange
 
     def prep(self, shared):
-        # When coming here from the validation node, use only what's in shared AI!
         re_entry_prompt = shared.get('re_entry_prompt', "")
 
         prompt_lines = [
