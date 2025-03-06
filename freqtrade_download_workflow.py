@@ -48,7 +48,6 @@ exchange_input_node.params['validation_node'] = validation_node # Set param **AF
 asset_pair_input_node.params['validation_node'] = validation_node # Set param for AssetPairInputNode
 timeframe_input_node.params['validation_node'] = validation_node # Set param for TimeframeInputNode
 
-
 # --- Flow Definition ---
 download_flow = Flow(start=exchange_input_node) # Start with exchange input node
 download_flow.params = {} # Initialize flow params
