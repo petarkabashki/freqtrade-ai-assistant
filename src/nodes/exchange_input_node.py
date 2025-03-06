@@ -43,18 +43,7 @@ class ExchangeInputNode(Node):
                 return 'validate_success', default_value # Input is valid as default is used
             else:
                 return 'empty_input', None # Indicate empty input, no default
-
-        shared['field_to_validate'] = field_name # Prepare shared data for validation node
-        shared['field_value'] = user_input
-# this shouldn't be here but in the main flow construction. same for the other input fields. AI!
-        validation_node = self.params['validation_node'] # Get ValidationNode from params
-        validation_result = validation_node.run(shared) # Call ValidationNode.run directly
-
-        if validation_result == 'validate_success':
-            return 'validate_success', user_input # Input is valid
-        elif validation_result == 'validate_failure':
-            return 'validate_failure', shared.get('validation_error_message') # Validation failed
-        return 'unknown', None # Should not reach here, but handle unknown case
+        return 'validate_pending', user_input # Indicate validation needed in flow
 
 
     def exec(self, prep_res, shared):
@@ -71,10 +60,9 @@ class ExchangeInputNode(Node):
             validation_status, validation_response = self._validate_input(user_input, shared)
 
             if validation_status == 'validate_success':
-                return validation_response # Input is valid
-            elif validation_status == 'validate_failure':
-                validation_error_message = validation_response # Set validation error message for next loop
-                continue # Re-prompt for the same field
+                return validation_response # Input is valid (default used)
+            elif validation_status == 'validate_pending':
+                return validation_response # Input needs validation
             elif validation_status == 'empty_input':
                 print(f"Exchange cannot be empty. Please enter or 'q' to quit.")
                 validation_error_message = None # Clear any previous error
@@ -88,7 +76,5 @@ class ExchangeInputNode(Node):
     def post(self, shared, prep_res, exec_res):
         if exec_res == 'quit':
             return 'quit'
-        shared['exchange_input'] = exec_res # Store validated input in shared memory
-        if exec_res == 'validate_exchange': # typo fix: should be validate_exchange action
-            return 'validate_exchange'
-        return 'invalid_exchange' # New action for invalid input
+        shared['field_value'] = exec_res # Store input in shared memory for validation
+        return 'validate_exchange' # Action to trigger validation node

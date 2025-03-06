@@ -43,20 +43,24 @@ download_execution_node = DownloadExecutionNode()
 summary_node = SummaryNode()
 exit_node = ExitNode()
 
+
 # --- Flow Definition ---
 download_flow = Flow(start=exchange_input_node) # Start with exchange input node
-download_flow.params = {} # Initialize flow params
+download_flow.params = {'validation_node': validation_node} # Initialize flow params and pass validation node
 
 # --- Flow Definition ---
 exchange_input_node - 'quit' >> exit_node
-exchange_input_node - 'validate_exchange' >> asset_pair_input_node # Go to asset_pair input after exchange
-exchange_input_node - 'invalid_exchange' >> exchange_input_node # Loop back to exchange input on invalid input
+exchange_input_node - 'validate_exchange' >> validation_node # Go to validation after exchange input
+validation_node - 'validate_success' >> asset_pair_input_node # Go to asset_pair input after exchange validation success
+validation_node - 'validate_failure' >> exchange_input_node # Loop back to exchange input on validation failure
 asset_pair_input_node - 'quit' >> exit_node
-asset_pair_input_node - 'validate_asset_pair' >> timeframe_input_node # Go to timeframe input after asset_pair
-asset_pair_input_node - 'invalid_asset_pair' >> asset_pair_input_node # Loop back to asset_pair input on invalid input
+asset_pair_input_node - 'validate_asset_pair' >> validation_node # Go to validation after asset_pair input
+validation_node - 'validate_success' >> timeframe_input_node # Go to timeframe input after asset_pair validation success
+validation_node - 'validate_failure' >> asset_pair_input_node # Loop back to asset_pair input on validation failure
 timeframe_input_node - 'quit' >> exit_node
-timeframe_input_node - 'validate_timeframe' >> confirmation_node # Go to confirmation after timeframe
-timeframe_input_node - 'invalid_timeframe' >> timeframe_input_node # Loop back to timeframe input on invalid input
+timeframe_input_node - 'validate_timeframe' >> validation_node # Go to validation after timeframe input
+validation_node - 'validate_success' >> confirmation_node # Go to confirmation after timeframe validation success
+validation_node - 'validate_failure' >> timeframe_input_node # Loop back to timeframe input on validation failure
 confirmation_node - 'download' >> download_execution_node
 confirmation_node - 'input' >> exchange_input_node # Go back to exchange input if not confirmed
 download_execution_node - 'summarize' >> summary_node
