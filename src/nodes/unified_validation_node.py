@@ -5,6 +5,7 @@ import yaml
 class UnifiedValidationNode(Node):
     def prep(self, shared):
         current_input_to_validate = shared['current_input_to_validate']
+        # for exchange, pair, timeframe use a separate key in the shared 'collected'. AI!
         validation_prompt = f"""
         Validate the following user inputs, considering the hints provided:
         - User Input: '{current_input_to_validate.get("last_input", "")}' (This is the user's raw input)
