@@ -212,6 +212,7 @@ collect_timeframe_node = CollectTimeframeNode()
 validate_timeframe_node = ValidateTimeframeNode()
 execute_download_node = ExecuteDownloadNode()
 quit_node = QuitNode()
+collect_exchange_node = CollectExchangeNode() # <<<--- MOVE INSTANTIATION HERE, BEFORE FLOW DEF
 
 collect_exchange_node - "validate_exchange" >> validate_exchange_node
 collect_exchange_node - "quit" >> quit_node
