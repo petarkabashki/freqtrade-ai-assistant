@@ -7,6 +7,7 @@ class CollectExchangeNode(Node):
         default_exchange = shared.get('exchange', '')
         default_pair = shared.get('pair', '')
         default_timeframe = shared.get('timeframe', '')
+        # Defensive return: Ensure prep always returns a dict
         return {
             'default_exchange': default_exchange,
             'default_pair': default_pair,
