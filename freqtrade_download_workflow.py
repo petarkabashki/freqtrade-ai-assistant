@@ -10,7 +10,9 @@ from pocketflow import Node, Flow
 # from utils.search_web import search_web
 
 # --- Node Imports ---
-from src.nodes.user_input_node import UserInputNode
+from src.nodes.exchange_input_node import ExchangeInputNode
+from src.nodes.asset_pair_input_node import AssetPairInputNode # Import AssetPairInputNode
+from src.nodes.timeframe_input_node import TimeframeInputNode # Import TimeframeInputNode
 from src.nodes.validation_node import ValidationNode
 from src.nodes.confirmation_node import ConfirmationNode
 from src.nodes.download_execution_node import DownloadExecutionNode
@@ -33,27 +35,36 @@ def save_shared_memory(data):
 
 # --- Node Definitions ---
 validation_node = ValidationNode() # Define validation_node **FIRST**
-input_node = UserInputNode() # Then define input_node
+exchange_input_node = ExchangeInputNode()
+asset_pair_input_node = AssetPairInputNode() # Instantiate AssetPairInputNode
+timeframe_input_node = TimeframeInputNode() # Instantiate TimeframeInputNode
 confirmation_node = ConfirmationNode()
 download_execution_node = DownloadExecutionNode()
 summary_node = SummaryNode()
 exit_node = ExitNode()
 
-# --- Dynamically set validation node in UserInputNode ---
-input_node.params['validation_node'] = validation_node # Set param **AFTER** validation_node is defined and **BEFORE** Flow creation!
+# --- Dynamically set validation node in Input Nodes ---
+exchange_input_node.params['validation_node'] = validation_node # Set param **AFTER** validation_node is defined and **BEFORE** Flow creation!
+asset_pair_input_node.params['validation_node'] = validation_node # Set param for AssetPairInputNode
+timeframe_input_node.params['validation_node'] = validation_node # Set param for TimeframeInputNode
 
 
 # --- Flow Definition ---
-download_flow = Flow(start=input_node) # Create the Flow **AFTER** setting input_node params
+download_flow = Flow(start=exchange_input_node) # Start with exchange input node
 download_flow.params = {} # Initialize flow params
 
 
 # --- Flow Definition ---
-input_node - 'quit' >> exit_node
+exchange_input_node - 'quit' >> exit_node
+exchange_input_node - 'validate_exchange' >> asset_pair_input_node # Go to asset_pair input after exchange
+asset_pair_input_node - 'quit' >> exit_node
+asset_pair_input_node - 'validate_asset_pair' >> timeframe_input_node # Go to timeframe input after asset_pair
+timeframe_input_node - 'quit' >> exit_node
+timeframe_input_node - 'validate_timeframe' >> confirmation_node # Go to confirmation after timeframe
 confirmation_node - 'download' >> download_execution_node
-confirmation_node - 'input' >> input_node
+confirmation_node - 'input' >> exchange_input_node # Go back to exchange input if not confirmed
 download_execution_node - 'summarize' >> summary_node
-summary_node - 'input' >> input_node
+summary_node - 'input' >> exchange_input_node # Loop back to exchange input for next download
 
 
 def main():
