@@ -14,12 +14,9 @@ def call_llm(prompt):
     )
     raw_response_content = response.choices[0].message.content
     print("Raw LLM Response:", raw_response_content) # Print raw response for debugging
-    return raw_response_content
 
-def get_embedding(text):
-    client = OpenAI(api_key=API_KEY)
-    response = client.embeddings.create(
-        model="text-embedding-ada-002",
-        input=text
-    )
-    return response.data[0].embedding
+    # Remove markdown code fences if present
+    if raw_response_content.startswith("```json") and raw_response_content.endswith("```"):
+        raw_response_content = raw_response_content[7:-3].strip() # Remove ```json and ``` and any extra whitespace
+
+    return raw_response_content

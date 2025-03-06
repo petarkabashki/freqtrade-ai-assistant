@@ -1,4 +1,4 @@
-import asyncio, warnings, copy, time
+import warnings, copy, time
 
 class BaseNode:
     def __init__(self): self.params,self.successors={},{}
@@ -53,48 +53,3 @@ class BatchFlow(Flow):
         pr=self.prep(shared) or []
         for bp in pr: self._orch(shared,{**self.params,**bp})
         return self.post(shared,pr,None)
-
-class AsyncNode(Node):
-    def prep(self,shared): raise RuntimeError("Use prep_async.")
-    def exec(self,prep_res, shared): raise RuntimeError("Use exec_async.")
-    def post(self,shared,prep_res,exec_res): raise RuntimeError("Use post_async.")
-    def exec_fallback(self,prep_res,exc, shared): raise RuntimeError("Use exec_fallback_async.")
-    def _run(self,shared): raise RuntimeError("Use run_async.")
-    async def prep_async(self,shared): pass
-    async def exec_async(self,prep_res, shared): pass
-    async def exec_fallback_async(self,prep_res,exc, shared): raise exc
-    async def post_async(self,shared,prep_res,exec_res): pass
-    async def _exec(self,prep_res, shared):
-        for i in range(self.max_retries):
-            try: return await self.exec_async(prep_res, shared)
-            except Exception as e:
-                if i==self.max_retries-1: return await self.exec_fallback_async(prep_res,e, shared)
-                if self.wait>0: await asyncio.sleep(self.wait)
-    async def run_async(self,shared):
-        if self.successors: warnings.warn("Node won't run successors. Use AsyncFlow.")
-        return await self._run_async(shared)
-    async def _run_async(self,shared): p=await self.prep_async(shared);e=await self._exec(p, shared);return await self.post_async(shared,p,e)
-
-class AsyncBatchNode(AsyncNode,BatchNode):
-    async def _exec(self,items, shared): return [await super(AsyncBatchNode,self)._exec(i, shared) for i in items]
-
-class AsyncParallelBatchNode(AsyncNode,BatchNode):
-    async def _exec(self,items, shared): return await asyncio.gather(*(super(AsyncParallelBatchNode,self)._exec(i, shared) for i in items))
-
-class AsyncFlow(Flow,AsyncNode):
-    async def _orch_async(self,shared,params=None):
-        curr,p=copy.copy(self.start),(params or {**self.params})
-        while curr:curr.set_params(p);c=await curr._run_async(shared) if isinstance(curr,AsyncNode) else curr._run(shared);curr=copy.copy(self.get_next_node(curr,c))
-    async def _run_async(self,shared): p=await self.prep_async(shared);await self._orch_async(shared);return await self.post_async(shared,p,None)
-
-class AsyncBatchFlow(AsyncFlow,BatchFlow):
-    async def _run_async(self,shared):
-        pr=await self.prep_async(shared) or []
-        for bp in pr: await self._orch_async(shared,{**self.params,**bp})
-        return await self.post_async(shared,pr,None)
-
-class AsyncParallelBatchFlow(AsyncFlow,BatchFlow):
-    async def _run_async(self,shared):
-        pr=await self.prep_async(shared) or []
-        await asyncio.gather(*(self._orch_async(shared,{**self.params,**bp}) for bp in pr))
-        return await self.post_async(shared,pr,None)
