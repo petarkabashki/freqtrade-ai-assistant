@@ -46,19 +46,22 @@ exit_node = ExitNode()
 
 # --- Flow Definition ---
 download_flow = Flow(start=exchange_input_node) # Start with exchange input node
-download_flow.params = {'validation_node': validation_node} # Initialize flow params and pass validation node
+# download_flow.params = {'validation_node': validation_node} # Initialize flow params and pass validation node - REMOVE THIS LINE
 
 # --- Flow Definition ---
 exchange_input_node - 'quit' >> exit_node
-exchange_input_node - 'validate_exchange' >> validation_node # Go to validation after exchange input
+exchange_input_node - 'validate' >> validation_node # Go to validation after exchange input - ACTION NAME IS NOW 'validate'
+validation_node.set_params({'validation_prompt_path': 'src/nodes/validation_prompt_exchange.txt'}) # Set validation prompt for exchange validation
 validation_node - 'validate_success' >> asset_pair_input_node # Go to asset_pair input after exchange validation success
 validation_node - 'validate_failure' >> exchange_input_node # Loop back to exchange input on validation failure
 asset_pair_input_node - 'quit' >> exit_node
-asset_pair_input_node - 'validate_asset_pair' >> validation_node # Go to validation after asset_pair input
+asset_pair_input_node - 'validate' >> validation_node # Go to validation after asset_pair input - ACTION NAME IS NOW 'validate'
+validation_node.set_params({'validation_prompt_path': 'src/nodes/validation_prompt_asset_pair.txt'}) # Set validation prompt for asset_pair validation
 validation_node - 'validate_success' >> timeframe_input_node # Go to timeframe input after asset_pair validation success
 validation_node - 'validate_failure' >> asset_pair_input_node # Loop back to asset_pair input on validation failure
 timeframe_input_node - 'quit' >> exit_node
-timeframe_input_node - 'validate_timeframe' >> validation_node # Go to validation after timeframe input
+timeframe_input_node - 'validate' >> validation_node # Go to validation after timeframe input - ACTION NAME IS NOW 'validate'
+validation_node.set_params({'validation_prompt_path': 'src/nodes/validation_prompt_timeframe.txt'}) # Set validation prompt for timeframe validation
 validation_node - 'validate_success' >> confirmation_node # Go to confirmation after timeframe validation success
 validation_node - 'validate_failure' >> timeframe_input_node # Loop back to timeframe input on validation failure
 confirmation_node - 'download' >> download_execution_node
