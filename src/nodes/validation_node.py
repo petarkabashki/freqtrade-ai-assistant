@@ -12,6 +12,15 @@ class ValidationNode(Node):
         field_name = prep_res['field_name']
         field_value = prep_res['field_value']
 
+        def constraints_for_field(field_name):
+            if field_name == 'exchange':
+                return "Must be one of: binance, ftx, kucoin, or coinbase."
+            elif field_name == 'asset_pair':
+                return "Must be in BASE/QUOTE format (e.g., BTC/USDT). If the quote currency is missing, default to USDT. Standardize the base and quote currency to their short forms if necessary."
+            elif field_name == 'timeframe':
+                return "Must be one of: 1d, 3d, 1w, 2w, 1M, 3M, 6M, or 1y. Convert to the standard format if necessary (e.g., '1 month' to '1M')."
+            return "No specific constraints defined for this field."
+
         # --- LLM Validation ---
         validation_prompt = f"""
         You are a system for validating user inputs for downloading cryptocurrency data.
@@ -20,7 +29,7 @@ class ValidationNode(Node):
 
         Constraints:
         For '{field_name}', the constraints are:
-        {{constraints_for_field(field_name)}}
+        {constraints_for_field(field_name)}
 
         Response Format:
         Return a JSON object that strictly adheres to this format:
@@ -45,22 +54,8 @@ class ValidationNode(Node):
         ```
 
         Begin!
-
-        ---
-        Helper function to get constraints based on field_name:
-        ```python
-        def constraints_for_field(field_name):
-            if field_name == 'exchange':
-                return "Must be one of: binance, ftx, kucoin, or coinbase."
-            elif field_name == 'asset_pair':
-                return "Must be in BASE/QUOTE format (e.g., BTC/USDT). If the quote currency is missing, default to USDT. Standardize the base and quote currency to their short forms if necessary."
-            elif field_name == 'timeframe':
-                return "Must be one of: 1d, 3d, 1w, 2w, 1M, 3M, 6M, or 1y. Convert to the standard format if necessary (e.g., '1 month' to '1M')."
-            return "No specific constraints defined for this field."
-        ```
         """
-        validation_prompt_with_constraints = validation_prompt.replace(
-            "{{constraints_for_field(field_name)}}",
+        validation_prompt_with_constraints = validation_prompt.format( # use .format instead of .replace
             constraints_for_field(field_name)
         )
 
