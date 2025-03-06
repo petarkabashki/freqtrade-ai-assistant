@@ -28,7 +28,7 @@ class UserInputNode(Node):
         shared['last_inputs'] = last_inputs
         return None
 
-    def exec(self, prep_res):
+    def exec(self, prep_res, shared): # Added 'shared' argument here
         print("\nEnter 'q' to quit at any time.")
         last_inputs = shared['last_inputs']
 
