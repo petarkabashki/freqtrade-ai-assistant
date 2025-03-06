@@ -34,13 +34,13 @@ def save_shared_memory(data):
 # --- Node Definitions ---
 input_node = UserInputNode()
 validation_node = ValidationNode() # Define validation_node BEFORE using it
-# --- Dynamically set validation node in UserInputNode ---
-input_node.params['validation_node'] = validation_node # Set param immediately after input_node creation
 confirmation_node = ConfirmationNode()
 download_execution_node = DownloadExecutionNode()
 summary_node = SummaryNode()
 exit_node = ExitNode()
 
+# --- Dynamically set validation node in UserInputNode ---
+input_node.params['validation_node'] = validation_node # Set param immediately after input_node creation
 
 
 # --- Flow Definition ---
@@ -49,10 +49,7 @@ download_flow.params = {} # Initialize flow params
 
 
 # --- Flow Definition ---
-input_node - 'validate' >> validation_node # No longer used in this flow, validation is done within UserInputNode
 input_node - 'quit' >> exit_node
-validation_node - 'validate_success' >> confirmation_node # These transitions are also not directly used in the main flow anymore
-validation_node - 'validate_failure' >> input_node # These transitions are also not directly used in the main flow anymore
 confirmation_node - 'download' >> download_execution_node
 confirmation_node - 'input' >> input_node
 download_execution_node - 'summarize' >> summary_node
