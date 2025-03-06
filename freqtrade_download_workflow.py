@@ -43,6 +43,7 @@ download_execution_node = DownloadExecutionNode()
 summary_node = SummaryNode()
 exit_node = ExitNode()
 
+# Don't do this AI!
 # --- Dynamically set validation node in Input Nodes ---
 exchange_input_node.params['validation_node'] = validation_node # Set param **AFTER** validation_node is defined and **BEFORE** Flow creation!
 asset_pair_input_node.params['validation_node'] = validation_node # Set param for AssetPairInputNode
@@ -53,6 +54,7 @@ download_flow = Flow(start=exchange_input_node) # Start with exchange input node
 download_flow.params = {} # Initialize flow params
 
 
+# use transitions for invalid input for the input fields back to their corresponding input nodes. Update the requiremens doc too.
 # --- Flow Definition ---
 exchange_input_node - 'quit' >> exit_node
 exchange_input_node - 'validate_exchange' >> asset_pair_input_node # Go to asset_pair input after exchange
