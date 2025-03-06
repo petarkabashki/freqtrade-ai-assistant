@@ -136,6 +136,23 @@ class CollectTimeframeNode(Node): # <<<--- DEFINITION FOR CollectTimeframeNode I
         shared['timeframe'] = exec_res.get('timeframe')
         return 'validate_timeframe'
 
+class ValidateTimeframeNode(Node): # <<<--- DEFINITION FOR ValidateTimeframeNode IS ADDED HERE
+    def exec(self, prep_res):
+        timeframe = prep_res['timeframe']
+        valid_timeframes = ('1d', '3d', '1w', '2w', '1m', '3m', '6m', '1y') # corrected timeframe list
+
+        if not timeframe or timeframe not in valid_timeframes:
+            return {'action': 'invalid_timeframe', 'message': f"Invalid timeframe. Choose from: {', '.join(valid_timeframes)}"}
+
+        return {'action': 'execute_download', 'exchange': shared['exchange'], 'pair': shared['pair'], 'timeframe': timeframe}
+
+    def post(self, shared, prep_res, exec_res):
+        if exec_res.get('action') == 'invalid_timeframe':
+            print(f"Input Error: {exec_res.get('message')}")
+            return 'retry_timeframe'
+        return 'execute_download'
+
+
 validate_exchange_node = ValidateExchangeNode()
 collect_pair_node = CollectPairNode()
 validate_pair_node = ValidatePairNode()
