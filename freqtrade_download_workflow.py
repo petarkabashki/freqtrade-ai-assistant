@@ -1,235 +1,256 @@
-from pocketflow import Flow, Node
-import subprocess
-import yaml
-import os
-from dotenv import load_dotenv
+import asyncio
+import sys
+import json  # For shared memory (using a file for simplicity)
+from pocketflow import Node, Flow
+# Assuming call_llm, call_llm_async, and search_web are defined in utils.call_llm (or similar)
+# from utils.call_llm import call_llm, call_llm_async
+# from utils.search_web import search_web
 
-load_dotenv()
+# --- Shared Memory (using a JSON file for simplicity) ---
+SHARED_MEMORY_FILE = "shared_memory.json"
 
-# Utility function for LLM calls
-def call_llm(prompt):
-    import openai
-    openai.api_key = os.getenv("OPENAI_API_KEY")  # Read API key from environment variable
-    if not openai.api_key:
-        raise ValueError("OPENAI_API_KEY not found in environment variables.")
+def load_shared_memory():
     try:
-        response = openai.chat.completions.create(
-            model="gpt-4o",  # Specify the model
-            messages=[{"role": "user", "content": prompt}]
-        )
-        return response.choices[0].message.content
-    except Exception as e:
-        print(f"LLM call failed: {e}")
+        with open(SHARED_MEMORY_FILE, "r") as f:
+            return json.load(f)
+    except FileNotFoundError:
+        return {}
+
+def save_shared_memory(data):
+    with open(SHARED_MEMORY_FILE, "w") as f:
+        json.dump(data, f)
+
+# --- Nodes ---
+
+class UserInputNode(Node):
+    def prep(self, shared):
+        last_inputs = load_shared_memory()
+        shared['last_inputs'] = last_inputs
         return None
 
-class CollectExchangeNode(Node):
-    def prep(self, shared):
-        default_exchange = shared.get('last_exchange', '')
-        return {'default_exchange': default_exchange}
-
     def exec(self, prep_res):
-        default_exchange = prep_res.get('default_exchange', '')
-        exchange = input(f"Enter exchange (binance, ftx, kucoin, coinbase) or 'q' to quit (default: {default_exchange}): ").lower()
-        if exchange == 'q':
-            return {'action': 'quit'}
-        return {'exchange': exchange}
+        print("\nEnter 'q' to quit at any time.")
+        last_inputs = shared['last_inputs']
+
+        while True:
+            exchange = input(f"Exchange (default: {last_inputs.get('exchange', 'binance') if last_inputs else 'binance'}): ").strip() or last_inputs.get('exchange', 'binance') if last_inputs else 'binance'
+            if exchange.lower() == 'q': return 'quit'
+
+            asset_pair = input(f"Asset Pair (default: {last_inputs.get('asset_pair', 'BTC/USDT') if last_inputs else 'BTC/USDT'}): ").strip() or last_inputs.get('asset_pair', 'BTC/USDT') if last_inputs else 'BTC/USDT'
+            if asset_pair.lower() == 'q': return 'quit'
+
+            timeframe = input(f"Timeframe (default: {last_inputs.get('timeframe', '1d') if last_inputs else '1d'}): ").strip() or last_inputs.get('timeframe', '1d') if last_inputs else '1d'
+            if timeframe.lower() == 'q': return 'quit'
+
+            return {'exchange': exchange, 'asset_pair': asset_pair, 'timeframe': timeframe}
 
     def post(self, shared, prep_res, exec_res):
-        if exec_res.get('action') == 'quit':
+        if exec_res == 'quit':
             return 'quit'
-        shared['exchange'] = exec_res.get('exchange')
-        return 'collect_pair'
+        shared['user_input'] = exec_res
+        return 'validate'
 
-class CollectPairNode(Node):
+
+class ValidationNode(Node):
     def prep(self, shared):
-        default_pair = shared.get('last_pair', '')
-        return {'default_pair': default_pair}
+        user_input = shared['user_input']
+        return user_input
 
     def exec(self, prep_res):
-        default_pair = prep_res.get('default_pair', '')
-        pair = input(f"Enter pair (e.g., BTC/USDT) (default: {default_pair}): ").upper()
-        return {'pair': pair}
+        # --- Dummy Validation Logic (Replace with LLM call) ---
+        exchange = prep_res['exchange']
+        asset_pair = prep_res['asset_pair']
+        timeframe = prep_res['timeframe']
+
+        valid_exchanges = ['binance', 'ftx', 'kucoin', 'coinbase']
+        valid_timeframes = ['1d', '3d', '1w', '2w', '1M', '3M', '6M', '1y']
+
+        is_valid = True
+        validation_errors = []
+
+        if exchange not in valid_exchanges:
+            is_valid = False
+            validation_errors.append(f"Invalid exchange: {exchange}. Must be one of {valid_exchanges}")
+
+        if "/" not in asset_pair:
+            is_valid = False
+            validation_errors.append(f"Invalid asset pair format: {asset_pair}. Should be BASE/QUOTE.")
+        else:
+            base, quote = asset_pair.split("/")
+            # Standardize quote to USDT if missing (as per requirements - though unclear if validation or input node should do this)
+            if not quote:
+                asset_pair = f"{base}/USDT"
+
+        if timeframe not in valid_timeframes:
+            is_valid = False
+            validation_errors.append(f"Invalid timeframe: {timeframe}. Must be one of {valid_timeframes}")
+
+        if is_valid:
+            return {'is_valid': True, 'validated_input': {'exchange': exchange, 'asset_pair': asset_pair, 'timeframe': timeframe}}
+        else:
+            return {'is_valid': False, 'errors': validation_errors}
+
+
+        # --- LLM Validation (To be implemented - requires call_llm) ---
+        # validation_prompt = f"""
+        # Validate the following user inputs for downloading crypto
+        # Exchange: {exchange}
+        # Asset Pair: {asset_pair}
+        # Timeframe: {timeframe}
+
+        # Constraints:
+        # - Exchange must be one of binance, ftx, kucoin, or coinbase.
+        # - Asset Pair should be in BASE/QUOTE format (default to USDT if missing).
+        # - Timeframe must be one of 1d, 3d, 1w, 2w, 1M, 3M, 6M, or 1y.
+
+        # Return a JSON object indicating if valid and any errors.
+        # Example valid response: {{"is_valid": true, "validated_input": {{"exchange": "binance", "asset_pair": "BTC/USDT", "timeframe": "1d"}}}}
+        # Example invalid response: {{"is_valid": false, "errors": ["Invalid exchange: ...", "Invalid timeframe: ..."]}}
+        # """
+        # validation_response = call_llm(validation_prompt) # Assuming call_llm is defined
+        # try:
+        #     validation_result = json.loads(validation_response)
+        #     return validation_result
+        # except json.JSONDecodeError:
+        #     return {'is_valid': False, 'errors': ["LLM validation response was not valid JSON."]}
+
 
     def post(self, shared, prep_res, exec_res):
-        shared['pair'] = exec_res.get('pair')
-        return 'collect_timeframe'
+        if exec_res['is_valid']:
+            shared['validated_input'] = exec_res['validated_input']
+            return 'confirm'
+        else:
+            print("\nValidation Failed:")
+            for error in exec_res['errors']:
+                print(f"- {error}")
+            print("Please re-enter your details.\n")
+            return 'input'
 
-class CollectTimeframeNode(Node):
+
+class ConfirmationNode(Node):
     def prep(self, shared):
-        default_timeframe = shared.get('last_timeframe', '')
-        return {'default_timeframe': default_timeframe}
-
-    def exec(self, prep_res):
-        default_timeframe = prep_res.get('default_timeframe', '')
-        timeframe = input(f"Enter timeframe (1d, 3d, 1w, 2w, 1M, 3M, 6M, 1y) (default: {default_timeframe}): ").lower()
-        return {'timeframe': timeframe}
-
-    def post(self, shared, prep_res, exec_res):
-        shared['timeframe'] = exec_res.get('timeframe')
-        return 'validate_all_inputs'
-
-class ExecuteDownloadNode(Node):
-    def prep(self, shared):
-        exchange = shared.get('exchange')
-        pair = shared.get('pair')
-        timeframe = shared.get('timeframe')
-        return {
-            'exchange': exchange,
-            'pair': pair,
-            'timeframe': timeframe,
-        }
+        validated_input = shared['validated_input']
+        return validated_input
 
     def exec(self, prep_res):
         exchange = prep_res['exchange']
-        pair = prep_res['pair']
+        asset_pair = prep_res['asset_pair']
         timeframe = prep_res['timeframe']
 
-        command = [
-            "freqtrade", "download-data",
-            "--userdir", "./freq-user-data",
-            "--data-format-ohlcv", "json",
-            "--exchange", exchange,
-            "-t", timeframe,
-            "--timerange=20200101-",
-            "-p", pair
-        ]
-
-        try:
-            process = subprocess.run(command, capture_output=True, text=True, check=True)
-            return {'action': 'success', 'output': process.stdout}
-        except subprocess.CalledProcessError as e:
-            return {'action': 'error', 'message': f"Download failed: {e.stderr}"}
-        except FileNotFoundError:
-            return {'action': 'error', 'message': "Error: freqtrade command not found. Ensure freqtrade is installed and in your PATH."}
+        confirmation_message = f"\nConfirm download for:\nExchange: {exchange}\nAsset Pair: {asset_pair}\nTimeframe: {timeframe}\nDownload? (y/n): "
+        confirm = input(confirmation_message).strip().lower()
+        return confirm
 
     def post(self, shared, prep_res, exec_res):
-        if exec_res.get('action') == 'success':
-            print(f"Download successful!\nOutput:\n{exec_res.get('output')}")
-            shared['last_exchange'] = prep_res['exchange']
-            shared['last_pair'] = prep_res['pair']
-            shared['last_timeframe'] = prep_res['timeframe']
-            return 'collect_exchange'
+        if exec_res == 'y':
+            return 'download'
         else:
-            print(f"Download Error: {exec_res.get('message')}")
-            return 'collect_exchange'
+            print("Download cancelled. Re-entering input.\n")
+            return 'input'
 
-class QuitNode(Node):
-    def exec(self, prep_res):
-        return "Thank you for using the Freqtrade Download Assistant!"
-
-    def post(self, shared, prep_res, exec_res):
-        print(exec_res)
-        return None
-
-class ValidateAllInputsNode(Node):
+class DownloadExecutionNode(Node):
     def prep(self, shared):
-        exchange = shared.get('exchange')
-        pair = shared.get('pair')
-        timeframe = shared.get('timeframe')
-        return {
-            'exchange': exchange,
-            'pair': pair,
-            'timeframe': timeframe,
-        }
+        validated_input = shared['validated_input']
+        return validated_input
 
     def exec(self, prep_res):
         exchange = prep_res['exchange']
-        pair = prep_res['pair']
+        asset_pair = prep_res['asset_pair']
         timeframe = prep_res['timeframe']
 
-        prompt = f"""
-You are a validation assistant for the Freqtrade download assistant.
-Validate the following user inputs for a freqtrade download command.
-Return a YAML structure with a validation status and instructions for the next action.
+        command = f"freqtrade download-data --userdir ./freq-user-data --data-format-ohlcv json --exchange {exchange} -t {timeframe} --timerange=20200101- -p {asset_pair}"
+        print(f"\nExecuting command: {command}\n")
 
-Exchange: {exchange}
-Pair: {pair}
-Timeframe: {timeframe}
+        import subprocess
+        process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        stdout, stderr = process.communicate()
+        output_message = stdout.decode() + "\n" + stderr.decode()
 
-Here are the validation rules:
-- Exchange: Must be one of (binance, ftx, kucoin, coinbase).
-- Pair: Must be in the form of BASE/QUOTE, in which BTC is the base and USDT is the quote. If no quote part is given, assume USDT. If no quote part is given, assume USDT.
-- Timeframe: Must be one of (1d, 3d, 1w, 2w, 1M, 3M, 6M, 1y).
+        return {'command': command, 'output_message': output_message}
 
-The YAML structure should contain:
-- validation_status: OK or NOT_OK.
-- If NOT_OK, include:
-  - error_messages: A list of dictionaries, each with 'field' and 'message' keys, describing the validation errors.
-  - next_action: A string indicating which input to retry: 'retry_exchange', 'retry_pair', 'retry_timeframe', or 'retry_all' if unclear.
-- If OK, include:
-  - next_action: 'execute_download'
-
-Example for invalid exchange and timeframe:
-```yaml
-validation_status: NOT_OK
-error_messages:
-  - field: exchange
-    message: "Invalid exchange. Choose from binance, ftx, kucoin, coinbase."
-  - field: timeframe
-    message: "Invalid timeframe. Choose from 1d, 3d, 1w, 2w, 1M, 3M, 6M, 1y."
-next_action: retry_exchange
-```
-"""
-        llm_response = call_llm(prompt)
-        if llm_response:
-            try:
-                validation_result = yaml.safe_load(llm_response)
-                return validation_result
-            except yaml.YAMLError as e:
-                print(f"Error parsing LLM response as YAML: {e}")
-                return {'validation_status': 'NOT_OK',
-                        'error_messages': [{'field': 'all', 'message': 'Failed to parse LLM response.'}],
-                        'next_action': 'retry_all'}
-        else:
-            return {'validation_status': 'NOT_OK',
-                    'error_messages': [{'field': 'all', 'message': 'LLM call failed.'}],
-                    'next_action': 'retry_all'}
 
     def post(self, shared, prep_res, exec_res):
-        if exec_res.get('validation_status') == 'NOT_OK':
-            print("Validation errors:")
-            for error in exec_res.get('error_messages', []):
-                print(f"  - {error['field']}: {error['message']}")
-            next_action = exec_res.get('next_action', 'collect_exchange')
-            if next_action == 'retry_exchange':
-                return 'collect_exchange'
-            elif next_action == 'retry_pair':
-                return 'collect_pair'
-            elif next_action == 'retry_timeframe':
-                return 'collect_timeframe'
-            elif next_action == 'retry_all':
-                return 'collect_exchange'  # Default to retry exchange
-            else:
-                return 'collect_exchange'  # Default to retry exchange
-        elif exec_res.get('next_action') == 'execute_download':
-            return 'execute_download'
+        shared['command_output'] = exec_res
+        return 'summarize'
+
+class SummaryNode(Node):
+    def prep(self, shared):
+        command_output = shared['command_output']
+        return command_output
+
+    def exec(self, prep_res):
+        output_message = prep_res['output_message']
+        command = prep_res['command']
+
+        # --- Dummy Summary Logic (Replace with LLM call) ---
+        if "Download complete" in output_message:
+            summary = f"Download command successful:\n`{command}`\n\nOutput Summary:\n{output_message}"
         else:
-            return 'collect_exchange'
+            summary = f"Download command may have failed or encountered errors:\n`{command}`\n\nOutput Summary:\n{output_message}"
 
-# Instantiate nodes
-validate_all_inputs_node = ValidateAllInputsNode()
-collect_pair_node = CollectPairNode()
-collect_timeframe_node = CollectTimeframeNode()
-execute_download_node = ExecuteDownloadNode()
-quit_node = QuitNode()
-collect_exchange_node = CollectExchangeNode()
 
-# Define flow
-collect_exchange_node - "quit" >> quit_node
-collect_exchange_node >> collect_pair_node
-collect_pair_node >> collect_timeframe_node
-collect_timeframe_node >> validate_all_inputs_node
-validate_all_inputs_node - "execute_download" >> execute_download_node
-validate_all_inputs_node - "collect_exchange" >> collect_exchange_node
-validate_all_inputs_node - "collect_pair" >> collect_pair_node
-validate_all_inputs_node - "collect_timeframe" >> collect_timeframe_node
-execute_download_node >> collect_exchange_node # on success or error, retry from the beginning
+        # --- LLM Summary (To be implemented - requires call_llm) ---
+        # summary_prompt = f"""
+        # Please summarize the output of the following terminal command.
+        # Command: `{command}`
+        # Output:
+        # ```
+        # {output_message}
+        # ```
+        # Focus on the outcome (success/failure, any errors) and provide a concise summary.
+        # """
+        # summary = call_llm(summary_prompt) # Assuming call_llm is defined
 
-download_flow = Flow(start=collect_exchange_node)
+        return {'summary_message': summary}
 
-def main():
-    shared_data = {}
-    download_flow.run(shared_data)
 
-if __name__ == "__main__":
+    def post(self, shared, prep_res, exec_res):
+        print("\n--- Download Summary ---")
+        print(exec_res['summary_message'])
+        print("---\n")
+
+        # Save last valid inputs to shared memory
+        validated_input = shared['validated_input']
+        save_shared_memory(validated_input)
+
+        return 'input' # Loop back to input for next download
+
+
+class ExitNode(Node):
+    def exec(self, prep_res):
+        print("\nThank you for using the Freqtrade Download Assistant!")
+        return None # No output
+
+    def post(self, shared, prep_res, exec_res):
+        return None # End of flow
+
+
+# --- Flow Definition ---
+
+input_node = UserInputNode()
+validation_node = ValidationNode()
+confirmation_node = ConfirmationNode()
+download_execution_node = DownloadExecutionNode()
+summary_node = SummaryNode()
+exit_node = ExitNode()
+
+input_node - 'validate' >> validation_node
+input_node - 'quit' >> exit_node
+validation_node - 'validate' >> confirmation_node
+validation_node - 'input' >> input_node
+confirmation_node - 'download' >> download_execution_node
+confirmation_node - 'input' >> input_node
+download_execution_node - 'summarize' >> summary_node
+summary_node - 'input' >> input_node
+
+
+download_flow = Flow(start=input_node)
+
+
+async def main():
+    shared_data = {} # Initialize shared data
+    flow_result = download_flow.run(shared_data) # or download_flow.run_async(shared_data) if using async nodes
+    # print("Flow Result:", flow_result) # If needed to capture final action/result
+
+if __name__ == '__main__':
     main()
