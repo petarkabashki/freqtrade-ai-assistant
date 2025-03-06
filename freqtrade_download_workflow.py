@@ -15,6 +15,10 @@ class CollectExchangeNode(Node):
         }
 
     def exec(self, prep_res):
+        # Robust defensive check: ensure prep_res is a dict, default to empty dict if None
+        if prep_res is None:
+            prep_res = {}
+
         # No defensive check needed, rely on .get with default
         default_exchange = prep_res.get('default_exchange', '') # Use .get with default
 
