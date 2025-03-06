@@ -34,9 +34,7 @@ class UserInputNode(Node):
                 if not result['is_valid']:
                     error_message = result.get('error', 'Unknown error')
                     print(f"- Invalid {input_type}: {error_message}")
-                elif result['is_valid']:
-                    print(f"- {input_type} was previously valid.") # Optional: inform user about previous valid inputs
-            shared.pop('validation_errors', None) # Clear errors after displaying
+            shared.pop('validation_errors', None)  # Clear errors after displaying
 
         default_exchange = last_inputs.get('exchange') if last_inputs else None # Set to None if no last_inputs
         default_asset_pair = last_inputs.get('asset_pair') if last_inputs else None # Set to None if no last_inputs
