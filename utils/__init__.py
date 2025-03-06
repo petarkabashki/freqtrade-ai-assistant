@@ -1,2 +1,2 @@
-# This file is needed to make 'utils' a Python package.
+# This file makes the 'utils' directory a Python package.
 # It can be empty.
