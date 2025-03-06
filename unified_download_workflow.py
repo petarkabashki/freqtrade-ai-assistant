@@ -10,6 +10,7 @@ def main():
             print("Thank you for using the Freqtrade Download Assistant!")
             break
 
+# This prompt needs to as only for the invalid fields. AI!
         # 2. Input Validation via LLM
         validation_prompt = f"""
         Validate the following user input, provided as a single string: '{user_input}'.
