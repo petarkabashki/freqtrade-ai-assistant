@@ -216,4 +216,4 @@ async def main():
     # print("Flow Result:", flow_result) # If needed to capture final action/result
 
 if __name__ == '__main__':
-    main()
+    asyncio.run(main())
