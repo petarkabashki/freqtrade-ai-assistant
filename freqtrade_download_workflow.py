@@ -81,19 +81,43 @@ class ValidationNode(Node):
 
         # --- LLM Validation ---
         validation_prompt = f"""
-        Validate the following user inputs for downloading crypto
+        You are a system for validating user inputs for downloading cryptocurrency data.
+        Validate the following user inputs to ensure they are valid for downloading data from Freqtrade.
+        Inputs:
         Exchange: {exchange}
         Asset Pair: {asset_pair}
         Timeframe: {timeframe}
 
         Constraints:
-        - Exchange must be one of binance, ftx, kucoin, or coinbase.
-        - Asset Pair should be in BASE/QUOTE format (default to USDT if missing).
-        - Timeframe must be one of 1d, 3d, 1w, 2w, 1M, 3M, 6M, or 1y.
+        - Exchange must be one of: binance, ftx, kucoin, or coinbase.
+        - Asset Pair must be in BASE/QUOTE format (e.g., BTC/USDT). If the quote currency is missing, default to USDT.
+        - Timeframe must be one of: 1d, 3d, 1w, 2w, 1M, 3M, 6M, or 1y.
 
-        Return a JSON object indicating if valid and any errors.
-        Example valid response: {{"is_valid": true, "validated_input": {{"exchange": "binance", "asset_pair": "BTC/USDT", "timeframe": "1d"}}}}
-        Example invalid response: {{"is_valid": false, "errors": ["Invalid exchange: ...", "Invalid timeframe: ..."]}}
+        Response Format:
+        Return a JSON object that strictly adheres to this format:
+        {{
+          "is_valid": true/false,
+          "validated_input": {{ "exchange": "...", "asset_pair": "...", "timeframe": "..." }},
+          "errors": ["error message 1", "error message 2", ...] // Only include if is_valid is false
+        }}
+
+        Example of valid response:
+        ```json
+        {{
+          "is_valid": true,
+          "validated_input": {{ "exchange": "binance", "asset_pair": "BTC/USDT", "timeframe": "1d" }}
+        }}
+        ```
+
+        Example of invalid response:
+        ```json
+        {{
+          "is_valid": false,
+          "errors": ["Invalid exchange: kraken. Must be one of binance, ftx, kucoin, or coinbase."]
+        }}
+        ```
+
+        Begin!
         """
         validation_response = call_llm(validation_prompt) # Assuming call_llm is defined
         try:
@@ -106,7 +130,7 @@ class ValidationNode(Node):
     def post(self, shared, prep_res, exec_res):
         if exec_res['is_valid']:
             shared['validated_input'] = exec_res['validated_input']
-            return 'confirm'
+            return 'validate' # Corrected action string here
         else:
             print("\nValidation Failed:")
             for error in exec_res['errors']:
@@ -217,7 +241,7 @@ exit_node = ExitNode()
 
 input_node - 'validate' >> validation_node
 input_node - 'quit' >> exit_node
-validation_node - 'validate' >> confirmation_node
+validation_node - 'validate' >> confirmation_node # Corrected transition action to 'validate'
 validation_node - 'input' >> input_node
 confirmation_node - 'download' >> download_execution_node
 confirmation_node - 'input' >> input_node
