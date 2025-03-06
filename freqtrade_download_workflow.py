@@ -14,10 +14,7 @@ class CollectExchangeNode(Node):
         }
 
     def exec(self, prep_res):
-        # Defensive check: ensure prep_res is a dict, default to empty dict if None
-        if prep_res is None:
-            prep_res = {}
-
+        # No defensive check needed, rely on .get with default
         default_exchange = prep_res.get('default_exchange', '') # Use .get with default
 
         exchange = input(f"Enter exchange (binance, ftx, kucoin, coinbase) or 'q' to quit (default: {default_exchange}): ").lower()
@@ -57,7 +54,7 @@ class CollectPairNode(Node):
         }
 
     def exec(self, prep_res):
-        default_pair = prep_res['default_pair']
+        default_pair = prep_res.get('default_pair', '') # Use .get with default
         pair = input(f"Enter pair (e.g., BTC/USDT) (default: {default_pair}): ").upper()
         if not pair: # User pressed Enter, use default
             pair = default_pair
@@ -108,7 +105,7 @@ class CollectTimeframeNode(Node):
         }
 
     def exec(self, prep_res):
-        default_timeframe = prep_res['default_timeframe']
+        default_timeframe = prep_res.get('default_timeframe', '') # Use .get with default
         timeframe = input(f"Enter timeframe (1d, 3d, 1w, 2w, 1M, 3M, 6M, 1y) (default: {default_timeframe}): ").lower()
         if not timeframe: # User pressed Enter, use default
             timeframe = default_timeframe
