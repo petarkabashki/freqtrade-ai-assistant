@@ -39,12 +39,15 @@ download_execution_node = DownloadExecutionNode()
 summary_node = SummaryNode()
 exit_node = ExitNode()
 
+# --- Dynamically set validation node in UserInputNode ---
+input_node.params['validation_node'] = validation_node
+
 
 # --- Flow Definition ---
-input_node - 'validate' >> validation_node
+input_node - 'validate' >> validation_node # No longer used in this flow, validation is done within UserInputNode
 input_node - 'quit' >> exit_node
-validation_node - 'validate' >> confirmation_node # Corrected transition action to 'validate'
-validation_node - 'input' >> input_node
+validation_node - 'validate_success' >> confirmation_node # These transitions are also not directly used in the main flow anymore
+validation_node - 'validate_failure' >> input_node # These transitions are also not directly used in the main flow anymore
 confirmation_node - 'download' >> download_execution_node
 confirmation_node - 'input' >> input_node
 download_execution_node - 'summarize' >> summary_node
