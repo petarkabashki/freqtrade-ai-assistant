@@ -2,7 +2,7 @@ from pocketflow import Node
 
 class ConfirmationNode(Node):
     def prep(self, shared):
-        validated_input_values = shared['validated_input_values']
+        validated_input_values = shared['collected'] # AI: changed to 'collected'
         self.confirmation_message = f"""
         \nConfirmation:
         Exchange: {validated_input_values['exchange']}
