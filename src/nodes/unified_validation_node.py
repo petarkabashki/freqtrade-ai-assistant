@@ -4,13 +4,15 @@ import yaml
 
 class UnifiedValidationNode(Node):
     def prep(self, shared):
-        current_input_to_validate = shared['current_input_to_validate']
+        collected_values = shared.get('collected', {})
+        last_user_input = shared.get('last_user_input', {})
         validation_prompt = f"""
         Validate the following user inputs, considering the hints provided:
-        - User Input: '{current_input_to_validate.get("last_input", "")}' (This is the user's raw input)
-        - Exchange: '{current_input_to_validate.get("exchange", "")}' (Hint: e.g., binance, kucoin, coinbase, ftx)
-        - Asset Pair: '{current_input_to_validate.get("asset_pair", "")}' (Hint: e.g., BTC/USDT, ETH/BTC)
-        - Timeframe: '{current_input_to_validate.get("timeframe", "")}' (Hint: e.g., 1d, 1w, 1M)
+        - Last User Input: '{collected_values}' (This is the user's raw input)
+        Collected values from previous steps:
+        - Exchange: '{collected_values.get("exchange", "")}' 
+        - Asset Pair: '{collected_values.get("asset_pair", "")}' 
+        - Timeframe: '{collected_values.get("timeframe", "")}'
 
         Constraints:
         - Exchange must be one of 'binance', 'ftx', 'kucoin', or 'coinbase'.
@@ -23,7 +25,7 @@ class UnifiedValidationNode(Node):
         - "timeframe": The validated timeframe, or null if invalid.
         - "errors": An array of error messages, one for each invalid field.
         - "invalid_fields": List the names of the fields that are invalid.
-        - "user_error_message": A user-friendly, concise message summarizing all validation errors, suitable for displaying to the user. Make use of the provided hints to guide the user.
+        - "user_error_message": A user-friendly, concise message summarizing all validation errors, suitable for displaying to the user. 
         - "re_entry_prompt": A short, clear prompt asking the user to re-enter ONLY the invalid fields. Use the hints to remind the user of the expected input format. This prompt should be very brief and directly tell the user what to do next.
 
         Example Valid Response:
@@ -57,6 +59,7 @@ class UnifiedValidationNode(Node):
 
     def exec(self, prep_res, shared):
         llm_response = call_llm(prep_res['prompt'])
+        # this should collect and validate the input fields incrementally AI!
 
         try:
             validation_result = yaml.safe_load(llm_response)
