@@ -3,6 +3,7 @@ from utils.call_llm import call_llm
 import yaml # Use yaml instead of json for llm output AI!
 
 def main():
+    print("Welcome to the Freqtrade Download Assistant!") # Welcome message AI!
     previous_errors = {} # Store previous errors as a dictionary, field -> error message
     validated_input_values = {} # Store last validated input values
 
@@ -17,7 +18,11 @@ def main():
             prompt_text = previous_errors.get("re_entry_prompt", "Please re-enter the invalid fields.") # Fallback prompt
             print(prompt_text)
         else:
-            prompt_text = ", ".join(["exchange", "asset pair", "timeframe"]) + " (or 'q' to quit): "
+            prompt_text = ", ".join([
+                "exchange (e.g., binance, kucoin, coinbase, ftx)", # Exchange hint AI!
+                "asset pair (e.g., BTC/USDT, ETH/BTC)", # Asset pair hint AI!
+                "timeframe (e.g., 1d, 1w, 1M)" # Timeframe hint AI!
+            ]) + " (or 'q' to quit): "
 
 
         if not previous_errors: # Only ask for input if not re-prompting due to errors
@@ -49,13 +54,13 @@ def main():
             for field in fields_to_prompt:
                 default_value_text = ""
                 if field == "exchange":
-                    field_display_name = "exchange"
+                    field_display_name = "exchange (e.g., binance, kucoin, coinbase, ftx)" # Exchange hint in re-prompt AI!
                     default_value = validated_input_values.get("exchange", "")
                 elif field == "asset_pair":
-                    field_display_name = "asset pair"
+                    field_display_name = "asset pair (e.g., BTC/USDT, ETH/BTC)" # Asset pair hint in re-prompt AI!
                     default_value = validated_input_values.get("asset_pair", "")
                 elif field == "timeframe":
-                    field_display_name = "timeframe"
+                    field_display_name = "timeframe (e.g., 1d, 1w, 1M)" # Timeframe hint in re-prompt AI!
                     default_value = validated_input_values.get("timeframe", "")
 
                 if default_value:
@@ -85,10 +90,10 @@ def main():
 
         # 2. Input Validation via LLM
         validation_prompt = f"""
-        Validate the following user inputs:
-        - Exchange: '{current_input_to_validate.get("exchange", "")}'
-        - Asset Pair: '{current_input_to_validate.get("asset_pair", "")}'
-        - Timeframe: '{current_input_to_validate.get("timeframe", "")}'
+        Validate the following user inputs, considering the hints provided:
+        - Exchange: '{current_input_to_validate.get("exchange", "")}' (Hint: e.g., binance, kucoin, coinbase, ftx) # Exchange hint in LLM prompt AI!
+        - Asset Pair: '{current_input_to_validate.get("asset_pair", "")}' (Hint: e.g., BTC/USDT, ETH/BTC) # Asset pair hint in LLM prompt AI!
+        - Timeframe: '{current_input_to_validate.get("timeframe", "")}' (Hint: e.g., 1d, 1w, 1M) # Timeframe hint in LLM prompt AI!
 
         Constraints:
         - Exchange must be one of 'binance', 'ftx', 'kucoin', or 'coinbase'.
@@ -101,8 +106,8 @@ def main():
         - "timeframe": The validated timeframe, or null if invalid.
         - "errors": An array of error messages, one for each invalid field.
         - "invalid_fields": List the names of the fields that are invalid.
-        - "user_error_message": A user-friendly, concise message summarizing all validation errors, suitable for displaying to the user.
-        - "re_entry_prompt": A short, clear prompt asking the user to re-enter ONLY the invalid fields.  This prompt should be very brief and directly tell the user what to do next.
+        - "user_error_message": A user-friendly, concise message summarizing all validation errors, suitable for displaying to the user. Make use of the provided hints to guide the user. # Hint instruction for error message AI!
+        - "re_entry_prompt": A short, clear prompt asking the user to re-enter ONLY the invalid fields. Use the hints to remind the user of the expected input format. # Hint instruction for re-entry prompt AI! This prompt should be very brief and directly tell the user what to do next.
 
         Example Valid Response:
         ```yaml
@@ -126,8 +131,8 @@ def main():
         invalid_fields:
         - exchange
         - timeframe
-        user_error_message: "There were errors in your input. Please correct the exchange and timeframe."
-        re_entry_prompt: "Re-enter exchange, timeframe"
+        user_error_message: "There were errors in your input. Please correct the exchange (e.g., binance, kucoin) and timeframe (e.g., 1d, 1w)." # Example error message with hints AI!
+        re_entry_prompt: "Re-enter exchange, timeframe (e.g., binance, 1d)" # Example re-entry prompt with hints AI!
         ```
         """
 
