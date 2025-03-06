@@ -65,6 +65,24 @@ class ValidateExchangeNode(Node): # <<<--- DEFINITION FOR ValidateExchangeNode I
             return 'retry_exchange'
         return 'collect_pair'
 
+class CollectPairNode(Node): # <<<--- DEFINITION FOR CollectPairNode IS ADDED HERE
+    def prep(self, shared):
+        default_pair = shared.get('pair', '')
+        return {
+            'default_pair': default_pair,
+        }
+
+    def exec(self, prep_res):
+        default_pair = prep_res.get('default_pair', '') # Use .get with default
+        pair = input(f"Enter pair (e.g., BTC/USDT) (default: {default_pair}): ").upper()
+        if not pair: # User pressed Enter, use default
+            pair = default_pair
+        return {'action': 'validate_pair', 'pair': pair}
+
+    def post(self, shared, prep_res, exec_res):
+        shared['pair'] = exec_res.get('pair')
+        return 'validate_pair'
+
 
 validate_exchange_node = ValidateExchangeNode()
 collect_pair_node = CollectPairNode()
