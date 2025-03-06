@@ -2,12 +2,36 @@ from pocketflow import Flow, Node
 import subprocess
 
 class CollectInputNode(Node):
+    def prep(self, shared):
+        # Initialize default values from shared memory, or empty strings if not present
+        default_exchange = shared.get('exchange', '')
+        default_pair = shared.get('pair', '')
+        default_timeframe = shared.get('timeframe', '')
+        return {
+            'default_exchange': default_exchange,
+            'default_pair': default_pair,
+            'default_timeframe': default_timeframe,
+        }
+
     def exec(self, prep_res):
-        exchange = input("Enter exchange (binance, ftx, kucoin, coinbase) or 'q' to quit: ").lower()
+        default_exchange = prep_res['default_exchange']
+        default_pair = prep_res['default_pair']
+        default_timeframe = prep_res['default_timeframe']
+
+        exchange = input(f"Enter exchange (binance, ftx, kucoin, coinbase) or 'q' to quit (default: {default_exchange}): ").lower()
         if exchange == 'q':
             return {'action': 'quit'}
-        pair = input("Enter pair (e.g., BTC/USDT): ").upper()
-        timeframe = input("Enter timeframe (1d, 3d, 1w, 2w, 1M, 3M, 6M, 1y): ").lower()
+        if not exchange: # User pressed Enter, use default
+            exchange = default_exchange
+
+        pair = input(f"Enter pair (e.g., BTC/USDT) (default: {default_pair}): ").upper()
+        if not pair: # User pressed Enter, use default
+            pair = default_pair
+
+        timeframe = input(f"Enter timeframe (1d, 3d, 1w, 2w, 1M, 3M, 6M, 1y) (default: {default_timeframe}): ").lower()
+        if not timeframe: # User pressed Enter, use default
+            timeframe = default_timeframe
+
         return {'action': 'validate', 'exchange': exchange, 'pair': pair, 'timeframe': timeframe}
 
     def post(self, shared, prep_res, exec_res):
