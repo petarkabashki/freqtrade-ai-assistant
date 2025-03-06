@@ -9,6 +9,7 @@ class UnifiedInputNode(Node):
         previous_errors = shared.get('previous_errors', {})
         error_message = previous_errors.get("user_error_message", "")
         re_entry_prompt = previous_errors.get("re_entry_prompt", "")
+        current_inputs = shared.get('current_input_to_validate', {}) # Retrieve current inputs from shared memory
 
         if error_message:
             print(f"{self.ORANGE_COLOR_CODE}Validation Error: {error_message}\033[0m") # Orange colored error message
@@ -31,19 +32,20 @@ class UnifiedInputNode(Node):
         with open("src/nodes/input_extraction_prompt.txt", "r") as prompt_file:
             self.llm_prompt_template = prompt_file.read()
 
-        return {}
+        return {'current_inputs': current_inputs} # Pass current_inputs to exec
 
     def _get_user_input(self, prompt):
         return input(prompt).strip()
 
     def exec(self, prep_res, shared):
+        current_inputs = prep_res['current_inputs'] # Retrieve current_inputs from prep_res
         while True:
             user_input = self._get_user_input(self.user_prompt)
 
             if user_input.lower() in ['q', 'quit']:
                 return "exit"
 
-            llm_prompt = self.llm_prompt_template.format(user_input=user_input)
+            llm_prompt = self.llm_prompt_template.format(user_input=user_input, current_inputs_yaml=yaml.dump(current_inputs)) # Include current_inputs in prompt
             llm_response_str = call_llm(llm_prompt)
 
             try:
