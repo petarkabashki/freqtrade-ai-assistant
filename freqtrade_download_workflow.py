@@ -43,6 +43,17 @@ class CollectInputNode(Node):
         return 'validate'
 
 class ValidateInputNode(Node):
+    def prep(self, shared):
+        # Retrieve exchange, pair, and timeframe from shared memory
+        exchange = shared.get('exchange')
+        pair = shared.get('pair')
+        timeframe = shared.get('timeframe')
+        return {
+            'exchange': exchange,
+            'pair': pair,
+            'timeframe': timeframe,
+        }
+
     def exec(self, prep_res):
         exchange = prep_res['exchange']
         pair = prep_res['pair']
@@ -51,10 +62,10 @@ class ValidateInputNode(Node):
         valid_exchanges = ('binance', 'ftx', 'kucoin', 'coinbase')
         valid_timeframes = ('1d', '3d', '1w', '2w', '1m', '3m', '6m', '1y') # corrected timeframe list
 
-        if exchange not in valid_exchanges:
+        if not exchange or exchange not in valid_exchanges: # check if exchange is None or invalid
             return {'action': 'invalid', 'message': f"Invalid exchange. Choose from: {', '.join(valid_exchanges)}"}
 
-        if '/' not in pair:
+        if not pair or '/' not in pair: # check if pair is None or invalid
             return {'action': 'invalid', 'message': "Invalid pair format. Use format like BTC/USDT."}
 
         base, quote = pair.split('/')
@@ -62,7 +73,7 @@ class ValidateInputNode(Node):
             return {'action': 'invalid', 'message': "Invalid pair format. Base and quote are required."}
 
 
-        if timeframe not in valid_timeframes:
+        if not timeframe or timeframe not in valid_timeframes: # check if timeframe is None or invalid
             return {'action': 'invalid', 'message': f"Invalid timeframe. Choose from: {', '.join(valid_timeframes)}"}
 
         return {'action': 'execute'}
