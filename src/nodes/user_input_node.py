@@ -7,7 +7,7 @@ SHARED_MEMORY_FILE = "shared_memory.json"
 def load_shared_memory():
     try:
         with open(SHARED_MEMORY_FILE, "r") as f:
-            return json.load(f)
+        return json.load(f)
     except FileNotFoundError:
         return {}
 
@@ -55,7 +55,7 @@ class UserInputNode(Node):
                 else:
                     shared['field_to_validate'] = field_name # Prepare shared data for validation node
                     shared['field_value'] = user_input
-                    validation_action = self >> shared['validation_node'] # Dynamically get validation node
+                    validation_action = self >> self.params['validation_node'] # Dynamically get validation node from params
                     validation_result_action = validation_action.run(shared) # Run validation node
 
                     if validation_result_action == 'validate_success':
