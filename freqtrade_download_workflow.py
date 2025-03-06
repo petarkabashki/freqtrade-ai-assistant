@@ -31,14 +31,33 @@ class UserInputNode(Node):
         print("\nEnter 'q' to quit at any time.")
         last_inputs = shared['last_inputs']
 
+        default_exchange = last_inputs.get('exchange') if last_inputs else 'binance'
+        default_asset_pair = last_inputs.get('asset_pair') if last_inputs else 'BTC/USDT'
+        default_timeframe = last_inputs.get('timeframe') if last_inputs else '1d'
+
         while True:
-            exchange = input(f"Exchange (default: {last_inputs.get('exchange', 'binance') if last_inputs else 'binance'}): ").strip() or last_inputs.get('exchange', 'binance') if last_inputs else 'binance'
+            exchange_prompt = "Exchange"
+            if last_inputs: # Suggest default only if last_inputs exist
+                exchange_prompt = f"{exchange_prompt} (default: {default_exchange})"
+            exchange = input(f"{exchange_prompt}: ").strip()
+            if not exchange:
+                exchange = default_exchange if last_inputs else 'binance' # Use default only if last_inputs exist, otherwise use hardcoded 'binance'
             if exchange.lower() == 'q': return 'quit'
 
-            asset_pair = input(f"Asset Pair (default: {last_inputs.get('asset_pair', 'BTC/USDT') if last_inputs else 'BTC/USDT'}): ").strip() or last_inputs.get('asset_pair', 'BTC/USDT') if last_inputs else 'BTC/USDT'
+            asset_pair_prompt = "Asset Pair"
+            if last_inputs: # Suggest default only if last_inputs exist
+                asset_pair_prompt = f"{asset_pair_prompt} (default: {default_asset_pair})"
+            asset_pair = input(f"{asset_pair_prompt}: ").strip()
+            if not asset_pair:
+                asset_pair = default_asset_pair if last_inputs else 'BTC/USDT' # Use default only if last_inputs exist, otherwise use hardcoded 'BTC/USDT'
             if asset_pair.lower() == 'q': return 'quit'
 
-            timeframe = input(f"Timeframe (default: {last_inputs.get('timeframe', '1d') if last_inputs else '1d'}): ").strip() or last_inputs.get('timeframe', '1d') if last_inputs else '1d'
+            timeframe_prompt = "Timeframe"
+            if last_inputs: # Suggest default only if last_inputs exist
+                timeframe_prompt = f"{timeframe_prompt} (default: {default_timeframe})"
+            timeframe = input(f"{timeframe_prompt}: ").strip()
+            if not timeframe:
+                timeframe = default_timeframe if last_inputs else '1d' # Use default only if last_inputs exist, otherwise use hardcoded '1d'
             if timeframe.lower() == 'q': return 'quit'
 
             return {'exchange': exchange, 'asset_pair': asset_pair, 'timeframe': timeframe}
