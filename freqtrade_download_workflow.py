@@ -18,14 +18,16 @@ class CollectExchangeNode(Node):
 
     def exec(self, prep_res):
         print(f"CollectExchangeNode.exec CALLED. prep_res is: {prep_res}") # DEBUG
-        # Robust defensive check: ensure prep_res is a dict, default to empty dict if None
+
+        # Forcefully ensure prep_res is a dictionary, even if it's None
         if prep_res is None:
-            prep_res = {} # Fallback to empty dict, but this SHOULD NOT HAPPEN if prep() is correct
-        elif not isinstance(prep_res, dict): # More robust type check
-            print(f"ERROR: prep_res is NOT a dict, but type: {type(prep_res)}") # ERROR LOG
-            prep_res = {} # Fallback to empty dict if not a dict
-        else:
-            print(f"DEBUG: prep_res is a dict with keys: {prep_res.keys()}") # DEBUG: print keys
+            prep_res = {}
+        elif not isinstance(prep_res, dict):
+            prep_res = {}
+
+        # Debug: Print keys after ensuring it's a dict
+        print(f"DEBUG: prep_res is a dict with keys: {prep_res.keys()}") # DEBUG: print keys
+
 
         # No defensive check needed, rely on .get with default
         default_exchange = prep_res.get('default_exchange', '') # Use .get with default
