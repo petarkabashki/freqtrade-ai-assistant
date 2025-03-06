@@ -25,67 +25,62 @@ class UserInputNode(Node):
         print("\nPlease provide the required information.") # Subsequent guidance
         print("Enter 'q' to quit at any time.")
         last_inputs = shared['last_inputs']
+        validation_errors = shared.get('validation_errors', {}) # Get validation errors, default to empty dict
 
-        # Check for validation errors from previous ValidationNode run
-        validation_errors = shared.get('validation_errors')
-        if validation_errors:
-            print("\nValidation Errors:")
-            for input_type, result in validation_errors.items():
-                if not result['is_valid']:
-                    error_message = result.get('error', 'Unknown error')
-                    print(f"- Invalid {input_type}: {error_message}")
-            shared.pop('validation_errors', None)  # Clear errors after displaying
+        input_data = {} # Dictionary to store the input data
 
-        default_exchange = last_inputs.get('exchange') if last_inputs else None # Set to None if no last_inputs
-        default_asset_pair = last_inputs.get('asset_pair') if last_inputs else None # Set to None if no last_inputs
-        default_timeframe = last_inputs.get('timeframe') if last_inputs else None # Set to None if no last_inputs
+        # Function to get input for a field, considering validation errors and defaults
+        def get_input_for_field(field_name, default_value=None, is_valid=True):
+            while True:
+                if not is_valid: # Only show prompt if the field is invalid
+                    prompt_text = f"{field_name} (re-enter)"
+                else:
+                    prompt_text = f"{field_name}"
 
-        exchange, asset_pair, timeframe = None, None, None # Initialize outside loops
+                if default_value and is_valid: # Suggest default only if default_value is not None and field is valid from last input or initial input
+                    prompt_text = f"{prompt_text} (default: {default_value})"
+                elif default_value and not is_valid: # Still suggest default if available even if re-entering
+                     prompt_text = f"{prompt_text} (default available: {default_value})"
 
-        while not exchange: # Loop until a valid exchange is entered
-            exchange_prompt = "Exchange"
-            if default_exchange: # Suggest default only if default_exchange is not None
-                exchange_prompt = f"{exchange_prompt} (default: {default_exchange})"
-            exchange_input = input(f"{exchange_prompt}: ").strip()
-            if exchange_input.lower() == 'q': return 'quit'
-            if exchange_input: # If input is not empty, use it
-                exchange = exchange_input
-            elif default_exchange: # If input is empty but default exists, use default
-                exchange = default_exchange
-            else: # If input is empty and no default, prompt again
-                print("Exchange cannot be empty. Please enter an exchange or 'q' to quit.")
-                continue # Go to the next iteration of the loop
-
-        while not asset_pair: # Loop until a valid asset_pair is entered
-            asset_pair_prompt = "Asset Pair"
-            if default_asset_pair: # Suggest default only if default_asset_pair is not None
-                asset_pair_prompt = f"{asset_pair_prompt} (default: {default_asset_pair})"
-            asset_pair_input = input(f"{asset_pair_prompt}: ").strip()
-            if asset_pair_input.lower() == 'q': return 'quit'
-            if asset_pair_input: # If input is not empty, use it
-                asset_pair = asset_pair_input
-            elif default_asset_pair: # If input is empty but default exists, use default
-                asset_pair = default_asset_pair
-            else: # If input is empty and no default, prompt again
-                print("Asset Pair cannot be empty. Please enter an asset pair or 'q' to quit.")
-                continue # Go to the next iteration of the loop
-
-        while not timeframe: # Loop until a valid timeframe is entered
-            timeframe_prompt = "Timeframe"
-            if default_timeframe: # Suggest default only if default_timeframe is not None
-                timeframe_prompt = f"{timeframe_prompt} (default: {default_timeframe})"
-            timeframe_input = input(f"{timeframe_prompt}: ").strip()
-            if timeframe_input.lower() == 'q': return 'quit'
-            if timeframe_input: # If input is not empty, use it
-                timeframe = timeframe_input
-            elif default_timeframe: # If input is empty but default exists, use default
-                timeframe = default_timeframe
-            else: # If input is empty and no default, prompt again
-                print("Timeframe cannot be empty. Please enter a timeframe or 'q' to quit.")
-                continue # Go to the next iteration of the loop
+                user_input = input(f"{prompt_text}: ").strip()
+                if user_input.lower() == 'q': return 'quit'
+                if user_input: # If input is not empty, use it
+                    return user_input
+                elif default_value and is_valid: # If input is empty but default exists and field was valid, use default
+                    return default_value
+                elif not is_valid: # If re-entering invalid field and input is empty, re-prompt
+                    print(f"{field_name} cannot be empty. Please re-enter or 'q' to quit.")
+                    continue
+                elif not default_value and is_valid: # if initial input and no default available and empty input, re-prompt
+                    print(f"{field_name} cannot be empty. Please enter or 'q' to quit.")
+                    continue
+                else: # Should not reach here, but for safety, re-prompt
+                    print(f"{field_name} cannot be empty. Please re-enter or 'q' to quit.")
+                    continue
 
 
-        return {'exchange': exchange, 'asset_pair': asset_pair, 'timeframe': timeframe}
+        # Get Exchange - Conditionally prompt based on validation errors
+        is_exchange_valid = validation_errors.get('exchange', {}).get('is_valid', True) # Assume valid if no validation error for exchange
+        default_exchange = last_inputs.get('exchange') if last_inputs else None
+        input_data['exchange'] = get_input_for_field("Exchange", default_exchange, is_exchange_valid)
+        if input_data['exchange'] == 'quit': return 'quit'
+
+
+        # Get Asset Pair - Conditionally prompt based on validation errors
+        is_asset_pair_valid = validation_errors.get('asset_pair', {}).get('is_valid', True) # Assume valid if no validation error for asset_pair
+        default_asset_pair = last_inputs.get('asset_pair') if last_inputs else None
+        input_data['asset_pair'] = get_input_for_field("Asset Pair", default_asset_pair, is_asset_pair_valid)
+        if input_data['asset_pair'] == 'quit': return 'quit'
+
+
+        # Get Timeframe - Conditionally prompt based on validation errors
+        is_timeframe_valid = validation_errors.get('timeframe', {}).get('is_valid', True) # Assume valid if no validation error for timeframe
+        default_timeframe = last_inputs.get('timeframe') if last_inputs else None
+        input_data['timeframe'] = get_input_for_field("Timeframe", default_timeframe, is_timeframe_valid)
+        if input_data['timeframe'] == 'quit': return 'quit'
+
+
+        return input_data
 
     def post(self, shared, prep_res, exec_res):
         if exec_res == 'quit':
