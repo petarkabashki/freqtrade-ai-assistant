@@ -1,4 +1,8 @@
 import sys
+import os # Import the os module
+# Add the project root to the Python path
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__))) # Add script directory to path
+
 import json  # For shared memory (using a file for simplicity)
 from pocketflow import Node, Flow
 # Assuming call_llm, call_llm_async, and search_web are defined in utils.call_llm (or similar)
