@@ -83,17 +83,20 @@ def main():
                 else:
                     user_input_values[field] = "" # Handle missing input if user just presses enter
 
-            # Merge new user input with previously validated values for fields not being re-prompted
-            current_input_to_validate = validated_input_values.copy()
-            current_input_to_validate.update(user_input_values)
+            # Correctly merge new user input with previously validated values
+            # Only update the fields that are being re-prompted
+            for field in fields_to_prompt:
+                if field in user_input_values:
+                    validated_input_values[field] = user_input_values[field]
+            current_input_to_validate = validated_input_values # current_input_to_validate now directly points to validated_input_values
 
 
         # 2. Input Validation via LLM
         validation_prompt = f"""
         Validate the following user inputs, considering the hints provided:
-        - Exchange: '{current_input_to_validate.get("exchange", "")}' (Hint: e.g., binance, kucoin, coinbase, ftx) # Exchange hint in LLM prompt AI!
-        - Asset Pair: '{current_input_to_validate.get("asset_pair", "")}' (Hint: e.g., BTC/USDT, ETH/BTC) # Asset pair hint in LLM prompt AI!
-        - Timeframe: '{current_input_to_validate.get("timeframe", "")}' (Hint: e.g., 1d, 1w, 1M) # Timeframe hint in LLM prompt AI!
+        - Exchange: '{validated_input_values.get("exchange", "")}' (Hint: e.g., binance, kucoin, coinbase, ftx) # Exchange hint in LLM prompt AI!
+        - Asset Pair: '{validated_input_values.get("asset_pair", "")}' (Hint: e.g., BTC/USDT, ETH/BTC) # Asset pair hint in LLM prompt AI!
+        - Timeframe: '{validated_input_values.get("timeframe", "")}' (Hint: e.g., 1d, 1w, 1M) # Timeframe hint in LLM prompt AI!
 
         Constraints:
         - Exchange must be one of 'binance', 'ftx', 'kucoin', or 'coinbase'.
@@ -167,11 +170,8 @@ def main():
             continue
         else:
             previous_errors = {} # Clear errors if validation is successful
-            validated_input_values = { # Store validated values
-                "exchange": exchange,
-                "asset_pair": asset_pair,
-                "timeframe": timeframe
-            }
+            # validated_input_values is already updated in the re-prompting section
+            # No need to update it again here, as it was updated correctly during input processing.
             # Update variables to use validated values for confirmation and download
             exchange = validated_input_values["exchange"]
             asset_pair = validated_input_values["asset_pair"]
