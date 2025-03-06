@@ -77,19 +77,9 @@ class ValidationNode(Node):
     def post(self, shared, prep_res, exec_res):
         if exec_res['is_valid']:
              shared['validated_input'] = exec_res['validated_input']
-             return 'validate' # Corrected action string here
+             return 'validate'
         else:
-            print("\nValidation Failed:")
-            validation_results = exec_res['validation_results']
-            if not validation_results: # defensive check in case LLM response is malformed re: validation_results
-                print("- No detailed validation results received from LLM.")
-            else:
-                for input_type, result in validation_results.items():
-                    if not result['is_valid']:
-                        error_message = result.get('error', 'Unknown error') # Get error message or default
-                        print(f"- Invalid {input_type}: {error_message}")
-                    elif result['is_valid']:
-                        print(f"- {input_type} is valid.") # Inform user about valid inputs as well
-
-            print("Please re-enter your details.\n")
+            # Store validation results in shared for UserInputNode to display
+            shared['validation_errors'] = exec_res['validation_results']
+            print("\nValidation Failed. Please re-enter your details.\n")
             return 'input'
