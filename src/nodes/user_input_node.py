@@ -18,6 +18,7 @@ def save_shared_memory(data):
 class UserInputNode(Node):
     ORANGE_COLOR_CODE = "\033[38;5;208m"  # ANSI escape code for orange
     RESET_COLOR_CODE = "\033[0m"         # ANSI escape code to reset color
+    INPUT_FIELDS = ['exchange', 'asset_pair', 'timeframe'] # Define order of fields as class constant
 
     def prep(self, shared):
         last_inputs = load_shared_memory()
@@ -59,10 +60,9 @@ class UserInputNode(Node):
         last_inputs = shared['last_inputs']
 
         input_data = {} # Dictionary to store the input data
-        fields = ['exchange', 'asset_pair', 'timeframe'] # Define order of fields
         validation_error_message = None # Initialize error message
 
-        for field_name in fields:
+        for field_name in UserInputNode.INPUT_FIELDS: # Iterate through fields from class constant
             while True:
                 user_input = self._get_user_input(field_name, last_inputs, validation_error_message)
                 if user_input.lower() == 'q': return 'quit'
@@ -85,6 +85,9 @@ class UserInputNode(Node):
                     validation_error_message = None # Clear any previous error
                     continue # Re-prompt for the same field
 
+        # After successful input for all fields, save to shared memory
+        save_shared_memory(input_data)
+        shared['validated_input'] = input_data # Store validated input in shared memory
 
         return input_data
 
@@ -92,4 +95,4 @@ class UserInputNode(Node):
         if exec_res == 'quit':
             return 'quit'
         shared['user_input'] = exec_res
-        return 'validate'
+        return 'confirm' # Changed from 'validate' to 'confirm' to reflect flow change
