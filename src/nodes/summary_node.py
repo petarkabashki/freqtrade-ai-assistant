@@ -1,5 +1,5 @@
 from pocketflow import Node
-from utils.call_llm import call_llm # Import call_llm here
+from ..utils.call_llm import call_llm # Changed import to relative import
 
 class SummaryNode(Node):
     def prep(self, shared):
@@ -32,6 +32,5 @@ class SummaryNode(Node):
 
         # Save last valid inputs to shared memory
         validated_input = shared['validated_input']
-        save_shared_memory(validated_input)
-
+        # save_shared_memory(validated_input) # Removed from here, should be in summary node
         return 'input' # Loop back to input for next download

@@ -1,5 +1,5 @@
 from pocketflow import Node
-from utils.call_llm import call_llm # Import call_llm here
+from ..utils.call_llm import call_llm # Changed import to relative import
 import json
 
 class ValidationNode(Node):
@@ -22,22 +22,31 @@ class ValidationNode(Node):
         Timeframe: {timeframe}
 
         Constraints:
-        - Exchange must be one of: binance, ftx, kucoin, or coinbase.
-        - Asset Pair must be in BASE/QUOTE format (e.g., BTC/USDT). If the quote currency is missing, default to USDT.
-        - Timeframe must be one of: 1d, 3d, 1w, 2w, 1M, 3M, 6M, or 1y.
+        - **Exchange**: Must be one of: binance, ftx, kucoin, or coinbase.
+        - **Asset Pair**: Must be in BASE/QUOTE format (e.g., BTC/USDT). If the quote currency is missing, default to USDT. Standardize the base and quote currency to their short forms if necessary.
+        - **Timeframe**: Must be one of: 1d, 3d, 1w, 2w, 1M, 3M, 6M, or 1y. Convert to the standard format if necessary (e.g., '1 month' to '1M').
 
         Response Format:
         Return a JSON object that strictly adheres to this format:
         {{
           "is_valid": true/false,
-          "validated_input": {{ "exchange": "...", "asset_pair": "...", "timeframe": "..." }},
-          "errors": ["error message 1", "error message 2", ...] // Only include if is_valid is false
+          "validation_results": {{
+            "exchange": {{ "is_valid": true/false, "error": "error message if invalid" }},
+            "asset_pair": {{ "is_valid": true/false, "error": "error message if invalid" }},
+            "timeframe": {{ "is_valid": true/false, "error": "error message if invalid" }}
+          }},
+          "validated_input": {{ "exchange": "...", "asset_pair": "...", "timeframe": "..." }} // Only include if is_valid is true
         }}
 
         Example of valid response:
         ```json
         {{
           "is_valid": true,
+          "validation_results": {{
+            "exchange": {{ "is_valid": true }},
+            "asset_pair": {{ "is_valid": true }},
+            "timeframe": {{ "is_valid": true }}
+          }},
           "validated_input": {{ "exchange": "binance", "asset_pair": "BTC/USDT", "timeframe": "1d" }}
         }}
         ```
@@ -46,27 +55,41 @@ class ValidationNode(Node):
         ```json
         {{
           "is_valid": false,
-          "errors": ["Invalid exchange: kraken. Must be one of binance, ftx, kucoin, or coinbase."]
+          "validation_results": {{
+            "exchange": {{ "is_valid": false, "error": "Invalid exchange: kraken. Must be one of binance, ftx, kucoin, or coinbase." }},
+            "asset_pair": {{ "is_valid": true }},
+            "timeframe": {{ "is_valid": false, "error": "Invalid timeframe: 2d. Must be one of 1d, 3d, 1w, 2w, 1M, 3M, 6M, or 1y." }}
+          }}
         }}
         ```
 
         Begin!
         """
         validation_response = call_llm(validation_prompt) # Assuming call_llm is defined
+        validation_result = {} # Initialize as empty dict to handle potential errors
         try:
             validation_result = json.loads(validation_response)
             return validation_result
         except json.JSONDecodeError:
-            return {'is_valid': False, 'errors': ["LLM validation response was not valid JSON."]}
+            return {'is_valid': False, 'validation_results': {}, 'error': "LLM validation response was not valid JSON."}
 
 
     def post(self, shared, prep_res, exec_res):
         if exec_res['is_valid']:
-            shared['validated_input'] = exec_res['validated_input']
-            return 'validate' # Corrected action string here
+             shared['validated_input'] = exec_res['validated_input']
+             return 'validate' # Corrected action string here
         else:
             print("\nValidation Failed:")
-            for error in exec_res['errors']:
-                print(f"- {error}")
+            validation_results = exec_res['validation_results']
+            if not validation_results: # defensive check in case LLM response is malformed re: validation_results
+                print("- No detailed validation results received from LLM.")
+            else:
+                for input_type, result in validation_results.items():
+                    if not result['is_valid']:
+                        error_message = result.get('error', 'Unknown error') # Get error message or default
+                        print(f"- Invalid {input_type}: {error_message}")
+                    elif result['is_valid']:
+                        print(f"- {input_type} is valid.") # Inform user about valid inputs as well
+
             print("Please re-enter your details.\n")
             return 'input'
