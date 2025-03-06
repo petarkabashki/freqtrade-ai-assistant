@@ -118,6 +118,23 @@ class ValidatePairNode(Node): # <<<--- DEFINITION FOR ValidatePairNode IS ADDED 
             return 'retry_pair'
         return 'collect_timeframe'
 
+class CollectTimeframeNode(Node): # <<<--- DEFINITION FOR CollectTimeframeNode IS ADDED HERE
+    def prep(self, shared):
+        default_timeframe = shared.get('timeframe', '')
+        return {
+            'default_timeframe': default_timeframe,
+        }
+
+    def exec(self, prep_res):
+        default_timeframe = prep_res.get('default_timeframe', '') # Use .get with default
+        timeframe = input(f"Enter timeframe (1d, 3d, 1w, 2w, 1M, 3M, 6M, 1y) (default: {default_timeframe}): ").lower()
+        if not timeframe: # User pressed Enter, use default
+            timeframe = default_timeframe
+        return {'action': 'validate_timeframe', 'timeframe': timeframe}
+
+    def post(self, shared, prep_res, exec_res):
+        shared['timeframe'] = exec_res.get('timeframe')
+        return 'validate_timeframe'
 
 validate_exchange_node = ValidateExchangeNode()
 collect_pair_node = CollectPairNode()
