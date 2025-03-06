@@ -24,6 +24,35 @@ class UserInputNode(Node):
         shared['last_inputs'] = last_inputs
         return None
 
+    def _get_user_input(self, field_name, last_inputs, validation_error_message=None):
+        if validation_error_message:
+            print(f"\n{UserInputNode.ORANGE_COLOR_CODE}Validation Error:{UserInputNode.RESET_COLOR_CODE} {validation_error_message}")
+
+        default_value = last_inputs.get(field_name) if last_inputs else None
+        prompt_text = f"{field_name}"
+        if default_value:
+            prompt_text = f"{prompt_text} (default: {default_value})"
+        return input(f"{prompt_text}: ").strip()
+
+    def _validate_input(self, field_name, user_input, shared):
+        if not user_input:
+            default_value = shared['last_inputs'].get(field_name) if shared['last_inputs'] else None
+            if default_value:
+                return 'validate_success', default_value # Input is valid as default is used
+            else:
+                return 'empty_input', None # Indicate empty input, no default
+
+        shared['field_to_validate'] = field_name # Prepare shared data for validation node
+        shared['field_value'] = user_input
+        validation_node = self.params['validation_node'] # Get ValidationNode from params
+        validation_result = validation_node.run(shared) # Call ValidationNode.run directly
+
+        if validation_result == 'validate_success':
+            return 'validate_success', user_input # Input is valid
+        elif validation_result == 'validate_failure':
+            return 'validate_failure', shared.get('validation_error_message') # Validation failed
+        return 'unknown', None # Should not reach here, but handle unknown case
+
     def exec(self, prep_res, shared): # Added 'shared' argument here
         print("\nPlease provide the required information.") # Subsequent guidance
         print("Enter 'q' to quit at any time.")
@@ -35,38 +64,26 @@ class UserInputNode(Node):
 
         for field_name in fields:
             while True:
-                if validation_error_message: # Display error message if validation failed
-                    print(f"\n{UserInputNode.ORANGE_COLOR_CODE}Validation Error:{UserInputNode.RESET_COLOR_CODE} {validation_error_message}")
-                    validation_error_message = None # Clear error message after displaying
-
-                default_value = last_inputs.get(field_name) if last_inputs else None
-                prompt_text = f"{field_name}"
-                if default_value:
-                    prompt_text = f"{prompt_text} (default: {default_value})"
-
-                user_input = input(f"{prompt_text}: ").strip()
+                user_input = self._get_user_input(field_name, last_inputs, validation_error_message)
                 if user_input.lower() == 'q': return 'quit'
-                if not user_input and default_value:
-                    input_data[field_name] = default_value
-                    break # Input is valid as default is used, move to next field
-                elif not user_input:
-                    print(f"{field_name} cannot be empty. Please enter or 'q' to quit.")
-                    continue # Re-prompt for the same field
-                else:
-                    shared['field_to_validate'] = field_name # Prepare shared data for validation node
-                    shared['field_value'] = user_input
-                    # --- Removed dynamic flow construction ---
-                    # validation_action = self >> self.params['validation_node']
-                    # validation_result_action = validation_action.run(shared)
-                    validation_node = self.params['validation_node'] # Get ValidationNode from params
-                    validation_result = validation_node.run(shared) # Call ValidationNode.run directly
 
-                    if validation_result == 'validate_success': # Check against the action string returned by ValidationNode.post
-                        input_data[field_name] = user_input
-                        break # Input is valid, move to next field
-                    elif validation_result == 'validate_failure': # Check against the action string returned by ValidationNode.post
-                        validation_error_message = shared.get('validation_error_message') # Get specific error message
-                        continue # Re-prompt for the same field
+                validation_status, validation_response = self._validate_input(field_name, user_input, shared)
+
+                if validation_status == 'validate_success':
+                    input_data[field_name] = validation_response # Use validated input
+                    validation_error_message = None # Clear error message
+                    break # Input is valid, move to next field
+                elif validation_status == 'validate_failure':
+                    validation_error_message = validation_response # Set validation error message for next loop
+                    continue # Re-prompt for the same field
+                elif validation_status == 'empty_input':
+                    print(f"{field_name} cannot be empty. Please enter or 'q' to quit.")
+                    validation_error_message = None # Clear any previous error
+                    continue # Re-prompt for the same field
+                else: # 'unknown' or any other unexpected status
+                    print(f"An unexpected validation status occurred: {validation_status}. Please try again.") # General error message
+                    validation_error_message = None # Clear any previous error
+                    continue # Re-prompt for the same field
 
 
         return input_data
