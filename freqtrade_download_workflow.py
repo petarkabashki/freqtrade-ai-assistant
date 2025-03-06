@@ -14,7 +14,11 @@ class CollectExchangeNode(Node):
         }
 
     def exec(self, prep_res):
-        default_exchange = prep_res['default_exchange']
+        # Defensive check: ensure prep_res is a dict, default to empty dict if None
+        if prep_res is None:
+            prep_res = {}
+
+        default_exchange = prep_res.get('default_exchange', '') # Use .get with default
 
         exchange = input(f"Enter exchange (binance, ftx, kucoin, coinbase) or 'q' to quit (default: {default_exchange}): ").lower()
         if exchange == 'q':
