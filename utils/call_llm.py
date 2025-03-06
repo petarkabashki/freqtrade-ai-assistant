@@ -12,7 +12,9 @@ def call_llm(prompt):
         model="gpt-4o",
         messages=[{"role": "user", "content": prompt}]
     )
-    return response.choices[0].message.content
+    raw_response_content = response.choices[0].message.content
+    print("Raw LLM Response:", raw_response_content) # Print raw response for debugging
+    return raw_response_content
 
 def get_embedding(text):
     client = OpenAI(api_key=API_KEY)
