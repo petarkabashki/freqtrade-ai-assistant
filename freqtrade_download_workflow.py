@@ -49,10 +49,7 @@ class CollectExchangeNode(Node):
         shared['exchange'] = exec_res.get('exchange')
         return 'validate_exchange'
 
-    # ... rest of the file remains the same ...
 
-
-collect_exchange_node = CollectExchangeNode()
 validate_exchange_node = ValidateExchangeNode()
 collect_pair_node = CollectPairNode()
 validate_pair_node = ValidatePairNode()
