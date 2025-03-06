@@ -54,9 +54,12 @@ summary_node - 'input' >> input_node
 download_flow = Flow(start=input_node)
 
 def main():
+    print("\nWelcome to the Freqtrade Download Assistant!") # Initial greeting
+    print("Please provide the required information to download data.\n") # Initial guidance
+
     shared_data = {} # Initialize shared data
     flow_result = download_flow.run(shared_data) # or download_flow.run_async(shared_data) if using async nodes
-    # print("Flow Result:", flow_result) # If needed to capture final action/result
+    # print("Flow Result:", flow_result)  # If needed to capture final action/result
 
 if __name__ == '__main__':
     main()

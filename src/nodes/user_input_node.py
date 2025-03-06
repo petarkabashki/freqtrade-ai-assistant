@@ -22,7 +22,8 @@ class UserInputNode(Node):
         return None
 
     def exec(self, prep_res, shared): # Added 'shared' argument here
-        print("\nEnter 'q' to quit at any time.")
+        print("\nPlease provide the required information.") # Subsequent guidance
+        print("Enter 'q' to quit at any time.")
         last_inputs = shared['last_inputs']
 
         # Check for validation errors from previous ValidationNode run
