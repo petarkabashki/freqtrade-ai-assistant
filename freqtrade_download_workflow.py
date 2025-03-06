@@ -8,16 +8,21 @@ class CollectExchangeNode(Node):
         default_pair = shared.get('pair', '')
         default_timeframe = shared.get('timeframe', '')
         # Defensive return: Ensure prep always returns a dict
-        return {
+        prep_dict = {
             'default_exchange': default_exchange,
             'default_pair': default_pair,
             'default_timeframe': default_timeframe,
         }
+        print(f"CollectExchangeNode.prep CALLED. Returning: {prep_dict}") # DEBUG
+        return prep_dict
 
     def exec(self, prep_res):
+        print(f"CollectExchangeNode.exec CALLED. prep_res is: {prep_res}") # DEBUG
         # Robust defensive check: ensure prep_res is a dict, default to empty dict if None
         if prep_res is None:
-            prep_res = {}
+            prep_res = {} # Fallback to empty dict, but this SHOULD NOT HAPPEN if prep() is correct
+        elif not isinstance(prep_res, dict): # More robust type check
+            prep_res = {} # Fallback to empty dict if not a dict
 
         # No defensive check needed, rely on .get with default
         default_exchange = prep_res.get('default_exchange', '') # Use .get with default
