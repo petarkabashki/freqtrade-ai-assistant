@@ -1,5 +1,23 @@
+from openai import OpenAI
+import os
+
+from dotenv import load_dotenv
+load_dotenv()
+
+API_KEY = os.getenv("OPENAI_API_KEY")
+
 def call_llm(prompt):
-    print(f"Calling LLM with prompt: {prompt}")
-    # Dummy LLM response for testing purposes.
-    # In a real application, this would call an actual LLM API.
-    return '{"is_valid": true, "validated_input": {"exchange": "binance", "asset_pair": "BTC/USDT", "timeframe": "1d"}}'
+    client = OpenAI(api_key=API_KEY)
+    response = client.chat.completions.create(
+        model="gpt-4o",
+        messages=[{"role": "user", "content": prompt}]
+    )
+    return response.choices[0].message.content
+
+def get_embedding(text):
+    client = OpenAI(api_key=API_KEY)
+    response = client.embeddings.create(
+        model="text-embedding-ada-002",
+        input=text
+    )
+    return response.data[0].embedding
