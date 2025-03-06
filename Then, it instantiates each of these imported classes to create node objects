@@ -1,0 +1,6 @@
+    input_node = UnifiedInputNode()
+    validation_node = UnifiedValidationNode()
+    confirmation_node = ConfirmationNode()
+    download_node = DownloadExecutionNode()
+    summary_node = SummaryNode()
+    exit_node = ExitNode()
