@@ -56,7 +56,7 @@ class ValidationNode(Node):
         user_input = shared['user_input']
         return user_input
 
-    def exec(self, prep_res):
+    def exec(self, prep_res, shared):
         exchange = prep_res['exchange']
         asset_pair = prep_res['asset_pair']
         timeframe = prep_res['timeframe']
@@ -102,7 +102,7 @@ class ConfirmationNode(Node):
         validated_input = shared['validated_input']
         return validated_input
 
-    def exec(self, prep_res):
+    def exec(self, prep_res, shared):
         exchange = prep_res['exchange']
         asset_pair = prep_res['asset_pair']
         timeframe = prep_res['timeframe']
@@ -123,7 +123,7 @@ class DownloadExecutionNode(Node):
         validated_input = shared['validated_input']
         return validated_input
 
-    def exec(self, prep_res):
+    def exec(self, prep_res, shared):
         exchange = prep_res['exchange']
         asset_pair = prep_res['asset_pair']
         timeframe = prep_res['timeframe']
@@ -148,7 +148,7 @@ class SummaryNode(Node):
         command_output = shared['command_output']
         return command_output
 
-    def exec(self, prep_res):
+    def exec(self, prep_res, shared):
         output_message = prep_res['output_message']
         command = prep_res['command']
 
@@ -180,7 +180,7 @@ class SummaryNode(Node):
 
 
 class ExitNode(Node):
-    def exec(self, prep_res):
+    def exec(self, prep_res, shared):
         print("\nThank you for using the Freqtrade Download Assistant!")
         return None # No output
 

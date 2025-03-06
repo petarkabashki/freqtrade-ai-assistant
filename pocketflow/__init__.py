@@ -7,12 +7,12 @@ class BaseNode:
         if action in self.successors: warnings.warn(f"Overwriting successor for action '{action}'")
         self.successors[action]=node;return node
     def prep(self,shared): pass
-    def exec(self,prep_res): pass
+    def exec(self,prep_res, shared): pass
     def post(self,shared,prep_res,exec_res): pass
-    def _exec(self,prep_res): return self.exec(prep_res)
-    def _run(self,shared): p=self.prep(shared);e=self._exec(p);return self.post(shared,p,e)
-    def run(self,shared): 
-        if self.successors: warnings.warn("Node won't run successors. Use Flow.")  
+    def _exec(self,prep_res, shared): return self.exec(prep_res, shared)
+    def _run(self,shared): p=self.prep(shared);e=self._exec(p, shared);return self.post(shared,p,e)
+    def run(self,shared):
+        if self.successors: warnings.warn("Node won't run successors. Use Flow.")
         return self._run(shared)
     def __rshift__(self,other): return self.add_successor(other)
     def __sub__(self,action):
@@ -25,16 +25,16 @@ class _ConditionalTransition:
 
 class Node(BaseNode):
     def __init__(self,max_retries=1,wait=0): super().__init__();self.max_retries,self.wait=max_retries,wait
-    def exec_fallback(self,prep_res,exc): raise exc
-    def _exec(self,prep_res):
+    def exec_fallback(self,prep_res,exc, shared): raise exc
+    def _exec(self,prep_res, shared):
         for self.cur_retry in range(self.max_retries):
-            try: return self.exec(prep_res)
+            try: return self.exec(prep_res, shared)
             except Exception as e:
-                if self.cur_retry==self.max_retries-1: return self.exec_fallback(prep_res,e)
+                if self.cur_retry==self.max_retries-1: return self.exec_fallback(prep_res,e, shared)
                 if self.wait>0: time.sleep(self.wait)
 
 class BatchNode(Node):
-    def _exec(self,items): return [super(BatchNode,self)._exec(i) for i in (items or [])]
+    def _exec(self,items, shared): return [super(BatchNode,self)._exec(i, shared) for i in (items or [])]
 
 class Flow(BaseNode):
     def __init__(self,start): super().__init__();self.start=start
@@ -46,7 +46,7 @@ class Flow(BaseNode):
         curr,p=copy.copy(self.start),(params or {**self.params})
         while curr: curr.set_params(p);c=curr._run(shared);curr=copy.copy(self.get_next_node(curr,c))
     def _run(self,shared): pr=self.prep(shared);self._orch(shared);return self.post(shared,pr,None)
-    def exec(self,prep_res): raise RuntimeError("Flow can't exec.")
+    def exec(self,prep_res, shared): raise RuntimeError("Flow can't exec.")
 
 class BatchFlow(Flow):
     def _run(self,shared):
@@ -56,30 +56,30 @@ class BatchFlow(Flow):
 
 class AsyncNode(Node):
     def prep(self,shared): raise RuntimeError("Use prep_async.")
-    def exec(self,prep_res): raise RuntimeError("Use exec_async.")
+    def exec(self,prep_res, shared): raise RuntimeError("Use exec_async.")
     def post(self,shared,prep_res,exec_res): raise RuntimeError("Use post_async.")
-    def exec_fallback(self,prep_res,exc): raise RuntimeError("Use exec_fallback_async.")
+    def exec_fallback(self,prep_res,exc, shared): raise RuntimeError("Use exec_fallback_async.")
     def _run(self,shared): raise RuntimeError("Use run_async.")
     async def prep_async(self,shared): pass
-    async def exec_async(self,prep_res): pass
-    async def exec_fallback_async(self,prep_res,exc): raise exc
+    async def exec_async(self,prep_res, shared): pass
+    async def exec_fallback_async(self,prep_res,exc, shared): raise exc
     async def post_async(self,shared,prep_res,exec_res): pass
-    async def _exec(self,prep_res): 
+    async def _exec(self,prep_res, shared):
         for i in range(self.max_retries):
-            try: return await self.exec_async(prep_res)
+            try: return await self.exec_async(prep_res, shared)
             except Exception as e:
-                if i==self.max_retries-1: return await self.exec_fallback_async(prep_res,e)
+                if i==self.max_retries-1: return await self.exec_fallback_async(prep_res,e, shared)
                 if self.wait>0: await asyncio.sleep(self.wait)
-    async def run_async(self,shared): 
-        if self.successors: warnings.warn("Node won't run successors. Use AsyncFlow.")  
+    async def run_async(self,shared):
+        if self.successors: warnings.warn("Node won't run successors. Use AsyncFlow.")
         return await self._run_async(shared)
-    async def _run_async(self,shared): p=await self.prep_async(shared);e=await self._exec(p);return await self.post_async(shared,p,e)
+    async def _run_async(self,shared): p=await self.prep_async(shared);e=await self._exec(p, shared);return await self.post_async(shared,p,e)
 
 class AsyncBatchNode(AsyncNode,BatchNode):
-    async def _exec(self,items): return [await super(AsyncBatchNode,self)._exec(i) for i in items]
+    async def _exec(self,items, shared): return [await super(AsyncBatchNode,self)._exec(i, shared) for i in items]
 
 class AsyncParallelBatchNode(AsyncNode,BatchNode):
-    async def _exec(self,items): return await asyncio.gather(*(super(AsyncParallelBatchNode,self)._exec(i) for i in items))
+    async def _exec(self,items, shared): return await asyncio.gather(*(super(AsyncParallelBatchNode,self)._exec(i, shared) for i in items))
 
 class AsyncFlow(Flow,AsyncNode):
     async def _orch_async(self,shared,params=None):
