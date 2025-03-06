@@ -59,6 +59,16 @@ class UserInputNode(Node):
                     continue
 
 
+        # Display Validation Errors from previous ValidationNode run
+        if validation_errors:
+            print("\nValidation Errors:")
+            for input_type, result in validation_errors.items():
+                if not result['is_valid']:
+                    error_message = result.get('error', 'Unknown error')
+                    print(f"- Invalid {input_type}: {error_message}")
+            print("Please correct these issues.\n")
+
+
         # Get Exchange - Conditionally prompt based on validation errors
         is_exchange_valid = validation_errors.get('exchange', {}).get('is_valid', True) # Assume valid if no validation error for exchange
         default_exchange = last_inputs.get('exchange') if last_inputs else None
@@ -79,6 +89,8 @@ class UserInputNode(Node):
         input_data['timeframe'] = get_input_for_field("Timeframe", default_timeframe, is_timeframe_valid)
         if input_data['timeframe'] == 'quit': return 'quit'
 
+
+        shared.pop('validation_errors', None) # Clear errors after input again, regardless of quit or continue
 
         return input_data
 
