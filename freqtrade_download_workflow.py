@@ -28,6 +28,10 @@ class CollectExchangeNode(Node):
         # Debug: Print keys after ensuring it's a dict
         print(f"DEBUG: prep_res is a dict with keys: {prep_res.keys()}") # DEBUG: print keys
 
+        # VERY EXPLICIT CHECK RIGHT BEFORE ACCESS
+        if prep_res is None or not isinstance(prep_res, dict):
+            raise ValueError("CRITICAL ERROR: prep_res is None or not a dict right before accessing prep_res['exchange']!")
+
 
         # No defensive check needed, rely on .get with default
         default_exchange = prep_res.get('default_exchange', '') # Use .get with default
