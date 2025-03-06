@@ -152,6 +152,58 @@ class ValidateTimeframeNode(Node): # <<<--- DEFINITION FOR ValidateTimeframeNode
             return 'retry_timeframe'
         return 'execute_download'
 
+class ExecuteDownloadNode(Node): # <<<--- DEFINITION FOR ExecuteDownloadNode IS ADDED HERE
+    def prep(self, shared):
+        # Retrieve exchange, pair, and timeframe from shared memory
+        exchange = shared.get('exchange')
+        pair = shared.get('pair')
+        timeframe = shared.get('timeframe')
+        return {
+            'exchange': exchange,
+            'pair': pair,
+            'timeframe': timeframe,
+        }
+
+    def exec(self, prep_res):
+        exchange = prep_res['exchange']
+        pair = prep_res['pair']
+        timeframe = prep_res['timeframe']
+
+        command = [
+            "freqtrade", "download-data",
+            "--userdir", "./freq-user-data",
+            "--data-format-ohlcv", "json",
+            "--exchange", exchange,
+            "-t", timeframe,
+            "--timerange=20200101-", # Fixed timerange as per requirements
+            "-p", pair
+        ]
+
+        try:
+            process = subprocess.run(command, capture_output=True, text=True, check=True)
+            return {'action': 'success', 'output': process.stdout}
+        except subprocess.CalledProcessError as e:
+            return {'action': 'error', 'message': f"Download failed: {e.stderr}"}
+        except FileNotFoundError:
+            return {'action': 'error', 'message': "Error: freqtrade command not found. Ensure freqtrade is installed and in your PATH."}
+
+
+    def post(self, shared, prep_res, exec_res):
+        if exec_res.get('action') == 'success':
+            print(f"Download successful!\nOutput:\n{exec_res.get('output')}")
+            return 'start_over'
+        else:
+            print(f"Download Error: {exec_res.get('message')}")
+            return 'retry_input'
+
+class QuitNode(Node): # <<<--- DEFINITION FOR QuitNode IS ADDED HERE
+    def exec(self, prep_res):
+        return "Thank you for using the Freqtrade Download Assistant!"
+
+    def post(self, shared, prep_res, exec_res):
+        print(exec_res)
+        return None # End the flow
+
 
 validate_exchange_node = ValidateExchangeNode()
 collect_pair_node = CollectPairNode()
