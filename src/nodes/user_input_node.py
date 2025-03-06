@@ -58,7 +58,6 @@ class UserInputNode(Node):
                     # --- Removed dynamic flow construction ---
                     # validation_action = self >> self.params['validation_node']
                     # validation_result_action = validation_action.run(shared)
-
                     validation_node = self.params['validation_node'] # Get ValidationNode from params
                     validation_result = validation_node.run(shared) # Call ValidationNode.run directly
 
