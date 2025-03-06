@@ -1,5 +1,6 @@
 import subprocess
 from utils.call_llm import call_llm
+import yaml # Use yaml instead of json for llm output AI!
 
 def main():
     previous_errors = [] # Initialize to store previous errors
@@ -7,7 +8,6 @@ def main():
     while True:
         # 1. Unified Input Prompt
 
-# Use yaml instead of json for llm output AI!
         # Display previous errors if any
         if previous_errors:
             print("Validation Errors from previous input:")
@@ -30,45 +30,43 @@ def main():
         - Asset Pair: Must follow the 'BASE/QUOTE' format (default to 'USDT' if the quote is missing and convert the base to its standardized short form if needed).
         - Timeframe: Must be one of '1d', '3d', '1w', '2w', '1M', '3M', '6M', or '1y' (conversion applied as required).
 
-        Respond with a JSON object containing the following keys:
+        Respond with a YAML object containing the following keys:
         - "exchange": The validated exchange, or null if invalid.
         - "asset_pair": The validated asset pair, or null if invalid.
         - "timeframe": The validated timeframe, or null if invalid.
         - "errors": An array of error messages, one for each invalid field.  If all fields are valid, this should be an empty array.
 
         Example Valid Response:
-        ```json
-        {{
-            "exchange": "binance",
-            "asset_pair": "BTC/USDT",
-            "timeframe": "1d",
-            "errors": []
-        }}
+        ```yaml
+        exchange: binance
+        asset_pair: BTC/USDT
+        timeframe: 1d
+        errors: []
         ```
 
         Example Invalid Response:
-        ```json
-        {{
-            "exchange": null,
-            "asset_pair": null,
-            "timeframe": null,
-            "errors": ["Invalid exchange", "Invalid asset pair", "Invalid timeframe"]
-        }}
+        ```yaml
+        exchange: null
+        asset_pair: null
+        timeframe: null
+        errors:
+        - Invalid exchange
+        - Invalid asset pair
+        - Invalid timeframe
         ```
         """
 
         llm_response = call_llm(validation_prompt)
 
         try:
-            import json
-            validation_result = json.loads(llm_response)
+            validation_result = yaml.safe_load(llm_response) # Use yaml.safe_load instead of json.loads
             exchange = validation_result.get("exchange")
             asset_pair = validation_result.get("asset_pair")
             timeframe = validation_result.get("timeframe")
             errors = validation_result.get("errors", [])
-        except json.JSONDecodeError:
-            print("Error: Could not decode LLM response. Please try again.")
-            previous_errors = ["Could not decode LLM response. Please try again."] # Store decode error
+        except yaml.YAMLError as e: # Catch YAML decode errors
+            print(f"Error: Could not decode LLM response as YAML. Please try again. Error details: {e}")
+            previous_errors = ["Could not decode LLM response as YAML. Please try again."] # Store decode error
             continue
 
         if errors:
