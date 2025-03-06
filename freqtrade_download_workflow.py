@@ -32,27 +32,24 @@ def save_shared_memory(data):
         json.dump(data, f)
 
 # --- Node Definitions ---
-input_node = UserInputNode()
-validation_node = ValidationNode() # Define validation_node BEFORE using it
+validation_node = ValidationNode() # Define validation_node **FIRST**
+input_node = UserInputNode() # Then define input_node
 confirmation_node = ConfirmationNode()
 download_execution_node = DownloadExecutionNode()
 summary_node = SummaryNode()
 exit_node = ExitNode()
 
 # --- Dynamically set validation node in UserInputNode ---
-input_node.params['validation_node'] = validation_node # Set param **BEFORE** Flow creation!
+input_node.params['validation_node'] = validation_node # Set param **AFTER** validation_node is defined and **BEFORE** Flow creation!
 
 
 # --- Flow Definition ---
-download_flow = Flow(start=input_node) # Create the Flow **AFTER** setting params
+download_flow = Flow(start=input_node) # Create the Flow **AFTER** setting input_node params
 download_flow.params = {} # Initialize flow params
 
 
 # --- Flow Definition ---
-input_node - 'validate' >> confirmation_node # Input node now transitions to confirmation after collecting all inputs
 input_node - 'quit' >> exit_node
-validation_node - 'validate_success' >> confirmation_node # These transitions are no longer used in the main flow
-validation_node - 'validate_failure' >> input_node # These transitions are no longer used in the main flow
 confirmation_node - 'download' >> download_execution_node
 confirmation_node - 'input' >> input_node
 download_execution_node - 'summarize' >> summary_node
