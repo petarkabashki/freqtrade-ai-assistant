@@ -3,7 +3,7 @@ import sys
 import json  # For shared memory (using a file for simplicity)
 from pocketflow import Node, Flow
 # Assuming call_llm, call_llm_async, and search_web are defined in utils.call_llm (or similar)
-# from utils.call_llm import call_llm, call_llm_async
+from utils.call_llm import call_llm
 # from utils.search_web import search_web
 
 # --- Shared Memory (using a JSON file for simplicity) ---
@@ -57,62 +57,32 @@ class ValidationNode(Node):
         return user_input
 
     def exec(self, prep_res):
-        # --- Dummy Validation Logic (Replace with LLM call) ---
         exchange = prep_res['exchange']
         asset_pair = prep_res['asset_pair']
         timeframe = prep_res['timeframe']
 
-        valid_exchanges = ['binance', 'ftx', 'kucoin', 'coinbase']
-        valid_timeframes = ['1d', '3d', '1w', '2w', '1M', '3M', '6M', '1y']
+        # --- LLM Validation ---
+        validation_prompt = f"""
+        Validate the following user inputs for downloading crypto
+        Exchange: {exchange}
+        Asset Pair: {asset_pair}
+        Timeframe: {timeframe}
 
-        is_valid = True
-        validation_errors = []
+        Constraints:
+        - Exchange must be one of binance, ftx, kucoin, or coinbase.
+        - Asset Pair should be in BASE/QUOTE format (default to USDT if missing).
+        - Timeframe must be one of 1d, 3d, 1w, 2w, 1M, 3M, 6M, or 1y.
 
-        if exchange not in valid_exchanges:
-            is_valid = False
-            validation_errors.append(f"Invalid exchange: {exchange}. Must be one of {valid_exchanges}")
-
-        if "/" not in asset_pair:
-            is_valid = False
-            validation_errors.append(f"Invalid asset pair format: {asset_pair}. Should be BASE/QUOTE.")
-        else:
-            base, quote = asset_pair.split("/")
-            # Standardize quote to USDT if missing (as per requirements - though unclear if validation or input node should do this)
-            if not quote:
-                asset_pair = f"{base}/USDT"
-
-        if timeframe not in valid_timeframes:
-            is_valid = False
-            validation_errors.append(f"Invalid timeframe: {timeframe}. Must be one of {valid_timeframes}")
-
-        if is_valid:
-            return {'is_valid': True, 'validated_input': {'exchange': exchange, 'asset_pair': asset_pair, 'timeframe': timeframe}}
-        else:
-            return {'is_valid': False, 'errors': validation_errors}
-
-# AI!
-        # --- LLM Validation (To be implemented - requires call_llm) ---
-        # validation_prompt = f"""
-        # Validate the following user inputs for downloading crypto
-        # Exchange: {exchange}
-        # Asset Pair: {asset_pair}
-        # Timeframe: {timeframe}
-
-        # Constraints:
-        # - Exchange must be one of binance, ftx, kucoin, or coinbase.
-        # - Asset Pair should be in BASE/QUOTE format (default to USDT if missing).
-        # - Timeframe must be one of 1d, 3d, 1w, 2w, 1M, 3M, 6M, or 1y.
-
-        # Return a JSON object indicating if valid and any errors.
-        # Example valid response: {{"is_valid": true, "validated_input": {{"exchange": "binance", "asset_pair": "BTC/USDT", "timeframe": "1d"}}}}
-        # Example invalid response: {{"is_valid": false, "errors": ["Invalid exchange: ...", "Invalid timeframe: ..."]}}
-        # """
-        # validation_response = call_llm(validation_prompt) # Assuming call_llm is defined
-        # try:
-        #     validation_result = json.loads(validation_response)
-        #     return validation_result
-        # except json.JSONDecodeError:
-        #     return {'is_valid': False, 'errors': ["LLM validation response was not valid JSON."]}
+        Return a JSON object indicating if valid and any errors.
+        Example valid response: {{"is_valid": true, "validated_input": {{"exchange": "binance", "asset_pair": "BTC/USDT", "timeframe": "1d"}}}}
+        Example invalid response: {{"is_valid": false, "errors": ["Invalid exchange: ...", "Invalid timeframe: ..."]}}
+        """
+        validation_response = call_llm(validation_prompt) # Assuming call_llm is defined
+        try:
+            validation_result = json.loads(validation_response)
+            return validation_result
+        except json.JSONDecodeError:
+            return {'is_valid': False, 'errors': ["LLM validation response was not valid JSON."]}
 
 
     def post(self, shared, prep_res, exec_res):
@@ -182,24 +152,17 @@ class SummaryNode(Node):
         output_message = prep_res['output_message']
         command = prep_res['command']
 
-        # --- Dummy Summary Logic (Replace with LLM call) ---
-        if "Download complete" in output_message:
-            summary = f"Download command successful:\n`{command}`\n\nOutput Summary:\n{output_message}"
-        else:
-            summary = f"Download command may have failed or encountered errors:\n`{command}`\n\nOutput Summary:\n{output_message}"
-
-
-        # --- LLM Summary (To be implemented - requires call_llm) ---
-        # summary_prompt = f"""
-        # Please summarize the output of the following terminal command.
-        # Command: `{command}`
-        # Output:
-        # ```
-        # {output_message}
-        # ```
-        # Focus on the outcome (success/failure, any errors) and provide a concise summary.
-        # """
-        # summary = call_llm(summary_prompt) # Assuming call_llm is defined
+        # --- LLM Summary ---
+        summary_prompt = f"""
+        Please summarize the output of the following terminal command.
+        Command: `{command}`
+        Output:
+        ```
+        {output_message}
+        ```
+        Focus on the outcome (success/failure, any errors) and provide a concise summary.
+        """
+        summary = call_llm(summary_prompt) # Assuming call_llm is defined
 
         return {'summary_message': summary}
 
