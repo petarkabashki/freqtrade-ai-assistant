@@ -2,7 +2,7 @@ from pocketflow import Flow, Node
 import subprocess
 
 class CollectInputNode(Node):
-    def exec(self, prep_res):
+    def exec(self):
         exchange = input("Enter exchange (binance, ftx, kucoin, coinbase) or 'q' to quit: ").lower()
         if exchange == 'q':
             return {'action': 'quit'}
