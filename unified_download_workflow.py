@@ -7,6 +7,7 @@ def main():
     while True:
         # 1. Unified Input Prompt
 
+# Use yaml instead of json for llm output AI!
         # Display previous errors if any
         if previous_errors:
             print("Validation Errors from previous input:")
