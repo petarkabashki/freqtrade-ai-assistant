@@ -1,5 +1,5 @@
 from pocketflow import Node
-from ...utils.call_llm import call_llm # More explicit relative import: from ...utils
+from utils.call_llm import call_llm # Direct import from utils
 import json
 
 class ValidationNode(Node):
