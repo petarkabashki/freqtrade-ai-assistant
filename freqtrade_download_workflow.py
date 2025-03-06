@@ -34,6 +34,8 @@ def save_shared_memory(data):
 # --- Node Definitions ---
 input_node = UserInputNode()
 validation_node = ValidationNode() # Define validation_node BEFORE using it
+# --- Dynamically set validation node in UserInputNode ---
+input_node.params['validation_node'] = validation_node # Set param AFTER validation_node is defined!
 confirmation_node = ConfirmationNode()
 download_execution_node = DownloadExecutionNode()
 summary_node = SummaryNode()
@@ -43,9 +45,6 @@ exit_node = ExitNode()
 # --- Flow Definition ---
 download_flow = Flow(start=input_node)
 download_flow.params = {} # Initialize flow params
-
-# --- Dynamically set validation node in UserInputNode ---
-input_node.params['validation_node'] = validation_node # Set param AFTER download_flow is created
 
 
 # --- Flow Definition ---
