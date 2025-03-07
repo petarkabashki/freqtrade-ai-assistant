@@ -35,7 +35,7 @@ def create_download_flow():
     download_node - "summary" >> summary_node
 
     summary_node - "exit" >> exit_node
-    summary_node - "reinput" >> input_node # AI: Added transition for 'reinput' action
+    summary_node - "reinput" >> input_node
 
     flow = Flow(start=input_node)
     return flow

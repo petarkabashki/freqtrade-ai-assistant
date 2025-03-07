@@ -4,12 +4,11 @@ from utils.call_llm import call_llm
 class SummaryNode(Node):
     def prep(self, shared):
         self.download_output = shared.get('download_output')
-        self.download_success = shared.get('download_success') 
+        self.download_success = shared.get('download_success')
         return {}
 
-# use a single prompt for all cases. AI!
     def exec(self, prep_res, shared):
-        if self.download_success: 
+        if self.download_success:
             success_summary_prompt = f"""Summarize the following download output for the user and based on it provide options: (I)nput , (Q)uit. Explain each option. Input is to request new download parameters.
             -----------------------------------
             {self.download_output}
@@ -44,7 +43,7 @@ class SummaryNode(Node):
                 return "exit"
 
 
-        else: 
+        else:
             error_summary_prompt = f"""Summarize the following error output for the user and based on it provide options: (R)etry, (I)nput , (Q)uit. Explain each option.
             -----------------------------------
             {self.download_output}

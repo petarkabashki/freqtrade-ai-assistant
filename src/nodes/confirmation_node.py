@@ -8,12 +8,12 @@ class ConfirmationNode(Node):
         Exchange: {collected_values['exchange']}
         Asset Pair: {collected_values['asset_pair']}
         Timeframe: {collected_values['timeframe']}
-        Confirm download? (y/n)[y]: """ # AI: Added default option format
+        Confirm download? (y/n)[y]: """
         return {}
 
     def _get_user_confirmation(self, message):
         user_input = input(message).strip().lower()
-        return user_input if user_input else 'y' # AI: Default to 'y' on empty input
+        return user_input if user_input else 'y'
 
     def exec(self, prep_res, shared):
         user_confirmation = self._get_user_confirmation(self.confirmation_message)
