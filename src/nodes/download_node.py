@@ -13,12 +13,15 @@ class DownloadNode(Node):
             stdout, stderr = process.communicate()
             if process.returncode == 0:
                 shared['download_output'] = stdout.decode()
+                shared['download_success'] = True # AI: Set download_success to True
                 return "summary"
             else:
                 shared['download_output'] = stderr.decode()
+                shared['download_success'] = False # AI: Set download_success to False
                 return "summary" # Still go to summary node to display error
         except Exception as e:
             shared['download_output'] = str(e)
+            shared['download_success'] = False # AI: Set download_success to False
             return "summary" # Still go to summary node to display error
 
     def post(self, shared, prep_res, exec_res):

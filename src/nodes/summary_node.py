@@ -4,10 +4,11 @@ from utils.call_llm import call_llm
 class SummaryNode(Node):
     def prep(self, shared):
         self.download_output = shared.get('download_output')
+        self.download_success = shared.get('download_success') # AI: Get download_success from shared
         return {}
 
     def exec(self, prep_res, shared):
-        if self.download_output:
+        if self.download_success: # AI: Check download_success instead of download_output
             success_summary_prompt = f"""Summarize the following download output for the user and based on it provide options: (I)nput , (Q)uit. Explain each option. Input resets all collected info and starts over.
             -----------------------------------
             {self.download_output}
@@ -21,12 +22,12 @@ class SummaryNode(Node):
             print("\nChoose an action:")
             print("(I)nput: Go back to input node to change parameters and reset collected info.")
             print("(Q)uit: Exit the program.")
-            print("(I/Q)[I]: ") # AI: Added default option format
+            print("(I/Q)[I]: ")
 
 
             while True:
-                user_choice = input("Enter action (I/Q)[I]: ").strip().lower() # AI: Updated prompt with default option
-                if not user_choice: # AI: Handle empty input for default option
+                user_choice = input("Enter action (I/Q)[I]: ").strip().lower()
+                if not user_choice:
                     user_choice = 'i'
                     break
                 if user_choice in ['i', 'q']:
@@ -42,7 +43,7 @@ class SummaryNode(Node):
                 return "exit"
 
 
-        else:
+        else: # AI: This is the error case now, when download_success is False
             error_summary_prompt = f"""Summarize the following error output for the user and based on it provide options: (R)etry, (I)nput , (Q)uit. Explain each option.
             -----------------------------------
             {self.download_output}
@@ -57,11 +58,11 @@ class SummaryNode(Node):
             print("(R)etry: Retry the download with the same parameters.")
             print("(I)nput: Go back to input node to change parameters.")
             print("(Q)uit: Exit the program.")
-            print("(R/I/Q)[R]: ") # AI: Added default option format
+            print("(R/I/Q)[R]: ")
 
             while True:
-                user_choice = input("Enter action (R/I/Q)[R]: ").strip().lower() # AI: Updated prompt with default option
-                if not user_choice: # AI: Handle empty input for default option
+                user_choice = input("Enter action (R/I/Q)[R]: ").strip().lower()
+                if not user_choice:
                     user_choice = 'r'
                     break
                 if user_choice in ['r', 'i', 'q']:
@@ -72,13 +73,11 @@ class SummaryNode(Node):
             if user_choice == 'r':
                 return "retry_download"
             elif user_choice == 'i':
-                shared['collected'] = {} # reset collected info # AI: Moved collected reset here for error case as well
+                shared['collected'] = {} # reset collected info
                 return "reinput"
             elif user_choice == 'q':
                 return "exit"
-        #else: # this else block is never reached because of the first if condition.
-        #    print("\nNo download output or error output found.")
-        #    return "exit"
+
 
     def post(self, shared, prep_res, exec_res):
         return exec_res
