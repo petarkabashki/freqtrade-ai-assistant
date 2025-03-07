@@ -64,6 +64,7 @@ class SummaryNode(Node):
             if user_choice == 'r':
                 return "retry_download"
             elif user_choice == 'i':
+                shared['collected'] = {} # reset collected info # AI: Moved collected reset here for error case as well
                 return "reinput"
             elif user_choice == 'q':
                 return "exit"
