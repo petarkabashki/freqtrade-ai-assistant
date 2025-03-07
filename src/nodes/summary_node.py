@@ -7,20 +7,9 @@ class SummaryNode(Node):
         return {}
 
     def exec(self, prep_res, shared):
+        # for errors the llm should provide retry/input/quit, for success or no output it should provide input/quit. Input is resetting the collected info. AI!
         if self.download_output:
-            summary_prompt = f"""Summarize the following download output for the user:
-            -----------------------------------
-            {self.download_output}
-            -----------------------------------
-            """
-            summary = call_llm(summary_prompt)
-            print("\nDownload Summary:")
-            print("-----------------------------------")
-            print(summary)
-            print("-----------------------------------")
-            return "exit"
-        else:
-            error_summary_prompt = f"""Summarize the following error output for the user and based on it provide options: (R)etry, (I)nput , (Q)uit. Explain each option.
+            error_summary_prompt = f"""Summarize the following download output and/or error output for the user and based on it provide options: (R)etry, (I)nput , (Q)uit. Explain each option.
             -----------------------------------
             {self.download_output}
             -----------------------------------
