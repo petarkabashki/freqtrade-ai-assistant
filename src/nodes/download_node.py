@@ -11,9 +11,8 @@ class DownloadNode(Node):
         try:
             process = subprocess.Popen(self.command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             stdout, stderr = process.communicate()
-
+# use the same shared key download_output. Also no output is being extracted in the summary node, check AI!
             if process.returncode == 0:
-                # rename shared key from command_output to download_output and use it in the summary node. AI!
                 shared['download_output'] = stdout.decode()
                 return "summary"
             else:
