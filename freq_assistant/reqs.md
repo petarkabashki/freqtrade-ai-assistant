@@ -51,3 +51,22 @@ Below is the updated specification for a Freqtrade Download Assistant that guide
 
 ---
 **Note:** The assistant now uses a step-by-step input process and validates each field individually before proceeding to the next step. Error handling and user guidance are provided at each stage to ensure a smooth and interactive user experience.
+
+---
+
+## 5. Flowchart
+
+```mermaid
+graph LR
+    A[Input] -->|validate_input| B[Validation]
+    A -->|exit| F[Exit]
+    B -->|confirmation| C[Confirmation]
+    B -->|reinput| A
+    C -->|execute_download| D[Download]
+    C -->|reinput| A
+    D -->|summary| E[Summary]
+    E -->|exit| F
+    E -->|input| A
+```
+
+---
