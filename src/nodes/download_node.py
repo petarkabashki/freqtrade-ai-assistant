@@ -25,4 +25,4 @@ class DownloadNode(Node):
             return "summary" # Still go to summary node to display error
 
     def post(self, shared, prep_res, exec_res):
-        return {}
+        return exec_res
