@@ -21,10 +21,14 @@ class SummaryNode(Node):
             print("\nChoose an action:")
             print("(I)nput: Go back to input node to change parameters and reset collected info.")
             print("(Q)uit: Exit the program.")
+            print("(I/Q)[I]: ") # AI: Added default option format
 
 
             while True:
-                user_choice = input("Enter action (I/Q): ").strip().lower()
+                user_choice = input("Enter action (I/Q)[I]: ").strip().lower() # AI: Updated prompt with default option
+                if not user_choice: # AI: Handle empty input for default option
+                    user_choice = 'i'
+                    break
                 if user_choice in ['i', 'q']:
                     break
                 else:
@@ -53,9 +57,13 @@ class SummaryNode(Node):
             print("(R)etry: Retry the download with the same parameters.")
             print("(I)nput: Go back to input node to change parameters.")
             print("(Q)uit: Exit the program.")
+            print("(R/I/Q)[R]: ") # AI: Added default option format
 
             while True:
-                user_choice = input("Enter action (R/I/Q): ").strip().lower()
+                user_choice = input("Enter action (R/I/Q)[R]: ").strip().lower() # AI: Updated prompt with default option
+                if not user_choice: # AI: Handle empty input for default option
+                    user_choice = 'r'
+                    break
                 if user_choice in ['r', 'i', 'q']:
                     break
                 else:
