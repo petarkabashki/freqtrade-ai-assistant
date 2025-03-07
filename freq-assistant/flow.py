@@ -1,12 +1,45 @@
-import sys
-import os
+from ..lib.pocketflow import Flow
+from src.nodes.input_node import InputNode
+from src.nodes.validation_node import ValidationNode
+from src.nodes.confirmation_node import ConfirmationNode
+from src.nodes.download_node import DownloadNode
+from src.nodes.summary_node import SummaryNode
+from src.nodes.exit_node import ExitNode
 
-# Add the project root and lib directory to Python path
-PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-LIB_PATH = os.path.join(PROJECT_ROOT, "lib")  # Construct path to lib directory
-sys.path.insert(0, LIB_PATH) # Add lib path to sys.path
+def create_download_flow():
+    nodes = {
+        "input": InputNode(),
+        "validation": ValidationNode(),
+        "confirmation": ConfirmationNode(),
+        "download": DownloadNode(),
+        "summary": SummaryNode(),
+        "exit": ExitNode(),
+    }
 
+    input_node = nodes["input"]
+    validation_node = nodes["validation"]
+    confirmation_node = nodes["confirmation"]
+    download_node = nodes["download"]
+    summary_node = nodes["summary"]
+    exit_node = nodes["exit"]
 
-from pocketflow import Flow
+    input_node - "validate_input" >> validation_node
+    input_node - "exit" >> exit_node
 
-# ... rest of your flow.py code ...
+    validation_node - "confirmation" >> confirmation_node
+    validation_node - "reinput" >> input_node
+
+    confirmation_node - "execute_download" >> download_node
+    confirmation_node - "reinput" >> input_node
+
+    download_node - "summary" >> summary_node
+
+    summary_node - "exit" >> exit_node
+    summary_node - "reinput" >> input_node
+
+    flow = Flow(start=input_node)
+    return flow
+
+if __name__ == "__main__":
+    download_flow = create_download_flow()
+    download_flow.run({})

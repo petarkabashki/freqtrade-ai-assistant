@@ -1,0 +1,9 @@
+.aider*
+.env
+.vscode
+.chainlit
+__pycache__
+test_logs/
+gemini
+freq-user-data
+data

@@ -22,11 +22,10 @@ class SummaryNode(Node):
             print("\nChoose an action:")
             print("(I)nput: Go back to input node to change parameters and reset collected info.")
             print("(Q)uit: Exit the program.")
-            print("(I/Q)[I]: ")
 
 
             while True:
-                user_choice = input("Enter action (I/Q)[I]: ").strip().lower()
+                user_choice = input("Enter action (Input/Quit) [I]: ").strip().lower()
                 if not user_choice:
                     user_choice = 'i'
                     break

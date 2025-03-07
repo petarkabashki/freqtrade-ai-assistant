@@ -4,16 +4,14 @@
    - **Exchange Input Node:** Prompt the user for the exchange.
      - Continue prompting until a valid entry is received.
      - Allow "q" (or "quit") at any time to exit with a thank-you message.
-     - Store the last valid exchange in shared memory and use it as default for subsequent prompts.
    - **Asset Pair Input Node:** Prompt the user for the asset pair.
      - Continue prompting until a valid entry is received.
      - Allow "q" (or "quit") at any time to exit with a thank-you message.
-     - Store the last valid asset pair in shared memory and use it as default for subsequent prompts.
+   
    - **Timeframe Input Node:** Prompt the user for the timeframe.
      - Continue prompting until a valid entry is received.
      - Allow "q" (or "quit") at any time to exit with a thank-you message.
-     - Store the last valid timeframe in shared memory and use it as default for subsequent prompts.
-
+    
 2. **Input Validation:**
    - **Exchange Validation Node:** Validate exchange input via an LLM call using a structured prompt.
      - **Exchange:** Must be one of `binance`, `ftx`, `kucoin`, or `coinbase`.
