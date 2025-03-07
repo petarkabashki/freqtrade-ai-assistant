@@ -1,11 +1,9 @@
 from pocketflow import Node
 import subprocess
-
-# rename this to simply DownloadNode, including file name. AI!
 class DownloadNode(Node):
     def prep(self, shared):
         collected_values = shared['collected']
-        self.command = f"freqtrade download-data --userdir ./freq-user-data --data-format-ohlcv json --exchange {collected_values['exchange']} -t {collected_values['timeframe']} --timerange=20200101- -p {collected_values['asset_pair']}"
+        self.command = f"freqtrade download-data --userdir ./freq-user-data --data-dir ./freq-data --data-format-ohlcv json --exchange {collected_values['exchange']} -t {collected_values['timeframe']} --timerange=20200101- -p {collected_values['asset_pair']}"
         return {}
 
     def exec(self, prep_res, shared):
