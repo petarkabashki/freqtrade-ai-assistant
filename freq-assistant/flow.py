@@ -9,7 +9,8 @@ print("-" * 20)
 
 # Add the directory containing 'pocketflow' to Python path
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-sys.path.insert(0, PROJECT_ROOT)
+POCKETFLOW_PATH = os.path.join(PROJECT_ROOT, "pocketflow")
+sys.path.insert(0, POCKETFLOW_PATH)
 
 # Print sys.path after modification for debugging
 print("Modified sys.path:")
