@@ -6,7 +6,7 @@ class InputNode(Node): # Class name is already InputNode, this is correct
     GRAY_COLOR_CODE = "\033[90m" # ANSI escape code for gray
     LIGHT_GREEN_COLOR_CODE = "\033[92m" # ANSI escape code for light green
     INITIAL_MESSAGE = f"""
-    {LIGHT_GREEN_COLOR_CODE}Welcome to the Freqtrade Download Assistant!{RESET_COLOR_CODE}
+    {LIGHT_GREEN_COLOR_CODE}Hey! Welcome to the Freqtrade Download Assistant!{RESET_COLOR_CODE}
 
     Please provide exchange, pair and timeframe:
     """
