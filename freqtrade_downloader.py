@@ -1,5 +1,4 @@
 from pocketflow import Flow
-# remove 'Unified' from the names of the in the following 2 lines. Update everywhere. AI!
 from src.nodes.input_node import InputNode
 from src.nodes.validation_node import ValidationNode
 from src.nodes.confirmation_node import ConfirmationNode
@@ -9,8 +8,8 @@ from src.nodes.exit_node import ExitNode
 
 def create_download_flow():
     nodes = {
-        "input": InputNode(),
-        "validation": ValidationNode(),
+        "input": InputNode(), # Using InputNode (no Unified)
+        "validation": ValidationNode(), # Using ValidationNode (no Unified)
         "confirmation": ConfirmationNode(),
         "download": DownloadExecutionNode(),
         "summary": SummaryNode(),

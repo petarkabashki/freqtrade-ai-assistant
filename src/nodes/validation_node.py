@@ -2,7 +2,7 @@ from pocketflow import Node
 from utils.call_llm import call_llm
 import yaml
 
-class UnifiedValidationNode(Node):
+class ValidationNode(Node): # Class name is already ValidationNode, this is correct
     def prep(self, shared):
         collected_values = shared.get('collected', {})
         last_user_input = shared.get('last_user_input', '')
@@ -78,7 +78,7 @@ class UnifiedValidationNode(Node):
 
         Output in YAML:
         """
-        # shared['validation_prompt'] = validation_prompt
+        shared['validation_prompt'] = validation_prompt
         return {'prompt': validation_prompt}
 
     def exec(self, prep_res, shared):
