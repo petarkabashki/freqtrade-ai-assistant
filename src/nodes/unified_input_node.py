@@ -4,17 +4,22 @@ class UnifiedInputNode(Node):
     ORANGE_COLOR_CODE = "\033[38;5;208m"  # ANSI escape code for orange
 
     def prep(self, shared):
-        re_entry_prompt = shared.get('re_entry_prompt', "")
+        print(f'shared: {shared}')
         errors = shared.get('errors', [])
 
         prompt_lines = [
             "\nPlease provide exchange, pair and timeframe",
         ]
-        if re_entry_prompt:
+        if len(errors) > 0:
+            
+            user_error_message = errors.get('user_error_message', "")
+            re_entry_prompt = errors.get('re_entry_prompt', "")
+            prompt_lines.append(f"{self.ORANGE_COLOR_CODE}{user_error_message}{self.RESET_COLOR_CODE}")
             prompt_lines.append(re_entry_prompt) # corrected line: append re_entry_prompt to prompt_lines
         else:
             prompt_lines.insert(1, "  Example: 'binance BTC/USDT 1d'")
 
+        #wrap this line in gray color AI!
         prompt_lines.append(
             "  Enter 'q' or 'quit' to exit at any time.\n Please enter: ")
 
