@@ -1,6 +1,7 @@
 from pocketflow import Flow
-from src.nodes.unified_input_node import UnifiedInputNode
-from src.nodes.unified_validation_node import UnifiedValidationNode
+# remove 'Unified' from the names of the in the following 2 lines. Update everywhere. AI!
+from nodes.input_node import InputNode
+from nodes.validation_node import ValidationNode
 from src.nodes.confirmation_node import ConfirmationNode
 from src.nodes.download_execution_node import DownloadExecutionNode
 from src.nodes.summary_node import SummaryNode
