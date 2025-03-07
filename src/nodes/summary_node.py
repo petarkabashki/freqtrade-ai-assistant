@@ -7,9 +7,39 @@ class SummaryNode(Node):
         return {}
 
     def exec(self, prep_res, shared):
-        # for errors the llm should provide retry/input/quit, for success or no output it should provide input/quit. Input is resetting the collected info. AI!
         if self.download_output:
-            error_summary_prompt = f"""Summarize the following download output and/or error output for the user and based on it provide options: (R)etry, (I)nput , (Q)uit. Explain each option.
+            success_summary_prompt = f"""Summarize the following download output for the user and based on it provide options: (I)nput , (Q)uit. Explain each option. Input resets all collected info and starts over.
+            -----------------------------------
+            {self.download_output}
+            -----------------------------------
+            """
+            summary = call_llm(success_summary_prompt)
+            print("\nDownload Summary:")
+            print("-----------------------------------")
+            print(summary)
+            print("-----------------------------------")
+            print("\nChoose an action:")
+            print("(I)nput: Go back to input node to change parameters and reset collected info.")
+            print("(Q)uit: Exit the program.")
+
+
+            while True:
+                user_choice = input("Enter action (I/Q): ").strip().lower()
+                if user_choice in ['i', 'q']:
+                    break
+                else:
+                    print("Invalid choice. Please enter I, or Q.")
+
+
+            if user_choice == 'i':
+                shared['collected'] = {} # reset collected info
+                return "reinput"
+            elif user_choice == 'q':
+                return "exit"
+
+
+        else:
+            error_summary_prompt = f"""Summarize the following error output for the user and based on it provide options: (R)etry, (I)nput , (Q)uit. Explain each option.
             -----------------------------------
             {self.download_output}
             -----------------------------------
@@ -37,9 +67,9 @@ class SummaryNode(Node):
                 return "reinput"
             elif user_choice == 'q':
                 return "exit"
-        else:
-            print("\nNo download output or error output found.")
-            return "exit"
+        #else: # this else block is never reached because of the first if condition.
+        #    print("\nNo download output or error output found.")
+        #    return "exit"
 
     def post(self, shared, prep_res, exec_res):
         return exec_res
