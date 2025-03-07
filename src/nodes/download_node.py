@@ -13,7 +13,8 @@ class DownloadNode(Node):
             stdout, stderr = process.communicate()
 
             if process.returncode == 0:
-                shared['command_output'] = stdout.decode()
+                # rename shared key from command_output to download_output and use it in the summary node. AI!
+                shared['download_output'] = stdout.decode()
                 return "summary"
             else:
                 shared['command_output'] = stderr.decode()
