@@ -7,9 +7,11 @@ for path in sys.path:
     print(path)
 print("-" * 20)
 
-# Add the project root to Python path
+# Add the project root and lib directory to Python path
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-sys.path.insert(0, PROJECT_ROOT)
+LIB_PATH = os.path.join(PROJECT_ROOT, "lib")  # Construct path to lib directory
+sys.path.insert(0, LIB_PATH) # Add lib path to sys.path
+
 
 # Print sys.path after modification for debugging
 print("Modified sys.path:")
