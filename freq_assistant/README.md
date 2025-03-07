@@ -1,4 +1,4 @@
-# Freqtrade Download Assistant
+# Freqtrade AI Download Assistant
 
 This assistant guides you through the process of downloading historical data for Freqtrade using an interactive command-line interface.
 
@@ -15,6 +15,7 @@ It leverages a conversational flow to help you specify the exchange, asset pair,
 
 *   **Freqtrade Installation:**  Ensure you have Freqtrade installed and configured correctly.
 *   **Python Environment:**  Python 3.7 or higher.
+*   **reqs.md** file was used to guide the AI coding tool while creating the project.
 *   **Dependencies:**  Install necessary Python packages. See `REQUIERMENTS.md` for details (if available).
 
 ## Usage
