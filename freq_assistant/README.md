@@ -13,7 +13,7 @@ graph LR
     E -->|input| A
 ```
 
-This assistant guides you through the process of downloading historical data for Freqtrade using an interactive command-line interface.
+This assistant guides you through the process of downloading historical crytocurrency data via Freqtrade using an interactive command-line interface.
 It leverages a conversational flow to help you specify the exchange, asset pair, and timeframe for the data you need.
 
 ## Features
