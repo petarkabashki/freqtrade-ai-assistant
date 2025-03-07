@@ -2,16 +2,16 @@ from pocketflow import Flow
 from src.nodes.input_node import InputNode
 from src.nodes.validation_node import ValidationNode
 from src.nodes.confirmation_node import ConfirmationNode
-from src.nodes.download_execution_node import DownloadExecutionNode
+from src.nodes.download_node import DownloadNode # AI: updated import
 from src.nodes.summary_node import SummaryNode
 from src.nodes.exit_node import ExitNode
 
 def create_download_flow():
     nodes = {
-        "input": InputNode(), # Using InputNode (no Unified)
-        "validation": ValidationNode(), # Using ValidationNode (no Unified)
+        "input": InputNode(),
+        "validation": ValidationNode(),
         "confirmation": ConfirmationNode(),
-        "download": DownloadExecutionNode(),
+        "download": DownloadNode(), # AI: updated node name
         "summary": SummaryNode(),
         "exit": ExitNode(),
     }
