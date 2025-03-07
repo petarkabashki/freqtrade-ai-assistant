@@ -21,14 +21,13 @@ It leverages a conversational flow to help you specify the exchange, asset pair,
 *   **Interactive Guided Download:** Step-by-step prompts to collect necessary information for data download.
 *   **Input Validation:** Uses Language Models (LLMs) to validate user inputs and ensure correct data format.
 *   **Freqtrade Integration:** Generates and executes `freqtrade download-data` commands based on your specifications.
-*   **Configuration Files:** Stores downloaded data configurations in JSON files for easy access and reuse (e.g., `freq-data/ALGO_USDT-1w.json`).
+*   **Price Output Files:** Stores downloaded data in JSON files for easy access and reuse (e.g., `freq-data/ALGO_USDT-1w.json`).
 
 ## Requirements
 
 *   **Freqtrade Installation:** Ensure you have Freqtrade installed and configured correctly.
 *   **Python Environment:** Python 3.7 or higher.
 *   **reqs.md** file was used to guide the AI coding tool while creating the project.
-*   **Dependencies:** Install necessary Python packages. See `REQUIERMENTS.md` for details (if available).
 
 ## Usage
 
