@@ -1,8 +1,9 @@
 import sys
 import os
 
-# Add the current working directory to Python path
-sys.path.insert(0, os.getcwd())
+# Add the directory containing 'pocketflow' to Python path
+PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, PROJECT_ROOT)
 
 from pocketflow import Flow
 
