@@ -26,7 +26,7 @@ class InputNode(Node): # Class name is already InputNode, this is correct
             user_error_message = errors.get('user_error_message', "")
             re_entry_prompt = errors.get('re_entry_prompt', "")
             prompt_lines.append(f"{self.ORANGE_COLOR_CODE}{user_error_message}{self.RESET_COLOR_CODE}")
-            prompt_lines.append(re_entry_prompt)
+            prompt_lines.append(f'{re_entry_prompt}: ')
         else:
             prompt_lines.append(self.INITIAL_MESSAGE)
 
