@@ -2,6 +2,8 @@ from pocketflow import Node
 
 class UnifiedInputNode(Node):
     ORANGE_COLOR_CODE = "\033[38;5;208m"  # ANSI escape code for orange
+    RESET_COLOR_CODE = "\033[0m" # ANSI escape code to reset color
+    GRAY_COLOR_CODE = "\033[90m" # ANSI escape code for gray
 
     def prep(self, shared):
         print(f'shared: {shared}')
@@ -11,7 +13,7 @@ class UnifiedInputNode(Node):
             "\nPlease provide exchange, pair and timeframe",
         ]
         if len(errors) > 0:
-            
+
             user_error_message = errors.get('user_error_message', "")
             re_entry_prompt = errors.get('re_entry_prompt', "")
             prompt_lines.append(f"{self.ORANGE_COLOR_CODE}{user_error_message}{self.RESET_COLOR_CODE}")
@@ -21,7 +23,7 @@ class UnifiedInputNode(Node):
 
         #wrap this line in gray color AI!
         prompt_lines.append(
-            "  Enter 'q' or 'quit' to exit at any time.\n Please enter: ")
+            f"{self.GRAY_COLOR_CODE}  Enter 'q' or 'quit' to exit at any time.\n Please enter: {self.RESET_COLOR_CODE}")
 
         self.user_prompt = "\n".join(prompt_lines)
         return {} # corrected line: return empty dict as prep_res
