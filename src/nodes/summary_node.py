@@ -4,8 +4,6 @@ from utils.call_llm import call_llm
 class SummaryNode(Node):
     def prep(self, shared):
         self.download_output = shared.get('download_output')
-        # remove command_output usage, use download_ouput only. AI!
-        self.command_output = shared.get('command_output')
         return {}
 
     def exec(self, prep_res, shared):
@@ -21,10 +19,10 @@ class SummaryNode(Node):
             print(summary)
             print("-----------------------------------")
             return "exit"
-        elif self.command_output:
+        else:
             error_summary_prompt = f"""Summarize the following error output for the user and based on it provide options: (R)etry, (I)nput , (Q)uit. Explain each option.
             -----------------------------------
-            {self.command_output}
+            {self.download_output}
             -----------------------------------
             """
             error_summary = call_llm(error_summary_prompt)

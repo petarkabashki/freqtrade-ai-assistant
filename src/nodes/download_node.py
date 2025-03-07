@@ -15,11 +15,10 @@ class DownloadNode(Node):
                 shared['download_output'] = stdout.decode()
                 return "summary"
             else:
-                # Use command_output for errors as intended. AI!
-                shared['command_output'] = stderr.decode()
+                shared['download_output'] = stderr.decode()
                 return "summary" # Still go to summary node to display error
         except Exception as e:
-            shared['command_output'] = str(e)
+            shared['download_output'] = str(e)
             return "summary" # Still go to summary node to display error
 
     def post(self, shared, prep_res, exec_res):
