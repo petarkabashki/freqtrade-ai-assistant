@@ -1,5 +1,5 @@
 from pocketflow import Node
-from utils.call_llm import call_llm
+from call_llm import call_llm
 
 class SummaryNode(Node):
     def prep(self, shared):
@@ -9,7 +9,8 @@ class SummaryNode(Node):
 
     def exec(self, prep_res, shared):
         if self.download_success:
-            success_summary_prompt = f"""Summarize the following download output for the user and based on it provide options: (I)nput , (Q)uit. Explain each option. Input is to request new download parameters.
+            success_summary_prompt = f"""Summarize the following download output for the user and based on it provide options: (I)nput , (Q)uit. Explain each option. Input is to request new download parameters(exchange, pair, timeframe).
+            If the download output is empty, assume it was successful.
             -----------------------------------
             {self.download_output}
             -----------------------------------
@@ -37,7 +38,8 @@ class SummaryNode(Node):
 
             if user_choice == 'i':
                 shared['collected'] = {} # reset collected info
-                return "reinput"
+                shared['anew'] = True
+                return "input"
             elif user_choice == 'q':
                 return "exit"
 

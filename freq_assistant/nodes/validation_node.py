@@ -1,5 +1,5 @@
 from pocketflow import Node
-from utils.call_llm import call_llm
+from call_llm import call_llm
 import yaml
 
 class ValidationNode(Node): # Class name is already ValidationNode, this is correct

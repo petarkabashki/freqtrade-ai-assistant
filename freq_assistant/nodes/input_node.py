@@ -13,6 +13,12 @@ class InputNode(Node): # Class name is already InputNode, this is correct
 
 
     def prep(self, shared):
+        if shared.get('anew', False):
+            shared['errors'] = []
+            shared['collected'] = {}
+            shared['anew'] = False
+
+
         errors = shared.get('errors', [])
 
         prompt_lines = []

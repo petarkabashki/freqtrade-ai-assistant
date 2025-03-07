@@ -1,10 +1,10 @@
-from ..lib.pocketflow import Flow
-from src.nodes.input_node import InputNode
-from src.nodes.validation_node import ValidationNode
-from src.nodes.confirmation_node import ConfirmationNode
-from src.nodes.download_node import DownloadNode
-from src.nodes.summary_node import SummaryNode
-from src.nodes.exit_node import ExitNode
+from pocketflow import Flow
+from nodes.input_node import InputNode
+from nodes.validation_node import ValidationNode
+from nodes.confirmation_node import ConfirmationNode
+from nodes.download_node import DownloadNode
+from nodes.summary_node import SummaryNode
+from nodes.exit_node import ExitNode
 
 def create_download_flow():
     nodes = {
@@ -35,7 +35,7 @@ def create_download_flow():
     download_node - "summary" >> summary_node
 
     summary_node - "exit" >> exit_node
-    summary_node - "reinput" >> input_node
+    summary_node - "input" >> input_node
 
     flow = Flow(start=input_node)
     return flow
