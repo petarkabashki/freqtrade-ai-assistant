@@ -4,6 +4,7 @@ from utils.call_llm import call_llm
 class SummaryNode(Node):
     def prep(self, shared):
         self.download_output = shared.get('download_output')
+        # remove command_output usage, use download_ouput only. AI!
         self.command_output = shared.get('command_output')
         return {}
 
