@@ -21,6 +21,9 @@ class UnifiedInputNode(Node):
         self.user_prompt = "\n".join(prompt_lines)
         return {} # corrected line: return empty dict as prep_res
 
+    def _get_user_input(self, prompt):
+        return input(prompt).strip()
+
 
     def exec(self, prep_res, shared): # corrected line: add prep_res argument
         user_input = self._get_user_input(self.user_prompt)
