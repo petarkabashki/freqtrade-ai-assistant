@@ -22,4 +22,4 @@ class ConfirmationNode(Node):
             return "reinput"
 
     def post(self, shared, prep_res, exec_res):
-        return {}
+        return exec_res
