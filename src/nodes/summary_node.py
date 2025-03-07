@@ -1,17 +1,14 @@
 from pocketflow import Node
 from utils.call_llm import call_llm
 
-# Make this node accept pass the download command output to the llm to summarize it for the user. If it's an error provide the following options: (R)etry, (I)nput , (Q)uit. Retry should go back to the download and try again. Input should go back to the input node. Quit -> exit node. AI!
 class SummaryNode(Node):
     def prep(self, shared):
-        # Use download_output if download was successful, otherwise use command_output for errors. AI!
         self.download_output = shared.get('download_output')
         self.command_output = shared.get('command_output')
         return {}
 
     def exec(self, prep_res, shared):
         if self.download_output:
-            # Summarize successful download output. AI!
             summary_prompt = f"""Summarize the following download output for the user:
             -----------------------------------
             {self.download_output}
@@ -22,9 +19,8 @@ class SummaryNode(Node):
             print("-----------------------------------")
             print(summary)
             print("-----------------------------------")
-            return "exit" # For successful download, go to exit. AI!
+            return "exit"
         elif self.command_output:
-            # Summarize error and provide options. AI!
             error_summary_prompt = f"""Summarize the following error output for the user and based on it provide options: (R)etry, (I)nput , (Q)uit. Explain each option.
             -----------------------------------
             {self.command_output}
@@ -48,13 +44,12 @@ class SummaryNode(Node):
                     print("Invalid choice. Please enter R, I, or Q.")
 
             if user_choice == 'r':
-                return "retry_download" # Action for retry download. AI!
+                return "retry_download"
             elif user_choice == 'i':
-                return "reinput" # Action for going back to input. AI!
+                return "reinput"
             elif user_choice == 'q':
-                return "exit" # Action for exit. AI!
+                return "exit"
         else:
-            # This case should ideally not happen, but handle it just in case. AI!
             print("\nNo download output or error output found.")
             return "exit"
 
