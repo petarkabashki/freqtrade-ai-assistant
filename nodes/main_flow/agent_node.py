@@ -1,10 +1,10 @@
 from lib.pocketflow import Node
 from lib.call_llm import call_llm
-from lib.core_tools import search_google_tool, user_input_llm_query_tool, user_output_tool # Changed tool imports
+from lib.core_tools import search_google_tool, user_input_tool, user_output_tool # Changed tool import: user_input_llm_query_tool -> user_input_tool
 from lib.tools.fs_tools import file_read, file_write, directory_listing # Import file tools
 import yaml # Import the yaml library
 
-# The agent should call llm to respond to several categories of queries. One is for downloading crypto historical data; another is for downloading stock, indeces, forex, comodities data; another is answering questions about available downloaded historical data for various assets . The folder containing the files of such downloaded data is configurable in the app yaml config and is currently 'freq-data'. AI!
+# The agent should call llm to respond to several categories of queries. One is for downloading crypto historical data; another is for downloading stock, indeces, forex, comodities data; another is answering questions about available downloaded historical data for various assets . The folder containing the files of such downloaded data is configurable in the app yaml config and is currently 'freq-data'.
 class AgentNode(Node):
     def __init__(self, max_tool_loops=3, allowed_paths=None): # Add allowed_paths to constructor
         super().__init__()
@@ -27,7 +27,7 @@ class AgentNode(Node):
           - file_read: to read content from a file
           - file_write: to write content to a file
           - directory_listing: to list files and directories in a given path
-          - user_input_llm_query: to ask the user a question and get their response to refine the request
+          - user_input: to ask the user a question and get their response to refine the request
           - user_output: to display information to the user
 
         - What are the parameters needed to execute the tool?

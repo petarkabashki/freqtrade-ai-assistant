@@ -1,5 +1,5 @@
 from lib.pocketflow import Node
-from lib.core_tools import search_google_tool, user_input_llm_query_tool, user_output_tool # Changed tool imports
+from lib.core_tools import search_google_tool, user_input_tool, user_output_tool # Changed tool import: user_input_llm_query_tool -> user_input_tool
 from lib.tools.fs_tools import file_read, file_write, directory_listing, ALLOWED_PATHS # Import file tools
 
 class ToolInvocationNode(Node):
@@ -29,8 +29,8 @@ class ToolInvocationNode(Node):
             tool_result = file_write(**tool_params)
         elif tool_name == "directory_listing":
             tool_result = directory_listing(**tool_params)
-        elif tool_name == "user_input_llm_query":
-            tool_result = user_input_llm_query_tool(**tool_params)
+        elif tool_name == "user_input": # Changed tool name: user_input_llm_query -> user_input
+            tool_result = user_input_tool(**tool_params) # Changed tool name: user_input_llm_query_tool -> user_input_tool
         elif tool_name == "user_output":
             tool_result = user_output_tool(**tool_params)
         else:

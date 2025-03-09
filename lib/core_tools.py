@@ -78,8 +78,7 @@ def extract_text_from_image_pdf_tool(pdf_path, page_num=0): # page_num is 0-base
     # return call_llm_vision_tool(prompt, img_data)
     return "Image PDF text extraction disabled due to missing library (fitz)" # Modified to return a message
 
-# rename this to user_input AI!
-def user_input_llm_query_tool(prompt):
+def user_input_tool(prompt): # Renamed from user_input_llm_query_tool to user_input_tool
     user_query = input(f"{prompt}: ")
     return user_query
 
