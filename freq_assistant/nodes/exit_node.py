@@ -1,4 +1,4 @@
-from pocketflow import Node
+from lib.pocketflow import Node
 
 class ExitNode(Node):
     def exec(self, prep_res, shared):

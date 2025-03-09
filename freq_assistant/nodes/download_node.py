@@ -1,4 +1,4 @@
-from pocketflow import Node
+from lib.pocketflow import Node
 import subprocess
 class DownloadNode(Node):
     def prep(self, shared):

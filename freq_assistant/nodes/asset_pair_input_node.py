@@ -1,4 +1,4 @@
-from pocketflow import Node
+from lib.pocketflow import Node
 import json
 
 # --- Shared Memory (using a JSON file for simplicity) ---

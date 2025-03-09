@@ -1,4 +1,4 @@
-from pocketflow import Node
+from lib.pocketflow import Node
 
 class InputNode(Node): # Class name is already InputNode, this is correct
     ORANGE_COLOR_CODE = "\033[38;5;208m"  # ANSI escape code for orange

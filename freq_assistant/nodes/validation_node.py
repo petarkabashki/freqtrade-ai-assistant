@@ -1,5 +1,5 @@
-from pocketflow import Node
-from call_llm import call_llm
+from lib.pocketflow import Node
+from lib.call_llm import call_llm
 import yaml
 
 class ValidationNode(Node): # Class name is already ValidationNode, this is correct
@@ -28,29 +28,7 @@ class ValidationNode(Node): # Class name is already ValidationNode, this is corr
         - For each field, if new information is provided in the Last User Input, update the Collected values.
         - Validate ALL THREE fields (Exchange, Asset Pair, Timeframe) based on the Constraints.
         - If any field is invalid or missing, identify ALL invalid/missing fields.
-        - Respond with a YAML object containing:
-            - "exchange": The VALIDATED exchange if valid and provided, otherwise null. Retain previously collected valid value if user is not providing new exchange info in this turn.
-            - "asset_pair": The VALIDATED asset pair if valid and provided, otherwise null. Retain previously collected valid value if user is not providing new asset_pair info in this turn.
-            - "timeframe": The VALIDATED timeframe if valid and provided, otherwise null. Retain previously collected valid value if user is not providing new timeframe info in this turn.
-            - "errors": A list of error messages, one for each invalid or missing field. If all fields are valid, this should be an empty list.
-            - "invalid_fields": A list of names of fields that are invalid or missing. If all fields are valid, this should be an empty list.
-            - "user_error_message": A user-friendly, concise message summarizing all validation errors. Should be empty if no errors.
-            - "re_entry_prompt": A short, clear prompt asking the user to re-enter ONLY the invalid or missing fields. Should be empty if no errors. Be very brief and directly tell the user what to do next, e.g., "Re-enter missing exchange and timeframe".
-
-        Example YAML Responses:
-
-        # Example 1: All inputs are valid or already collected
-        ```yaml
-        exchange: binance
-        asset_pair: BTC/USDT
-        timeframe: 1d
-        errors: []
-        invalid_fields: []
-        user_error_message: ""
-        re_entry_prompt: ""
-        ```
-
-        # Example 2: Some inputs are invalid or missing
+        YAML Responses:
         ```yaml
         exchange: null # or previously collected valid exchange if still valid
         asset_pair: ADA/USD  # even if previous valid asset_pair was collected, re-validate it

@@ -1,5 +1,5 @@
-from pocketflow import Node
-from call_llm import call_llm
+from lib.pocketflow import Node
+from lib.call_llm import call_llm
 
 class SummaryNode(Node):
     def prep(self, shared):
