@@ -144,23 +144,25 @@ class AgentNode(Node):
 
         print(f"AgentNode exec finished with result: {exec_res}, Shared: {shared}")
         return exec_res
-# simplify code AI!
+
     def post(self, shared, prep_res, exec_res):
         print(f"AgentNode post started. Shared: {shared}, Prep result: {prep_res}, Exec result: {exec_res}")
+        action_map = {
+            "answer_directly": "direct_answer_ready",
+            "yaml_error": "yaml_error",
+            "crypto_download_requested": "crypto_download_requested"
+        }
+
         if exec_res == "tool_needed":
             if shared['tool_loop_count'] < self.max_tool_loops:
                 action = "tool_needed"
             else:
                 print("Maximum tool loop count reached.")
                 action = "max_loops_reached"
-        elif exec_res == "answer_directly":
-            action = "direct_answer_ready"
-        elif exec_res == "yaml_error":
-            action = "yaml_error"
-        elif exec_res == "crypto_download_requested":
-            action = "crypto_download_requested"
         elif isinstance(exec_res, dict) and "tool_name" in exec_res:
             action = "tool_needed"
+        elif exec_res in action_map:
+            action = action_map[exec_res]
         else:
             action = "default"
 
