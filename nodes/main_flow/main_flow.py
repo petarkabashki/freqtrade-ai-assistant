@@ -13,9 +13,9 @@ class MainFlow(Flow):
         data_folder = config.get('data_folder', 'freq-data')
         print(f"MainFlow initialized with config: {config}")
 
+        main_input_node = MainInputNode() # Define main_input_node FIRST
         super().__init__(start=main_input_node) # Set start node for the flow
 
-        main_input_node = MainInputNode()
         agent_node = AgentNode(max_tool_loops=max_tool_loops,
                                 allowed_paths=allowed_paths,
                                 data_folder=data_folder)
