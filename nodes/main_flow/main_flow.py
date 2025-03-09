@@ -42,6 +42,7 @@ class MainFlow(Flow):
         agent_node >> ("max_loops_reached", tool_result_processor_node)
         # Sub-flow transitions
         agent_node >> ("crypto_download_requested", self.freqtrade_flow) # Route crypto download requests to freqtrade_flow
+        main_input_node - "quit" >> None # AI: Add transition for 'quit' action to terminate flow
 
     def get_next_node(self, curr, action):
         nxt = super().get_next_node(curr, action)
