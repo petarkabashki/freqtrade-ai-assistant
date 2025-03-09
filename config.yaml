@@ -1,0 +1,2 @@
+agent:
+  max_tool_loops: 3

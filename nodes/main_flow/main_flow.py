@@ -5,10 +5,12 @@ from nodes.main_flow.tool_invocation_node import ToolInvocationNode # Import Too
 from nodes.main_flow.tool_result_processor_node import ToolResultProcessorNode
 
 class MainFlow(Flow):
-    def __init__(self):
+    def __init__(self, config): # Accept config as argument
         super().__init__(start=None)
         main_input_node = MainInputNode()
-        agent_node = AgentNode(max_tool_loops=3) # Instantiate AgentNode with max_tool_loops=3
+        agent_config = config.get('agent', {}) # Get agent config, default to empty dict
+        max_tool_loops = agent_config.get('max_tool_loops', 3) # Get max_tool_loops, default to 3 if not in config
+        agent_node = AgentNode(max_tool_loops=max_tool_loops) # Instantiate AgentNode with max_tool_loops from config
         tool_invocation_node = ToolInvocationNode() # Instantiate ToolInvocationNode
         tool_result_processor_node = ToolResultProcessorNode()
 
