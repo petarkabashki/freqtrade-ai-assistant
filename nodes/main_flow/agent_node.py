@@ -5,9 +5,10 @@ from lib.tools.fs_tools import file_read, file_write, directory_listing # Import
 import yaml # Import the yaml library
 
 class AgentNode(Node):
-    def __init__(self, max_tool_loops=3): # Add max_tool_loops parameter with a default value
+    def __init__(self, max_tool_loops=3, allowed_paths=None): # Add allowed_paths to constructor
         super().__init__()
         self.max_tool_loops = max_tool_loops
+        self.allowed_paths = allowed_paths if allowed_paths is not None else [] # Store allowed_paths
 
     def prep(self, shared):
         shared['tool_loop_count'] = 0 # Initialize loop counter in shared
