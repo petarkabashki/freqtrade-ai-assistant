@@ -21,9 +21,14 @@ class ChatReplyNode(Node):
         if relevant:
             relevant_content = "\n".join([rel['content'] for rel in relevant]) # Extract content from relevant messages
             msgs.append({"role":"system","content":[{"type": "text", "text": f"Relevant context from past conversation: {relevant_content}"}]}) # AI: Changed content format to list of dicts with type text
-        # msgs.extend(recent) # AI: Removed extend, recent history is already in correct format
-        for message in recent: # AI: Add recent messages in correct format
-            msgs.append({"role": message["role"], "content": [{"type": "text", "text": message["content"]}]})
+
+        # Correctly format recent history messages
+        for message in recent:
+            msgs.append({
+                "role": message["role"],
+                "content": [{"type": "text", "text": message["content"]}]
+            })
+
         msgs.append({"role":"user","content":[{"type": "text", "text": user_input}]}) # AI: Changed content format to list of dicts with type text
         ans = call_llm(msgs)
         logger.info(f"ChatReplyNode exec finished. Prep result: {prep_res}, Exec result: {ans}, Shared: {shared}")
