@@ -19,6 +19,7 @@ class MainFlow(Flow):
 
         # Loop for tool invocation (AgentNode -> ToolInvocationNode -> ToolResultProcessorNode -> AgentNode)
         tool_result_processor_node >> ("processing_complete", agent_node)
+        tool_result_processor_node >> ("default", agent_node) # Added transition for 'default' action, looping back to agent_node
         agent_node >> ("tool_needed", tool_invocation_node) # if agent decides tool is needed, invoke tool
         agent_node >> ("direct_answer_ready", tool_result_processor_node) # if agent provides direct answer, process answer
         agent_node >> ("yaml_error", tool_result_processor_node) # if yaml parsing error, handle error
