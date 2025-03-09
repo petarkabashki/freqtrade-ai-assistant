@@ -22,7 +22,7 @@ class MainFlow(Flow):
         chat_retrieve_node = ChatRetrieveNode() # AI: Initialize ChatRetrieveNode here - moved to be before super().__init__
         super().__init__(start=chat_retrieve_node) # AI: set start to chat_retrieve_node
 
-        main_input_node = MainInputNode() # AI: Remove MainInputNode initialization
+        # main_input_node = MainInputNode() # AI: Remove MainInputNode initialization
 
 
         chat_reply_node = ChatReplyNode()
