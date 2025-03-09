@@ -18,6 +18,7 @@ class MainFlow(Flow):
         tool_invocation_node = ToolInvocationNode(allowed_paths=allowed_paths) # Pass allowed_paths here
         tool_result_processor_node = ToolResultProcessorNode()
         freqtrade_flow = FreqtradeFlow()
+        self.freqtrade_flow = freqtrade_flow # Store for debugging
 
         main_input_node >> agent_node >> tool_invocation_node >> tool_result_processor_node
 
@@ -29,5 +30,11 @@ class MainFlow(Flow):
         agent_node >> ("yaml_error", tool_result_processor_node) # if yaml parsing error, handle error
         agent_node >> ("max_loops_reached", tool_result_processor_node) # if max tool loops reached, handle max loops
         agent_node >> ("crypto_download_requested", freqtrade_flow) # Transition for crypto_download_requested
+
+    def get_next_node(self, curr, action):
+        nxt = super().get_next_node(curr, action)
+        print(f"DEBUG: MainFlow.get_next_node: curr={curr.__class__.__name__}, action='{action}', next_node={nxt.__class__.__name__ if nxt else None}") # DEBUG LOG
+        return nxt
+
 
         super().__init__(start=main_input_node) # Set start node for the flow
