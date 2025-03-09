@@ -36,6 +36,7 @@ class MainFlow(Flow):
         self.freqtrade_flow = freqtrade_flow
 
         chat_retrieve_node - "continue" >> agent_node >> tool_invocation_node
+        chat_retrieve_node - "quit" >> None # Add quit transition
 
         # these 2 conditional transition should be the other way around.
         agent_node - "tool_invocation_success" >> agent_node
@@ -51,7 +52,7 @@ class MainFlow(Flow):
 
         # Sub-flow transitions
         agent_node - "crypto_download_requested" >> self.freqtrade_flow # Route crypto download requests to freqtrade_flow - no change needed
-        chat_retrieve_node - "quit" >> None
+        # chat_retrieve_node - "quit" >> None # Moved quit transition here - No, keep it where it is, after the continue transition.
 
     def get_next_node(self, curr, action):
         nxt = super().get_next_node(curr, action)

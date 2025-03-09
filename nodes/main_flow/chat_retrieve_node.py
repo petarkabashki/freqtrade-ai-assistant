@@ -11,10 +11,14 @@ class ChatRetrieveNode(Node):
         shared.setdefault("history", [])
         shared.setdefault("memory_index", None)
         user_input = input("You: ")
+        if user_input.strip().lower() == '/q':
+            return "quit"  # Return "quit" as prep_res if user input is '/q'
         logger.info(f"ChatRetrieveNode prep finished. Prep result: {user_input}, Shared: {shared}")
         return user_input
 
     def exec(self, prep_res, shared):
+        if prep_res == "quit": # Check if prep_res is "quit"
+            return "quit" # Return "quit" as exec_res
         user_input = prep_res
         emb_res = get_embedding_tool(user_input) # Use get_embedding_tool
         if "error" in emb_res:
@@ -34,6 +38,8 @@ class ChatRetrieveNode(Node):
         return (user_input, relevant)
 
     def post(self, shared, prep_res, exec_res):
+        if exec_res == "quit": # Check if exec_res is "quit"
+            return "quit" # Return "quit" action
         user_input, relevant = exec_res
         shared["user_input"] = user_input
         shared["relevant"] = relevant
