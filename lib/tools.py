@@ -68,46 +68,6 @@ def send_email(to_address, subject, body, from_address, password):
         server.login(from_address, password)
         server.sendmail(from_address, [to_address], msg.as_string())
 
-def get_embedding(text):
-    client = openai.OpenAI(api_key="YOUR_API_KEY_HERE")
-    r = client.embeddings.create(
-        model="text-embedding-ada-002",
-        input=text
-    )
-    return r.data[0].embedding
-
-def search_index(index, query_embedding, top_k=5):
-    D, I = index.search(
-        np.array([query_embedding]).astype('float32'),
-        top_k
-    )
-    return I, D
-
-def call_llm(prompt):
-    client = openai.OpenAI(api_key="YOUR_API_KEY_HERE")
-    r = client.chat.completions.create(
-        model="gpt-4o",
-        messages=[{"role": "user", "content": prompt}]
-    )
-    return r.choices[0].message.content
-
-def call_llm_vision(prompt, image_data):
-    client = openai.OpenAI(api_key="YOUR_API_KEY_HERE")
-    img_base64 = base64.b64encode(image_data).decode('utf-8')
-
-    response = client.chat.completions.create(
-        model="gpt-4o",
-        messages=[{
-            "role": "user",
-            "content": [
-                {"type": "text", "text": prompt},
-                {"type": "image_url",
-                 "image_url": {"url": f"image/png;base64,{img_base64}"}}
-            ]
-        }]
-    )
-    return response.choices[0].message.content
-
 def extract_text_from_pdf(pdf_path):
     doc = fitz.open(pdf_path)
     text = ""
@@ -126,5 +86,6 @@ def extract_text_from_image_pdf(pdf_path, page_num=0): # page_num is 0-based
 
 def user_input_llm_query(prompt):
     user_query = input(f"{prompt}: ")
-    llm_prompt = f"{prompt}: {user_query}"
-    return call_llm(llm_prompt)
+    return user_query
+
+
