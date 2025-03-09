@@ -36,7 +36,7 @@ class AgentNode(Node):
             for msg in message_history:
                 history_text += f"- User: {msg['user_input']}\n"
                 history_text += f"- Assistant: {msg['llm_response']}\n"
-
+# make the prompt more consize AI!
         prompt = f"""
         {history_text}
         User request: {user_input}
