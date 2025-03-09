@@ -1,6 +1,7 @@
 from lib.pocketflow import Node
 from lib.call_llm import call_llm
-from lib.tools import search_google, file_read, file_write, directory_listing, user_input_llm_query, user_output
+from lib.tools import search_google, user_input_llm_query, user_output # Removed file tools
+from lib.tools.fs_tools import file_read, file_write, directory_listing # Import file tools
 import yaml # Import the yaml library
 
 class AgentNode(Node):

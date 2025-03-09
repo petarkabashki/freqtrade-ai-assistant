@@ -1,5 +1,6 @@
 from lib.pocketflow import Node
-from lib.tools import search_google, file_read, file_write, directory_listing, user_input_llm_query, user_output, ALLOWED_PATHS  # Import ALLOWED_PATHS
+from lib.tools import search_google, user_input_llm_query, user_output # Removed file tools
+from lib.tools.fs_tools import file_read, file_write, directory_listing, ALLOWED_PATHS # Import file tools
 
 class ToolInvocationNode(Node):
     def __init__(self, allowed_paths=None): # Accept allowed_paths in constructor
