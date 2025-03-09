@@ -59,36 +59,37 @@ class AgentNode(Node):
             User request: {user_input}
 
             AI assistant for financial data analysis and general knowledge.
-            For questions that are not directly related to crypto download or local data, use search_google tool to provide information.
+            For financial data questions, especially about prices or latest information, default to using search_google tool.
+            **Only if the user explicitly asks about *local* or *downloaded* data**, then consider using local data tools (file_read, directory_listing).
             Effectively use tools based on user intent.
 
             Categories:
-            1. Crypto Download (CRITICAL SUB-FLOW): For cryptocurrency download requests (e.g., 'download ETH/USDT data'), trigger 'crypto_download_requested' action for FreqtradeFlow.
-            2. General Financial Info Seek: For generic financial questions (e.g., 'what is cardano?', 'explain bitcoin halving', 'what's the price of gold'), use search_google tool to get the answer. This is the PRIMARY tool for financial and general knowledge queries.
-            3. Check Data: For requests about available data (e.g., 'list available data', 'what data do you have'), list files in '{self.data_folder}'.
-            4. Data Question: For questions about local data (e.g., 'summarize ETHUSDT data', 'analyze BTC data'), use file_read tool to read and process local data files.
-            5. General Knowledge Question: For general knowledge questions that are not specific to finance but require web search (e.g., 'what is soffix?', 'who won nobel prize 2023'), use search_google tool.
+            1. General Financial Info Seek (PRIMARY - use search_google): For generic financial questions (e.g., 'what is cardano?', 'explain bitcoin halving', 'what's the price of gold'). **Default to search_google for financial queries unless local data is explicitly mentioned.**
+            2. Crypto Download (CRITICAL SUB-FLOW): For cryptocurrency download requests (e.g., 'download ETH/USDT data'), trigger 'crypto_download_requested' action for FreqtradeFlow.
+            3. Data Question (Local Data Explicitly Requested): For questions about **local** data (e.g., 'summarize **local** ETHUSDT data', 'analyze **downloaded** BTC data'), use file_read tool to read and process local data files. User must explicitly mention 'local' or 'downloaded' to trigger this category.
+            4. Check Data (Local Data Check): For requests about **locally available** data (e.g., 'list **local** data', 'what **downloaded** data do you have'), use 'directory_listing' tool to list files in '{self.data_folder}'.  User must explicitly mention 'local' or 'downloaded' to trigger this category.
+            5. General Knowledge Question: For general knowledge questions that are not specific to finance but require web search (e.g., 'what is soffix?', 'who won nobel prize 2023'), use 'search_google' tool.
 
             Tools:
-            - search_google: Web search for general information, especially financial and general knowledge topics. Use this tool for categories 2 and 5.
-            - file_read: Read content from local files in '{self.data_folder}'.
-            - directory_listing: List files and directories in '{self.data_folder}'.
+            - search_google: Web search for general financial information and general knowledge topics. **Use this as the primary tool for financial questions unless local data is explicitly requested.**
+            - file_read: Read content from **local** files in '{self.data_folder}'. Use only when user explicitly asks about local data.
+            - directory_listing: List files and directories in '{self.data_folder}'. Use only when user explicitly asks about local data availability.
             - user_input: Ask user for more information or clarification.
             - user_output: Display output to the user.
 
             Output YAML to indicate action and tool.
             For crypto download requests, action MUST be 'crypto_download_requested'.
-            For general financial or general knowledge questions, default to using search_google.
+            For general financial or general knowledge questions (unless local data is explicitly requested), default to using search_google.
             If a tool is needed, tool_needed should be 'yes'.
             If no tool is needed for direct answer, tool_needed should be 'no'.
 
-            Example YAML output for a general knowledge question (like 'what's the price of gold'):
+            Example YAML output for a general financial question (like 'what's the price of gold'):
             ```yaml
             tool_needed: yes
             tool_name: search_google
             tool_params:
               query: <user_question> # e.g., query: what's the price of gold?
-            reason: User is asking a general financial question that requires web search.
+            reason: User is asking a general financial question, using google search.
             action: tool_needed
             ```
 
@@ -100,14 +101,14 @@ class AgentNode(Node):
             reason: User is asking to download crypto data, triggering crypto download sub-flow.
             action: crypto_download_requested
             ```
-
-            Example YAML output for a data check request:
+            ```yaml
+            Example YAML output for a local data check request (user asks about 'local data'):
             ```yaml
             tool_needed: yes
             tool_name: directory_listing
             tool_params:
               dir_path: {self.data_folder} # e.g., dir_path: freq-data
-            reason: User is asking to check available data, listing directory.
+            reason: User is asking to check locally available data, using directory listing tool.
             action: tool_needed
             ```
 
@@ -116,9 +117,10 @@ class AgentNode(Node):
             tool_needed: no
             tool_name: ""
             tool_params: ""
-            reason: User is asking a question that can be answered directly without tools, or a greeting.
+            reason: User is asking a question that can be answered directly without tools, like greetings or simple confirmations.
             action: direct_answer_ready
             ```
+
 
             Now, based on the user request, output YAML:
             ```yaml
