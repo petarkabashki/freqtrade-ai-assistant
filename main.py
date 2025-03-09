@@ -1,3 +1,7 @@
+import sys
+import os
+sys.path.append(os.path.abspath('.')) # Add project root to Python path
+
 import yaml
 from nodes.main_flow.main_flow import MainFlow
 
