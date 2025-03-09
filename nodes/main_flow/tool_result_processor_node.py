@@ -1,4 +1,4 @@
-from lib.pocketflow import Node
+from util.pocketflow import Node
 
 class ToolResultProcessorNode(Node):
     def exec(self, prep_res, shared):
