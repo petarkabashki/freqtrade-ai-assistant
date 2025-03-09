@@ -6,7 +6,29 @@ import yaml
 from nodes.main_flow.main_flow import MainFlow
 import logging
 
+# Define ANSI escape codes for gray color
+GRAY_COLOR_CODE = "\033[90m"
+RESET_COLOR_CODE = "\033[0m"
+
+# Create a custom formatter that adds gray color to log messages
+class GrayLogFormatter(logging.Formatter):
+    def format(self, record):
+        return GRAY_COLOR_CODE + super().format(record) + RESET_COLOR_CODE
+
 logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger() # Get root logger
+
+# Create a console handler and set the formatter
+console_handler = logging.StreamHandler()
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s') # You can keep your existing format
+gray_formatter = GrayLogFormatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s') # Create gray formatter
+
+console_handler.setFormatter(gray_formatter) # Set gray formatter to console handler
+
+# Add the console handler to the root logger if it's not already there
+if not any(isinstance(handler, logging.StreamHandler) for handler in logger.handlers):
+    logger.addHandler(console_handler)
+
 
 if __name__ == '__main__':
     with open('config.yaml', 'r') as f:
