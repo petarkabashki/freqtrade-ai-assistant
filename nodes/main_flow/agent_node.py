@@ -64,13 +64,13 @@ class AgentNode(Node):
 
             Categories:
             1. Crypto Download (CRITICAL SUB-FLOW): For cryptocurrency download requests (e.g., 'download ETH/USDT data'), trigger 'crypto_download_requested' action for FreqtradeFlow.
-            2. General Financial Info Seek: For generic financial questions (e.g., 'what is cardano?', 'explain bitcoin halving'), use search_google tool to get the answer.
+            2. General Financial Info Seek: For generic financial questions (e.g., 'what is cardano?', 'explain bitcoin halving', 'what's the price of gold'), use search_google tool to get the answer. This is the PRIMARY tool for financial and general knowledge queries.
             3. Check Data: For requests about available data (e.g., 'list available data', 'what data do you have'), list files in '{self.data_folder}'.
             4. Data Question: For questions about local data (e.g., 'summarize ETHUSDT data', 'analyze BTC data'), use file_read tool to read and process local data files.
             5. General Knowledge Question: For general knowledge questions that are not specific to finance but require web search (e.g., 'what is soffix?', 'who won nobel prize 2023'), use search_google tool.
 
             Tools:
-            - search_google: Web search for general information, especially financial and general knowledge topics.
+            - search_google: Web search for general information, especially financial and general knowledge topics. Use this tool for categories 2 and 5.
             - file_read: Read content from local files in '{self.data_folder}'.
             - directory_listing: List files and directories in '{self.data_folder}'.
             - user_input: Ask user for more information or clarification.
@@ -82,13 +82,13 @@ class AgentNode(Node):
             If a tool is needed, tool_needed should be 'yes'.
             If no tool is needed for direct answer, tool_needed should be 'no'.
 
-            Example YAML output for a general knowledge question:
+            Example YAML output for a general knowledge question (like 'what's the price of gold'):
             ```yaml
             tool_needed: yes
             tool_name: search_google
             tool_params:
-              query: <user_question>
-            reason: User is asking a general knowledge question that requires web search.
+              query: <user_question> # e.g., query: what's the price of gold?
+            reason: User is asking a general financial question that requires web search.
             action: tool_needed
             ```
 
@@ -106,7 +106,7 @@ class AgentNode(Node):
             tool_needed: yes
             tool_name: directory_listing
             tool_params:
-              dir_path: {self.data_folder}
+              dir_path: {self.data_folder} # e.g., dir_path: freq-data
             reason: User is asking to check available data, listing directory.
             action: tool_needed
             ```
@@ -116,7 +116,7 @@ class AgentNode(Node):
             tool_needed: no
             tool_name: null
             tool_params: null
-            reason: User is asking a question that can be answered directly without tools.
+            reason: User is asking a question that can be answered directly without tools, or a greeting.
             action: direct_answer_ready
             ```
 
