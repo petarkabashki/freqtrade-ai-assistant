@@ -13,6 +13,8 @@ class MainFlow(Flow):
         data_folder = config.get('data_folder', 'freq-data')
         print(f"MainFlow initialized with config: {config}")
 
+        super().__init__(start=main_input_node) # Set start node for the flow - MOVE TO TOP
+
         main_input_node = MainInputNode()
         agent_node = AgentNode(max_tool_loops=max_tool_loops, allowed_paths=allowed_paths, data_folder=data_folder)
         tool_invocation_node = ToolInvocationNode(allowed_paths=allowed_paths) # Pass allowed_paths here
@@ -35,6 +37,3 @@ class MainFlow(Flow):
         nxt = super().get_next_node(curr, action)
         print(f"DEBUG: MainFlow.get_next_node: curr={curr.__class__.__name__}, action='{action}', next_node={nxt.__class__.__name__ if nxt else None}") # DEBUG LOG
         return nxt
-
-
-        super().__init__(start=main_input_node) # Set start node for the flow
