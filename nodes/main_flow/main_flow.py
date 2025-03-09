@@ -23,11 +23,7 @@ class MainFlow(Flow):
 
         # AI: Initialize new chat memory nodes
         chat_retrieve_node = ChatRetrieveNode()
-        chat_reply_node = ChatReplyNode(max_tool_loops=max_tool_loops,
-                                allowed_paths=allowed_paths,
-                                data_folder=data_folder,
-                                message_history_limit=message_history_limit)
-
+        chat_reply_node = ChatReplyNode() # AI: Removed extra arguments
 
         tool_invocation_node = ToolInvocationNode(allowed_paths=allowed_paths)
         tool_result_processor_node = ToolResultProcessorNode()
