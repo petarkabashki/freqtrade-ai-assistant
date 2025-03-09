@@ -1,18 +1,19 @@
 import os
 
-ALLOWED_PATHS = [] # Initialize as empty list, will be populated at runtime
+ALLOWED_PATHS = []
 
 def is_path_allowed(path):
-    if not ALLOWED_PATHS: # If no allowed paths are configured, allow all paths (for backward compatibility or if not configured)
+    if not ALLOWED_PATHS:
         return True
     for allowed_path in ALLOWED_PATHS:
-        if os.path.abspath(path).startswith(os.path.abspath(allowed_path)): # Check if path starts with allowed_path after normalization
+        if os.path.abspath(path).startswith(os.path.abspath(allowed_path)):
             return True
     return False
 
 def file_read(file_path):
     if not is_path_allowed(file_path):
-        return {"error": f"Access denied: Reading file '{file_path}' is not allowed."}
+        return {"error": f"Access denied: Reading file '{file_path}' "
+                         "is not allowed."}
     try:
         with open(file_path, 'r') as f:
             return f.read()
@@ -22,7 +23,8 @@ def file_read(file_path):
 
 def file_write(file_path, content):
     if not is_path_allowed(file_path):
-        return {"error": f"Access denied: Writing to file '{file_path}' is not allowed."}
+        return {"error": f"Access denied: Writing to file '{file_path}' "
+                         "is not allowed."}
     try:
         with open(file_path, 'w') as f:
             f.write(content)
@@ -32,7 +34,8 @@ def file_write(file_path, content):
 
 def directory_listing(dir_path):
     if not is_path_allowed(dir_path):
-        return {"error": f"Access denied: Listing directory '{dir_path}' is not allowed."}
+        return {"error": f"Access denied: Listing directory '{dir_path}' "
+                         "is not allowed."}
     try:
         return os.listdir(dir_path)
     except Exception as e:

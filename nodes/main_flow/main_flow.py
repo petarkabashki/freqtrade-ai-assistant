@@ -13,25 +13,29 @@ class MainFlow(Flow):
         data_folder = config.get('data_folder', 'freq-data')
         print(f"MainFlow initialized with config: {config}")
 
-        super().__init__(start=main_input_node) # Set start node for the flow - MOVE TO TOP
+        super().__init__(start=main_input_node) # Set start node for the flow
 
         main_input_node = MainInputNode()
-        agent_node = AgentNode(max_tool_loops=max_tool_loops, allowed_paths=allowed_paths, data_folder=data_folder)
-        tool_invocation_node = ToolInvocationNode(allowed_paths=allowed_paths) # Pass allowed_paths here
+        agent_node = AgentNode(max_tool_loops=max_tool_loops,
+                                allowed_paths=allowed_paths,
+                                data_folder=data_folder)
+        tool_invocation_node = ToolInvocationNode(allowed_paths=allowed_paths)
         tool_result_processor_node = ToolResultProcessorNode()
         freqtrade_flow = FreqtradeFlow()
         self.freqtrade_flow = freqtrade_flow # Store for debugging
 
-        main_input_node >> agent_node >> tool_invocation_node >> tool_result_processor_node
+        main_input_node >> agent_node >> tool_invocation_node >> \
+            tool_result_processor_node
 
-        # Loop for tool invocation (AgentNode -> ToolInvocationNode -> ToolResultProcessorNode -> AgentNode)
+        # Loop for tool invocation
+        # (AgentNode -> ToolInvocationNode -> ToolResultProcessorNode -> AgentNode)
         tool_result_processor_node >> ("processing_complete", agent_node)
-        tool_result_processor_node >> ("default", agent_node) # Added transition for 'default' action, looping back to agent_node
-        agent_node >> ("tool_needed", tool_invocation_node) # if agent decides tool is needed, invoke tool
-        agent_node >> ("direct_answer_ready", tool_result_processor_node) # if agent provides direct answer, process answer
-        agent_node >> ("yaml_error", tool_result_processor_node) # if yaml parsing error, handle error
-        agent_node >> ("max_loops_reached", tool_result_processor_node) # if max tool loops reached, handle max loops
-        agent_node >> ("crypto_download_requested", freqtrade_flow) # Transition for crypto_download_requested
+        tool_result_processor_node >> ("default", agent_node) # default loop
+        agent_node >> ("tool_needed", tool_invocation_node) # tool needed
+        agent_node >> ("direct_answer_ready", tool_result_processor_node) # answer
+        agent_node >> ("yaml_error", tool_result_processor_node) # yaml error
+        agent_node >> ("max_loops_reached", tool_result_processor_node) # max loops
+        agent_node >> ("crypto_download_requested", freqtrade_flow) # crypto
 
     def get_next_node(self, curr, action):
         nxt = super().get_next_node(curr, action)

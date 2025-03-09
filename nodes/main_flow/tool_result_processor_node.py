@@ -23,7 +23,8 @@ class ToolResultProcessorNode(Node):
             return "no_results"
 
     def post(self, shared, prep_res, exec_res):
-        if exec_res in ["tool_results_processed", "llm_answer_processed", "tool_error_processed", "no_results"]:
+        if exec_res in ["tool_results_processed", "llm_answer_processed",
+                           "tool_error_processed", "no_results"]:
             return "processing_complete"
         else:
             return "default"

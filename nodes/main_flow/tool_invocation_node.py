@@ -1,20 +1,21 @@
 from lib.pocketflow import Node
-from lib.core_tools import search_google_tool, user_input_tool, user_output_tool # Changed tool import: user_input_llm_query_tool -> user_input_tool
-from lib.tools.fs_tools import file_read, file_write, directory_listing, ALLOWED_PATHS # Import file tools
+from lib.core_tools import search_google_tool, user_input_tool, \
+    user_output_tool
+from lib.tools.fs_tools import file_read, file_write, directory_listing, \
+    ALLOWED_PATHS
 
 class ToolInvocationNode(Node):
-    def __init__(self, allowed_paths=None): # Accept allowed_paths in constructor
+    def __init__(self, allowed_paths=None):
         super().__init__()
         self.allowed_paths = allowed_paths if allowed_paths is not None else []
 
     def prep(self, shared):
-        ALLOWED_PATHS.clear() # Clear existing paths - important for re-initialization in each run
-        ALLOWED_PATHS.extend(self.allowed_paths) # Initialize ALLOWED_PATHS for tools
+        ALLOWED_PATHS.clear()
+        ALLOWED_PATHS.extend(self.allowed_paths)
         return super().prep(shared)
 
-
     def exec(self, prep_res, shared):
-        tool_request = prep_res # prep_res will contain the tool request from AgentNode
+        tool_request = prep_res
         tool_name = tool_request.get("tool_name")
         tool_params = tool_request.get("tool_params", {})
 
@@ -22,15 +23,15 @@ class ToolInvocationNode(Node):
         error = None
 
         if tool_name == "search_google":
-            tool_result = search_google_tool(**tool_params) # Use ** to unpack params
+            tool_result = search_google_tool(**tool_params)
         elif tool_name == "file_read":
             tool_result = file_read(**tool_params)
         elif tool_name == "file_write":
             tool_result = file_write(**tool_params)
         elif tool_name == "directory_listing":
             tool_result = directory_listing(**tool_params)
-        elif tool_name == "user_input": # Changed tool name: user_input_llm_query -> user_input
-            tool_result = user_input_tool(**tool_params) # Changed tool name: user_input_llm_query_tool -> user_input_tool
+        elif tool_name == "user_input":
+            tool_result = user_input_tool(**tool_params)
         elif tool_name == "user_output":
             tool_result = user_output_tool(**tool_params)
         else:
@@ -41,13 +42,13 @@ class ToolInvocationNode(Node):
             print(f"Tool Invocation Error: {error}")
             return "tool_invocation_failure"
         else:
-            shared["tool_results"] = tool_result # Store results in shared
+            shared["tool_results"] = tool_result
             print(f"Tool '{tool_name}' invoked successfully.")
             return "tool_invocation_success"
 
     def post(self, shared, prep_res, exec_res):
         if exec_res == "tool_invocation_success":
-            shared['tool_loop_count'] += 1 # Increment loop counter after successful invocation
+            shared['tool_loop_count'] += 1
             return "invocation_successful"
         elif exec_res == "tool_invocation_failure":
             return "invocation_failed"

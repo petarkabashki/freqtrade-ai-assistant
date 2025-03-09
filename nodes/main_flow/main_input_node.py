@@ -1,6 +1,6 @@
 from lib.pocketflow import Node
 class MainInputNode(Node):
-    def prep(self, shared): # make sure there are no leading blanks.
+    def prep(self, shared):
         user_input = input("""
                            Welcome to the AI Trading Assistant! 
                            
@@ -12,6 +12,6 @@ class MainInputNode(Node):
 
     def post(self, shared, prep_res, exec_res):
         print(f"MainInputNode post started. Shared: {shared}, Prep result: {prep_res}, Exec result: {exec_res}")
-        action = "default" # Always default action to proceed in the flow
+        action = "default"
         print(f"MainInputNode post finished. Action: {action}, Shared: {shared}, Prep result: {prep_res}, Exec result: {exec_res}")
         return "default"
