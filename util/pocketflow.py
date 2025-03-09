@@ -61,7 +61,7 @@ class Flow(Node): # Flow is a special type of Node
                 break # No action means stop
             next_node = self.get_next_node(current_node, action)
             if not next_node:
-                current_node = self.start # AI: If no next node, restart from the start node
+                break # AI: Terminate loop if next_node is None, not restart
             else:
                 current_node = next_node # Move to the next node
 
