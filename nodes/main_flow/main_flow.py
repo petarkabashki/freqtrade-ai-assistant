@@ -1,7 +1,7 @@
 from util.pocketflow import Flow
 from nodes.main_flow.agent_node import AgentNode
 from nodes.main_flow.tool_invocation_node import ToolInvocationNode
-# from nodes.main_flow.main_input_node import MainInputNode # AI: Remove MainInputNode import
+# from nodes.main_flow.main_input_node import MainInputNode # Remove MainInputNode import
 from nodes.freqtrade.freqtrade_flow import FreqtradeFlow
 from nodes.main_flow.chat_retrieve_node import ChatRetrieveNode
 from nodes.main_flow.chat_reply_node import ChatReplyNode
@@ -18,11 +18,11 @@ class MainFlow(Flow):
         message_history_limit = agent_config.get('message_history_limit', 5)
         logger.info(f"MainFlow initialized with config: {config}")
 
-        # AI: Initialize new chat memory nodes
-        chat_retrieve_node = ChatRetrieveNode() # AI: Initialize ChatRetrieveNode here - moved to be before super().__init__
-        super().__init__(start=chat_retrieve_node) # AI: set start to chat_retrieve_node
+        # Initialize new chat memory nodes
+        chat_retrieve_node = ChatRetrieveNode() # Initialize ChatRetrieveNode here - moved to be before super().__init__
+        super().__init__(start=chat_retrieve_node) # set start to chat_retrieve_node
 
-        # main_input_node = MainInputNode() # AI: Remove MainInputNode initialization
+        # main_input_node = MainInputNode() # Remove MainInputNode initialization
 
 
         chat_reply_node = ChatReplyNode()
@@ -37,11 +37,11 @@ class MainFlow(Flow):
 
         chat_retrieve_node - "continue" >> agent_node
 
-        # these 2 conditional transition should be the other way around. AI! 
+        # these 2 conditional transition should be the other way around.
         agent_node - "tool_invocation_success" >> agent_node
         agent_node - "tool_invocation_failure" >> agent_node
-        
-        
+
+
         agent_node - "direct_answer_ready" >> chat_retrieve_node
         agent_node - "yaml_error" >> chat_retrieve_node
         agent_node - "max_loops_reached" >> chat_retrieve_node

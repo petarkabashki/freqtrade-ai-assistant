@@ -52,7 +52,7 @@ class Flow(Node): # Flow is a special type of Node
         current_node = self.start
         action = "default" # Initial action
 
-        while True: # AI: Loop indefinitely for conversation
+        while True: # Loop indefinitely for conversation
             self.nodes[current_node.__class__.__name__] = current_node # Track node
             logger.info(f"\nExecuting Node: {current_node.__class__.__name__}")
             action = current_node.run(shared)
