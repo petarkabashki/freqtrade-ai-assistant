@@ -4,6 +4,14 @@ from lib.tools import search_google, file_read, file_write, directory_listing, u
 import yaml # Import the yaml library
 
 class AgentNode(Node):
+    def __init__(self, max_tool_loops=3): # Add max_tool_loops parameter with a default value
+        super().__init__()
+        self.max_tool_loops = max_tool_loops
+
+    def prep(self, shared):
+        shared['tool_loop_count'] = 0 # Initialize loop counter in shared
+        return super().prep(shared)
+
     def exec(self, prep_res, shared):
         user_input = prep_res
         prompt = f"""
@@ -54,11 +62,17 @@ class AgentNode(Node):
             return "answer_directly"
 
     def post(self, shared, prep_res, exec_res):
-        if isinstance(exec_res, dict) and "tool_name" in exec_res: # Check if exec_res is a tool request
-            return "tool_needed" # Action indicating a tool is needed
+        if exec_res == "tool_needed": # Corrected: exec_res will be tool_request dict in "tool_needed" case now
+            if shared['tool_loop_count'] < self.max_tool_loops: # Check loop count
+                return "tool_needed" # Proceed to tool invocation if within limit
+            else:
+                print("Maximum tool loop count reached.")
+                return "max_loops_reached" # Transition for max loops reached
         elif exec_res == "answer_directly":
             return "direct_answer_ready"
         elif exec_res == "yaml_error":
             return "yaml_error"
+        elif isinstance(exec_res, dict) and "tool_name" in exec_res: # Check if exec_res is a tool request
+            return "tool_needed" # Action indicating a tool is needed
         else:
             return "default"

@@ -36,6 +36,7 @@ class ToolInvocationNode(Node):
 
     def post(self, shared, prep_res, exec_res):
         if exec_res == "tool_invocation_success":
+            shared['tool_loop_count'] += 1 # Increment loop counter after successful invocation
             return "invocation_successful"
         elif exec_res == "tool_invocation_failure":
             return "invocation_failed"
