@@ -35,17 +35,17 @@ class MainFlow(Flow):
         freqtrade_flow = FreqtradeFlow()
         self.freqtrade_flow = freqtrade_flow
 
-        chat_retrieve_node >> agent_node >> tool_invocation_node 
+        chat_retrieve_node >> agent_node >> tool_invocation_node
 # reformat these like : chat_retrieve_node - "quit" >> None .AI!
-        agent_node >> ("tool_invocation_success", agent_node) 
-        agent_node >> ("tool_invocation_failure", agent_node) 
-        agent_node >> ("direct_answer_ready", chat_retrieve_node)
-        agent_node >> ("yaml_error", chat_retrieve_node) 
-        agent_node >> ("max_loops_reached", chat_retrieve_node)
+        agent_node - "tool_invocation_success" >> agent_node
+        agent_node - "tool_invocation_failure" >> agent_node
+        agent_node - "direct_answer_ready" >> chat_retrieve_node
+        agent_node - "yaml_error" >> chat_retrieve_node
+        agent_node - "max_loops_reached" >> chat_retrieve_node
 
 
         # Sub-flow transitions
-        agent_node >> ("crypto_download_requested", self.freqtrade_flow) # Route crypto download requests to freqtrade_flow - no change needed
+        agent_node - "crypto_download_requested" >> self.freqtrade_flow # Route crypto download requests to freqtrade_flow - no change needed
         chat_retrieve_node - "quit" >> None
 
     def get_next_node(self, curr, action):
