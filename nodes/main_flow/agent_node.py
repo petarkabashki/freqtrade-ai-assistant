@@ -30,9 +30,23 @@ class AgentNode(Node):
         You can use tools to access information and perform actions.
 
         When the user asks about:
-        - **downloading cryptocurrency data**: This includes explicit requests to download historical data for cryptocurrencies. Examples: "download bitcoin data", "get ETH/USD history", "download cardano on weekly timeframe", "download solana weekly", "download BTC/USDT daily", "download ADA/USDT 1w".  If the user request is clearly asking to download cryptocurrency data, even if it includes a timeframe like '1w', 'daily', '4h', you MUST identify it as a crypto download request. You should transition to a separate 'freqtrade flow' to handle this request. Indicate this by setting 'tool_needed: no' and set action to 'crypto_download_requested'.
-        - **available data**: Use the 'directory_listing' tool to check the contents of the '{self.data_folder}' folder.
-        - **questions about the data itself** (e.g., "average price of BTC"): Use the 'file_read' tool to read the contents of the relevant data files in the '{self.data_folder}' folder and then answer the question based on the data.
+        - **downloading cryptocurrency data**: This is a **CRITICAL** category.  It includes explicit requests to download historical data for cryptocurrencies.  Keywords indicating this intent are "download", "get history", "historical data" combined with cryptocurrency symbols (like BTC, ETH, ADA, SOL) and optional timeframes (like "daily", "weekly", "1d", "1w", "4h").
+          **Examples of crypto download requests:**
+          - "download bitcoin data"
+          - "get ETH/USD history"
+          - "download cardano on weekly timeframe"
+          - "download solana weekly"
+          - "download BTC/USDT daily"
+          - "download ADA/USDT 1w"
+          - "get historical data for ETH/BTC 4h"
+          - "download crypto data for SOL/USD"
+
+          If the user request **clearly and explicitly** asks to download cryptocurrency data, even if it includes a timeframe, **you MUST identify it as a crypto download request.** You should transition to a separate 'freqtrade flow' to handle this request.  **Do not attempt to use any tools for crypto download requests in this flow.**
+
+          **Indicate a crypto download request by responding with:**  `tool_needed: no` and set `action: crypto_download_requested`.  The `reason` should be: "User requested cryptocurrency data download, which is handled by a separate flow."
+
+        - **available data**: If the user asks what data is available or what files are present, use the 'directory_listing' tool to check the contents of the '{self.data_folder}' folder.
+        - **questions about the data itself** (e.g., "average price of BTC", "what is the latest price of ETH"): Use the 'file_read' tool to read the contents of the relevant data files in the '{self.data_folder}' folder and then answer the question based on the data.
 
         Available tools:
         - search_google: for general web search
@@ -43,20 +57,20 @@ class AgentNode(Node):
         - user_output: to display information to the user
 
         Analyze the user request and determine:
-        - Does it require an external tool from the 'Available tools' list to answer the user request *directly within this flow*? (yes/no)
-        - If the request is to download cryptocurrency data, indicate this even if no tool from the list is directly used in this flow.
-        - If yes, which tool is most appropriate from the 'Available tools' list above?
+        - Does the user request fall into the **CRITICAL** category of "downloading cryptocurrency data"? If yes, respond immediately to trigger the 'freqtrade flow'.
+        - For other types of requests: Does it require an external tool from the 'Available tools' list to answer the user request *directly within this flow*? (yes/no)
+        - If yes (for non-crypto-download requests), which tool is most appropriate from the 'Available tools' list above?
         - What are the parameters needed to execute the tool?
         - If the request is to download cryptocurrency data, what is a brief reason for transitioning to the 'freqtrade flow'?
 
         Respond in YAML format:
         ```yaml
-        tool_needed: yes/no
-        tool_name: <tool_name>  # e.g., directory_listing (if tool_needed is yes) or None (if tool_needed is no, but may trigger special flow)
-        tool_params:             # Parameters for the tool (if tool_needed is yes)
+        tool_needed: yes/no  # MUST be 'no' for crypto download requests
+        tool_name: <tool_name>  # e.g., directory_listing (if tool_needed is yes for non-crypto requests) or None (if tool_needed is no, including crypto download requests)
+        tool_params:             # Parameters for the tool (if tool_needed is yes for non-crypto requests) - MUST be empty for crypto download requests
           <param_name_1>: <param_value_1>
-        reason: <brief reason for the decision>
-        action: <action_indicator> # e.g., 'crypto_download_requested' if request is to download crypto data, otherwise None
+        reason: <brief reason for the decision> # MUST clearly state "User requested cryptocurrency data download, which is handled by a separate flow." for crypto download requests.
+        action: <action_indicator> # MUST be 'crypto_download_requested' if request is to download crypto data, otherwise None for crypto download requests, or other action if tool is needed in this flow.
         ```"""
         llm_response_yaml = call_llm(prompt)
         print(f"AgentNode LLM Response (YAML): {llm_response_yaml}")
