@@ -69,7 +69,7 @@ def send_email(to_address, subject, body, from_address, password):
         server.sendmail(from_address, [to_address], msg.as_string())
 
 def get_embedding(text):
-    client = OpenAI(api_key="YOUR_API_KEY_HERE")
+    client = openai.OpenAI(api_key="YOUR_API_KEY_HERE")
     r = client.embeddings.create(
         model="text-embedding-ada-002",
         input=text
@@ -84,7 +84,7 @@ def search_index(index, query_embedding, top_k=5):
     return I, D
 
 def call_llm(prompt):
-    client = OpenAI(api_key="YOUR_API_KEY_HERE")
+    client = openai.OpenAI(api_key="YOUR_API_KEY_HERE")
     r = client.chat.completions.create(
         model="gpt-4o",
         messages=[{"role": "user", "content": prompt}]
@@ -92,7 +92,7 @@ def call_llm(prompt):
     return r.choices[0].message.content
 
 def call_llm_vision(prompt, image_data):
-    client = OpenAI(api_key="YOUR_API_KEY_HERE")
+    client = openai.OpenAI(api_key="YOUR_API_KEY_HERE")
     img_base64 = base64.b64encode(image_data).decode('utf-8')
 
     response = client.chat.completions.create(
