@@ -15,7 +15,7 @@ import yaml
 from lib.tools.fs_tools import file_read, file_write, directory_listing, ALLOWED_PATHS # Import file tools
 
 
-def search_google(query):
+def search_google_tool(query):
     # https://serpapi.com/search-api
     params = {
         "engine": "google",
@@ -26,7 +26,7 @@ def search_google(query):
     return r.json()
 
 
-def execute_sql(query):
+def execute_sql_tool(query):
     conn = sqlite3.connect("mydb.db")
     cursor = conn.cursor()
     cursor.execute(query)
@@ -35,23 +35,23 @@ def execute_sql(query):
     conn.close()
     return result
 
-def run_code(code_str):
+def run_code_tool(code_str):
     env = {}
     exec(code_str, env)
     return env
 
-def crawl_web(url):
+def crawl_web_tool(url):
     html = requests.get(url).text
     soup = BeautifulSoup(html, "html.parser")
     return soup.title.string, soup.get_text()
 
-def transcribe_audio(file_path):
+def transcribe_audio_tool(file_path):
     # https://platform.openai.com/docs/api-reference/audio/transcriptions
     audio_file= open(file_path, "rb")
     transcript = openai.Audio.transcribe("whisper-1", audio_file)
     return transcript["text"]
 
-def send_email(to_address, subject, body, from_address, password):
+def send_email_tool(to_address, subject, body, from_address, password):
     msg = MIMEText(body)
     msg["Subject"] = subject
     msg["From"] = from_address
@@ -60,7 +60,7 @@ def send_email(to_address, subject, body, from_address, password):
         server.login(from_address, password)
         server.sendmail(from_address, [to_address], msg.as_string())
 
-def extract_text_from_pdf(pdf_path):
+def extract_text_from_pdf_tool(pdf_path):
     # doc = fitz.open(pdf_path) # Commented out
     # text = ""
     # for page in doc:
@@ -69,26 +69,26 @@ def extract_text_from_pdf(pdf_path):
     # return text
     return "PDF text extraction disabled due to missing library (fitz)" # Modified to return a message
 
-def extract_text_from_image_pdf(pdf_path, page_num=0): # page_num is 0-based
+def extract_text_from_image_pdf_tool(pdf_path, page_num=0): # page_num is 0-based
     # pdf_document = fitz.open(pdf_path) # Commented out
     # page = pdf_document[page_num]
     # pix = page.get_pixmap()
     # img_data = pix.tobytes("png")
     # prompt = "Extract text from this image in detail. If there are tables, extract them in markdown format."
-    # return call_llm_vision(prompt, img_data)
+    # return call_llm_vision_tool(prompt, img_data)
     return "Image PDF text extraction disabled due to missing library (fitz)" # Modified to return a message
 
 # rename this to user_input AI!
-def user_input_llm_query(prompt):
+def user_input_llm_query_tool(prompt):
     user_query = input(f"{prompt}: ")
     return user_query
 
-def user_output(message):
+def user_output_tool(message):
     print(message)
     return {}
 
 
-def get_embedding(text):
+def get_embedding_tool(text):
     client = openai.OpenAI(api_key="YOUR_API_KEY_HERE")
     r = client.embeddings.create(
         model="text-embedding-ada-002",
@@ -96,14 +96,14 @@ def get_embedding(text):
     )
     return r.data[0].embedding
 
-def search_index(index, query_embedding, top_k=5):
+def search_index_tool(index, query_embedding, top_k=5):
     D, I = index.search(
         np.array([query_embedding]).astype('float32'),
         top_k
     )
     return I, D
 
-def call_llm(prompt):
+def call_llm_tool(prompt):
     client = openai.OpenAI(api_key="YOUR_API_KEY_HERE")
     r = client.chat.completions.create(
         model="gpt-4o",
@@ -111,7 +111,7 @@ def call_llm(prompt):
     )
     return r.choices[0].message.content
 
-def call_llm_vision(prompt, image_data):
+def call_llm_vision_tool(prompt, image_data):
     # client = openai.OpenAI(api_key="YOUR_API_KEY_HERE") # Commented out
     # img_base64 = base64.b64encode(image_data).decode('utf-8') # Commented out
 

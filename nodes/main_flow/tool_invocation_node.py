@@ -1,5 +1,5 @@
 from lib.pocketflow import Node
-from lib.tools import search_google, user_input_llm_query, user_output # Removed file tools
+from lib.tools import search_google_tool, user_input_llm_query_tool, user_output_tool # Changed tool imports
 from lib.tools.fs_tools import file_read, file_write, directory_listing, ALLOWED_PATHS # Import file tools
 
 class ToolInvocationNode(Node):
@@ -22,7 +22,7 @@ class ToolInvocationNode(Node):
         error = None
 
         if tool_name == "search_google":
-            tool_result = search_google(**tool_params) # Use ** to unpack params
+            tool_result = search_google_tool(**tool_params) # Use ** to unpack params
         elif tool_name == "file_read":
             tool_result = file_read(**tool_params)
         elif tool_name == "file_write":
@@ -30,9 +30,9 @@ class ToolInvocationNode(Node):
         elif tool_name == "directory_listing":
             tool_result = directory_listing(**tool_params)
         elif tool_name == "user_input_llm_query":
-            tool_result = user_input_llm_query(**tool_params)
+            tool_result = user_input_llm_query_tool(**tool_params)
         elif tool_name == "user_output":
-            tool_result = user_output(**tool_params)
+            tool_result = user_output_tool(**tool_params)
         else:
             error = f"Unknown tool requested: {tool_name}"
 
