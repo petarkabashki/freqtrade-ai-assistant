@@ -36,7 +36,7 @@ class MainFlow(Flow):
         self.freqtrade_flow = freqtrade_flow
 
         chat_retrieve_node >> agent_node >> tool_invocation_node
-# reformat these like : chat_retrieve_node - "quit" >> None .AI!
+
         agent_node - "tool_invocation_success" >> agent_node
         agent_node - "tool_invocation_failure" >> agent_node
         agent_node - "direct_answer_ready" >> chat_retrieve_node
