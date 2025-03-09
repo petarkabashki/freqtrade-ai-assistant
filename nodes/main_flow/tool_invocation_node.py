@@ -1,7 +1,17 @@
 from lib.pocketflow import Node
-from lib.tools import search_google, file_read, file_write, directory_listing, user_input_llm_query, user_output  # Import all tools
+from lib.tools import search_google, file_read, file_write, directory_listing, user_input_llm_query, user_output, ALLOWED_PATHS  # Import ALLOWED_PATHS
 
 class ToolInvocationNode(Node):
+    def __init__(self, allowed_paths=None): # Accept allowed_paths in constructor
+        super().__init__()
+        self.allowed_paths = allowed_paths if allowed_paths is not None else []
+
+    def prep(self, shared):
+        ALLOWED_PATHS.clear() # Clear existing paths - important for re-initialization in each run
+        ALLOWED_PATHS.extend(self.allowed_paths) # Initialize ALLOWED_PATHS for tools
+        return super().prep(shared)
+
+
     def exec(self, prep_res, shared):
         tool_request = prep_res # prep_res will contain the tool request from AgentNode
         tool_name = tool_request.get("tool_name")

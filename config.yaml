@@ -1,2 +1,5 @@
 agent:
   max_tool_loops: 3
+  allowed_paths:
+    - /home/user/documents
+    - /tmp/agent_workspace

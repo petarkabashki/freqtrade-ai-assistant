@@ -10,8 +10,9 @@ class MainFlow(Flow):
         main_input_node = MainInputNode()
         agent_config = config.get('agent', {}) # Get agent config, default to empty dict
         max_tool_loops = agent_config.get('max_tool_loops', 3) # Get max_tool_loops, default to 3 if not in config
-        agent_node = AgentNode(max_tool_loops=max_tool_loops) # Instantiate AgentNode with max_tool_loops from config
-        tool_invocation_node = ToolInvocationNode() # Instantiate ToolInvocationNode
+        allowed_paths = agent_config.get('allowed_paths', []) # Get allowed_paths, default to empty list if not in config
+        agent_node = AgentNode(max_tool_loops=max_tool_loops, allowed_paths=allowed_paths) # Instantiate AgentNode with allowed_paths
+        tool_invocation_node = ToolInvocationNode(allowed_paths=allowed_paths) # Instantiate ToolInvocationNode with allowed_paths
         tool_result_processor_node = ToolResultProcessorNode()
 
         main_input_node >> agent_node
