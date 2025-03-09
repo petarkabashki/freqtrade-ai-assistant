@@ -42,15 +42,15 @@ class MainFlow(Flow):
         # tool_result_processor_node >> ("processing_complete", main_input_node) # AI: Remove tool_result_processor_node loop back to main_input_node - not needed
         # tool_result_processor_node >> ("default", chat_retrieve_node) # AI: Remove tool_result_processor_node loop back to chat_retrieve_node - not needed
 
-        agent_node >> ("tool_invocation_success", chat_retrieve_node) # AI: Loop back to chat_retrieve_node on tool success - corrected loop
-        agent_node >> ("tool_invocation_failure", chat_retrieve_node) # AI: Loop back to chat_retrieve_node on tool failure - corrected loop
+        agent_node >> ("tool_invocation_success", agent_node) # AI: Loop back to agent_node on tool success - corrected loop to agent_node
+        agent_node >> ("tool_invocation_failure", agent_node) # AI: Loop back to agent_node on tool failure - corrected loop to agent_node
         agent_node >> ("direct_answer_ready", chat_retrieve_node) # AI: Direct answer loop back to chat_retrieve_node - corrected loop
         agent_node >> ("yaml_error", chat_retrieve_node) # AI: Yaml error loop back to chat_retrieve_node - corrected loop
         agent_node >> ("max_loops_reached", chat_retrieve_node) # AI: Max loops reached loop back to chat_retrieve_node - corrected loop
 
 
         # Sub-flow transitions
-        agent_node >> ("crypto_download_requested", self.freqtrade_flow) # Route crypto download requests to freqtrade_flow
+        agent_node >> ("crypto_download_requested", self.freqtrade_flow) # Route crypto download requests to freqtrade_flow - no change needed
         chat_retrieve_node - "quit" >> None
 
     def get_next_node(self, curr, action):

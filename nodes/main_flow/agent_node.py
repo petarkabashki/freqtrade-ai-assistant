@@ -26,9 +26,11 @@ class AgentNode(Node):
         return prep_res
 
     def exec(self, prep_res, shared):
-        logger.info(f"AgentNode exec started. Prep result: {prep_res}, Shared: {shared}")
         user_input = prep_res
-        message_history = shared.get('message_history', [])
+        tool_results = shared.get("tool_results", None) # Get tool results from shared
+        logger.info(f"AgentNode exec started. Prep result: {prep_res}, Shared: {shared}, Tool Results: {tool_results}")
+        user_input = prep_res
+        message_history = shared.get('message_history', []) # Get message history from shared
 
         history_text = ""
         if message_history:
@@ -36,6 +38,12 @@ class AgentNode(Node):
             for msg in message_history:
                 history_text += f"- {msg['role']}: {msg['content']}\n"
         prompt = f"""
+        You are an AI assistant designed to process user requests using tools and respond in a helpful way.
+        You have access to tools for:
+        - Web search (search_google)
+        - Reading local files (file_read)
+        - Listing directories (directory_listing)
+
         {history_text}
         User request: {user_input}
 
@@ -49,6 +57,11 @@ class AgentNode(Node):
         3. Check Data: For requests about available data (e.g., 'list available data', 'what data do you have'), list files in '{self.data_folder}'.
         4. Data Question: For questions about local data (e.g., 'summarize ETHUSDT data', 'analyze BTC data'), use file_read tool to read and process local data files.
         5. General Knowledge Question: For general knowledge questions that are not specific to finance but require web search (e.g., 'what is soffix?', 'who won nobel prize 2023'), use search_google tool.
+
+        Tool Output:
+        ```
+        {tool_results}
+        ```
 
         Tools:
         - search_google: Web search for general information, especially financial and general knowledge topics.
@@ -162,8 +175,8 @@ class AgentNode(Node):
         if exec_res == "tool_needed": # This condition is never met, exec_res is tool_request dict when tool is needed
             if shared['tool_loop_count'] < self.max_tool_loops:
                 action = "tool_needed" # Should transition to ToolInvocationNode
-            else:
-                logger.warning("Maximum tool loop count reached.")
+            else: # Max tool loops reached, provide direct answer
+                logger.warning("Maximum tool loop count reached. Providing direct answer.")
                 action = "max_loops_reached"
         elif isinstance(exec_res, dict) and "tool_name" in exec_res: # Correctly handle tool request dict
             action = "tool_needed" # Transition to ToolInvocationNode

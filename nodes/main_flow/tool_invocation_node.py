@@ -43,23 +43,12 @@ class ToolInvocationNode(ParameterizedNode):
             print(f"Tool Invocation Error: {error}")
             return "tool_invocation_failure"
         else:
-            self.params["tool_results"] = tool_result
+            # self.params["tool_results"] = tool_result # No need to store in params
+            shared["tool_results"] = tool_result # Store tool results in shared
             print(f"Tool '{tool_name}' invoked successfully.")
             return "tool_invocation_success"
- 
-    def post(self, shared, prep_res, exec_res):
-        print(f"ToolInvocationNode post started. Shared: {shared}, Prep result: {prep_res}, Exec result: {exec_res}")
-        action = "tool_executed"
-        print(f"ToolInvocationNode post finished. Action: {action}, Shared: {shared}, Prep result: {prep_res}, Exec result: {exec_res}")
-        return "tool_executed"
 
-    def _setup_tools(self, allowed_paths):
-        fs_tools_config = {"allowed_paths": allowed_paths}
-        return {
-            "file_read": file_read_tool,
-            "file_write": file_write_tool,
-            "directory_listing": directory_listing_tool,
-            "search_google": search_google_tool,
-            "user_input": user_input_tool,
-            "user_output": user_output_tool,
-        }
+    def post(self, shared, prep_res, exec_res): # Pass exec_res action through
+        print(f"ToolInvocationNode post started. Shared: {shared}, Prep result: {prep_res}, Exec result: {exec_res}")
+        print(f"ToolInvocationNode post finished. Action: {exec_res}, Shared: {shared}, Prep result: {prep_res}, Exec result: {exec_res}") # Return exec_res as action
+        return exec_res # Return the action from exec
