@@ -1,48 +1,40 @@
+import json
+import os
 import requests
 import sqlite3
-import os
-from bs4 import BeautifulSoup
-import openai
 import smtplib
+import subprocess
+from bs4 import BeautifulSoup
 from email.mime.text import MIMEText
+from functools import lru_cache
+from openai import OpenAI
+import base64
+import fitz  # PyMuPDF
+
 
 def search_google(query):
+    # https://serpapi.com/search-api
     params = {
         "engine": "google",
         "q": query,
-        "api_key": "YOUR_API_KEY" # Consider using environment variable for API key
+        "api_key": "YOUR_API_KEY" #  https://serpapi.com/dashboard
     }
     r = requests.get("https://serpapi.com/search", params=params)
     return r.json()
 
 def file_read(file_path):
-    try:
-        with open(file_path, 'r') as f:
-            return f.read()
-    except FileNotFoundError:
-        return f"Error: File not found at path '{file_path}'"
+    with open(file_path, 'r') as f:
+        return f.read()
 
 def file_write(file_path, content):
-    try:
-        with open(file_path, 'w') as f:
-            f.write(content)
-        return f"Successfully wrote content to file '{file_path}'"
-    except Exception as e:
-        return f"Error writing to file '{file_path}': {e}"
+    with open(file_path, 'w') as f:
+        f.write(content)
 
 def directory_listing(dir_path):
-    try:
-        items = os.listdir(dir_path)
-        return "\n".join(items)
-    except FileNotFoundError:
-        return f"Error: Directory not found at path '{dir_path}'"
-    except NotADirectoryError:
-        return f"Error: '{dir_path}' is not a directory"
-    except Exception as e:
-        return f"Error listing directory '{dir_path}': {e}"
+    return os.listdir(dir_path)
 
 def execute_sql(query):
-    conn = sqlite3.connect("mydb.db") # Consider making db path configurable
+    conn = sqlite3.connect("mydb.db")
     cursor = conn.cursor()
     cursor.execute(query)
     result = cursor.fetchall()
@@ -52,7 +44,7 @@ def execute_sql(query):
 
 def run_code(code_str):
     env = {}
-    exec(code_str, env) # Be extremely cautious with exec()
+    exec(code_str, env)
     return env
 
 def crawl_web(url):
@@ -61,8 +53,9 @@ def crawl_web(url):
     return soup.title.string, soup.get_text()
 
 def transcribe_audio(file_path):
-    audio_file = open(file_path, "rb")
-    transcript = openai.Audio.transcribe("whisper-1", audio_file) # Requires openai.Audio
+    # https://platform.openai.com/docs/api-reference/audio/transcriptions
+    audio_file= open(file_path, "rb")
+    transcript = openai.Audio.transcribe("whisper-1", audio_file)
     return transcript["text"]
 
 def send_email(to_address, subject, body, from_address, password):
@@ -70,7 +63,67 @@ def send_email(to_address, subject, body, from_address, password):
     msg["Subject"] = subject
     msg["From"] = from_address
     msg["To"] = to_address
-
-    with smtplib.SMTP_SSL("smtp.gmail.com", 465) as server: # Gmail specific, might need to be more generic
+    with smtplib.SMTP_SSL("smtp.gmail.com", 465) as server:
         server.login(from_address, password)
         server.sendmail(from_address, [to_address], msg.as_string())
+
+def get_embedding(text):
+    client = OpenAI(api_key="YOUR_API_KEY_HERE")
+    r = client.embeddings.create(
+        model="text-embedding-ada-002",
+        input=text
+    )
+    return r.data[0].embedding
+
+def search_index(index, query_embedding, top_k=5):
+    D, I = index.search(
+        np.array([query_embedding]).astype('float32'),
+        top_k
+    )
+    return I, D
+
+def call_llm(prompt):
+    client = OpenAI(api_key="YOUR_API_KEY_HERE")
+    r = client.chat.completions.create(
+        model="gpt-4o",
+        messages=[{"role": "user", "content": prompt}]
+    )
+    return r.choices[0].message.content
+
+def call_llm_vision(prompt, image_data):
+    client = OpenAI(api_key="YOUR_API_KEY_HERE")
+    img_base64 = base64.b64encode(image_data).decode('utf-8')
+
+    response = client.chat.completions.create(
+        model="gpt-4o",
+        messages=[{
+            "role": "user",
+            "content": [
+                {"type": "text", "text": prompt},
+                {"type": "image_url",
+                 "image_url": {"url": f"image/png;base64,{img_base64}"}}
+            ]
+        }]
+    )
+    return response.choices[0].message.content
+
+def extract_text_from_pdf(pdf_path):
+    doc = fitz.open(pdf_path)
+    text = ""
+    for page in doc:
+        text += page.get_text()
+    doc.close()
+    return text
+
+def extract_text_from_image_pdf(pdf_path, page_num=0): # page_num is 0-based
+    pdf_document = fitz.open(pdf_path)
+    page = pdf_document[page_num]
+    pix = page.get_pixmap()
+    img_data = pix.tobytes("png")
+    prompt = "Extract text from this image in detail. If there are tables, extract them in markdown format."
+    return call_llm_vision(prompt, img_data)
+
+def user_input_llm_query(prompt):
+    user_query = input(f"{prompt}: ")
+    llm_prompt = f"{prompt}: {user_query}"
+    return call_llm(llm_prompt)
