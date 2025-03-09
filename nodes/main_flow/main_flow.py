@@ -9,9 +9,11 @@ class MainFlow(Flow):
         agent_config = config.get('agent', {})
         max_tool_loops = agent_config.get('max_tool_loops', 3)
         allowed_paths = agent_config.get('allowed_paths', [])
+        data_folder = config.get('data_folder', 'freq-data') # AI: Get data_folder from config
+        print(f"MainFlow initialized with config: {config}") # AI: Log initialization
 
         main_input_node = MainInputNode()
-        agent_node = AgentNode(max_tool_loops=max_tool_loops, allowed_paths=allowed_paths) # Pass allowed_paths here
+        agent_node = AgentNode(max_tool_loops=max_tool_loops, allowed_paths=allowed_paths, data_folder=data_folder) # AI: Pass data_folder to AgentNode
         tool_invocation_node = ToolInvocationNode(allowed_paths=allowed_paths) # Pass allowed_paths here
         tool_result_processor_node = ToolResultProcessorNode()
 
