@@ -2,7 +2,7 @@ from openai import OpenAI
 import openai
 import requests
 import os
-import faiss_cpu as faiss
+import faiss_cpu as faiss # Changed import here
 import numpy as np
 import base64
 
@@ -99,7 +99,7 @@ def extract_text(pdf_path):
 # extract_text("document.pdf")
 
 def call_llm_vision(prompt, image_data):
-    client = OpenAI(api_key="YOUR_API_KEY_HERE")
+    client = OpenAI(api_key=API_KEY)
     img_base64 = base64.b64encode(image_data).decode('utf-8')
 
     response = client.chat.completions.create(
@@ -109,7 +109,7 @@ def call_llm_vision(prompt, image_data):
             "content": [
                 {"type": "text", "text": prompt},
                 {"type": "image_url", 
-                 "image_url": {"url": f"data:image/png;base64,{img_base64}"}}
+                 "image_url": {"url": f"image/png;base64,{img_base64}"}}
             ]
         }]
     )
