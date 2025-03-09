@@ -11,16 +11,20 @@ import base64
 # import fitz  # PyMuPDF # Commented out import
 import numpy as np # Added import here
 import yaml
+import os
 
 # from util.llm_tools.fs_tools import file_read, file_write, directory_listing, ALLOWED_PATHS # Import file tools
 
 
 def search_google_tool(query):
     # https://serpapi.com/search-api
+    api_key = os.environ.get('SERPAPI_API_KEY') # load this from the env AI!
+    if not api_key:
+        return {"error": "SERPAPI_API_KEY environment variable not set"}
     params = {
         "engine": "google",
         "q": query,
-        "api_key": "YOUR_API_KEY" #  load this from the env AI!
+        "api_key": api_key
     }
     r = requests.get("https://serpapi.com/search", params=params)
     return r.json()
