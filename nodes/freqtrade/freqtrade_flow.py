@@ -26,7 +26,7 @@ class FreqtradeFlow(Flow):
 
         input_node - "validate_input" >> validation_node
         input_node - "exit" >> exit_node
-
+# use this transition format in the main flow AI!
         validation_node - "confirmation" >> confirmation_node
         validation_node - "reinput" >> input_node
 
