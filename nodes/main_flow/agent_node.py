@@ -34,30 +34,30 @@ class AgentNode(Node):
         if message_history:
             history_text = "Message History:\n"
             for msg in message_history:
-                history_text += f"- {msg['role']}: {msg['content']}\n" # AI: Modified history text to use role and content
-
-        print(history_text)
+                history_text += f"- {msg['role']}: {msg['content']}\n"
         prompt = f"""
         {history_text}
         User request: {user_input}
 
-        AI assistant for financial data analysis using tools. 
-        Analyze user intent to use tools effectively.
+        AI assistant for financial data analysis. 
+        For generic questions, assume a financial topic and use search_google tool to provide information.
+        Effectively use tools based on user intent.
 
         Categories:
-        1. Crypto Download (CRITICAL SUB-FLOW): For cryptocurrency download requests, trigger 'crypto_download_requested' action to use FreqtradeFlow.
-        2. General Info Seek: Web search for broad queries.
-        3. Check Data: List files in '{self.data_folder}'.
-        4. Data Question: Read local data files for answers.
+        1. Crypto Download (CRITICAL SUB-FLOW): For cryptocurrency download requests, trigger 'crypto_download_requested' action for FreqtradeFlow.
+        2. General Financial Info Seek: For generic financial questions, use search_google tool.
+        3. Check Data: For requests about available data, list files in '{self.data_folder}'.
+        4. Data Question: For questions about local data, use file_read tool.
 
         Tools:
-        - search_google: Web search.
-        - file_read: Read local files.
-        - directory_listing: List directory.
-        - user_input: Ask user for info.
-        - user_output: Display output.
+        - search_google: Web search for general information, especially financial topics.
+        - file_read: Read content from local files in '{self.data_folder}'.
+        - directory_listing: List files and directories in '{self.data_folder}'.
+        - user_input: Ask user for more information or clarification.
+        - user_output: Display output to the user.
 
-        Output YAML to indicate action and tool. For crypto download, use action 'crypto_download_requested'.
+        Output YAML to indicate action and tool. For crypto download, action MUST be 'crypto_download_requested'.
+        For generic financial questions, default to using search_google.
         ```yaml
         tool_needed: yes/no
         tool_name: <tool_name> 
@@ -79,11 +79,11 @@ class AgentNode(Node):
         tool_needed = llm_response_data.get("tool_needed")
         tool_name = llm_response_data.get("tool_name")
         tool_params = llm_response_data.get("tool_params", {})
-        if tool_params is None: # AI: Handle None tool_params
-            tool_params = {} # AI: Treat None as empty dict
+        if tool_params is None:
+            tool_params = {}
         action_indicator = llm_response_data.get("action")
-        search_query = tool_params.get("query") # Extract search query if google search is used
-        shared["tool_request"] = llm_response_data # Store tool request in shared for ToolResultProcessorNode
+        search_query = tool_params.get("query")
+        shared["tool_request"] = llm_response_data
 
         if tool_needed == "yes":
             tool_request = {
@@ -93,10 +93,10 @@ class AgentNode(Node):
             exec_res = tool_request
         elif action_indicator == "crypto_download_requested":
             exec_res = "crypto_download_requested"
-        elif tool_name == "search_google": # if google search is used, pass the query as exec_res
+        elif tool_name == "search_google":
             tool_request = {
                 "tool_name": tool_name,
-                "tool_params": tool_params} # tool params already contains query
+                "tool_params": tool_params}
         else:
             llm_prompt_answer = f"User request: {user_input}\n Directly answer the request:"
             llm_answer = call_llm(llm_prompt_answer)
@@ -131,8 +131,8 @@ class AgentNode(Node):
             action = "unknown_action"
 
         message_history = shared.get('message_history', [])
-        message_history.append({"role": "user", "content": user_input}) # AI: Store user input with role
-        message_history.append({"role": "assistant", "content": llm_response}) # AI: Store assistant response with role
+        message_history.append({"role": "user", "content": user_input})
+        message_history.append({"role": "assistant", "content": llm_response})
 
         if len(message_history) > self.message_history_limit:
             message_history = message_history[-self.message_history_limit:]
