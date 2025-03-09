@@ -39,32 +39,75 @@ class AgentNode(Node):
         {history_text}
         User request: {user_input}
 
-        AI assistant for financial data analysis. 
-        For generic financial questions, use search_google tool to provide information.
+        AI assistant for financial data analysis and general knowledge. 
+        For questions that are not directly related to crypto download or local data, use search_google tool to provide information.
         Effectively use tools based on user intent.
 
         Categories:
-        1. Crypto Download (CRITICAL SUB-FLOW): For cryptocurrency download requests, trigger 'crypto_download_requested' action for FreqtradeFlow.
-        2. General Financial Info Seek: For generic financial questions, use search_google tool.
-        3. Check Data: For requests about available data, list files in '{self.data_folder}'.
-        4. Data Question: For questions about local data, use file_read tool.
+        1. Crypto Download (CRITICAL SUB-FLOW): For cryptocurrency download requests (e.g., 'download ETH/USDT data'), trigger 'crypto_download_requested' action for FreqtradeFlow.
+        2. General Financial Info Seek: For generic financial questions (e.g., 'what is cardano?', 'explain bitcoin halving'), use search_google tool to get the answer.
+        3. Check Data: For requests about available data (e.g., 'list available data', 'what data do you have'), list files in '{self.data_folder}'.
+        4. Data Question: For questions about local data (e.g., 'summarize ETHUSDT data', 'analyze BTC data'), use file_read tool to read and process local data files.
+        5. General Knowledge Question: For general knowledge questions that are not specific to finance but require web search (e.g., 'what is soffix?', 'who won nobel prize 2023'), use search_google tool.
 
         Tools:
-        - search_google: Web search for general information, especially financial topics.
+        - search_google: Web search for general information, especially financial and general knowledge topics.
         - file_read: Read content from local files in '{self.data_folder}'.
         - directory_listing: List files and directories in '{self.data_folder}'.
         - user_input: Ask user for more information or clarification.
         - user_output: Display output to the user.
 
-        Output YAML to indicate action and tool. For crypto download, action MUST be 'crypto_download_requested'.
-        For generic financial questions, default to using search_google. If a tool is needed, tool_needed should be 'yes'.
+        Output YAML to indicate action and tool. 
+        For crypto download requests, action MUST be 'crypto_download_requested'.
+        For general financial or general knowledge questions, default to using search_google. 
+        If a tool is needed, tool_needed should be 'yes'.
         If no tool is needed for direct answer, tool_needed should be 'no'.
+
+        Example YAML output for a general knowledge question:
+        ```yaml
+        tool_needed: yes
+        tool_name: search_google 
+        tool_params: 
+          query: <user_question>
+        reason: User is asking a general knowledge question that requires web search.
+        action: tool_needed 
+        ```
+
+        Example YAML output for a crypto download request:
+        ```yaml
+        tool_needed: no
+        tool_name: null
+        tool_params: null
+        reason: User is asking to download crypto data, triggering crypto download sub-flow.
+        action: crypto_download_requested
+        ```
+
+        Example YAML output for a data check request:
+        ```yaml
+        tool_needed: yes
+        tool_name: directory_listing
+        tool_params: 
+          dir_path: {self.data_folder}
+        reason: User is asking to check available data, listing directory.
+        action: tool_needed
+        ```
+
+        Example YAML output for a direct answer (no tool needed):
+        ```yaml
+        tool_needed: no
+        tool_name: null
+        tool_params: null
+        reason: User is asking a question that can be answered directly without tools.
+        action: direct_answer_ready
+        ```
+
+        Now, based on the user request, output YAML:
         ```yaml
         tool_needed: yes/no
         tool_name: <tool_name> 
         tool_params: ... 
         reason: <decision reason>
-        action: <action_indicator> # if crypto download, action MUST be 'crypto_download_requested'
+        action: <action_indicator> # if crypto download, action MUST be 'crypto_download_requested' or 'tool_needed' or 'direct_answer_ready'
         ```
         """
         llm_response_yaml = call_llm(prompt)
