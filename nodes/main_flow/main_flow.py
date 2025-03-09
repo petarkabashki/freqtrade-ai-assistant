@@ -4,7 +4,7 @@ from nodes.main_flow.tool_invocation_node import ToolInvocationNode
 # from nodes.main_flow.main_input_node import MainInputNode # Remove MainInputNode import
 from nodes.freqtrade.freqtrade_flow import FreqtradeFlow
 from nodes.main_flow.chat_retrieve_node import ChatRetrieveNode
-from nodes.main_flow.chat_reply_node import ChatReplyNode
+# from nodes.main_flow.chat_reply_node import ChatReplyNode # AI: Remove ChatReplyNode import
 import logging
 
 logger = logging.getLogger(__name__)
@@ -25,7 +25,7 @@ class MainFlow(Flow):
         # main_input_node = MainInputNode() # Remove MainInputNode initialization
 
 
-        chat_reply_node = ChatReplyNode()
+        # chat_reply_node = ChatReplyNode() # AI: Remove ChatReplyNode instantiation
         agent_node = AgentNode(max_tool_loops=max_tool_loops,
                                 allowed_paths=allowed_paths,
                                 data_folder=data_folder,
@@ -42,11 +42,11 @@ class MainFlow(Flow):
         agent_node - "tool_invocation_failure" >> agent_node
 
 
-        agent_node - "direct_answer_ready" >> chat_reply_node # AI: Route direct answers to chat_reply_node
+        agent_node - "direct_answer_ready" >> chat_retrieve_node # AI: Route direct answers to chat_retrieve_node - changed from chat_reply_node
         agent_node - "yaml_error" >> chat_retrieve_node
         agent_node - "max_loops_reached" >> chat_retrieve_node
 
-        chat_reply_node - "continue" >> chat_retrieve_node # AI: Loop back to chat_retrieve_node after reply
+        # chat_reply_node - "continue" >> chat_retrieve_node # AI: Remove ChatReplyNode loop - not needed anymore
 
 
         # Sub-flow transitions
