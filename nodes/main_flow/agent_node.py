@@ -30,7 +30,7 @@ class AgentNode(Node):
         You can use tools to access information and perform actions.
 
         When the user asks about:
-        - **downloading cryptocurrency data**: You should transition to a separate 'freqtrade flow' to handle this request. Indicate this by setting 'tool_needed: no' and include a special action indicator in your response.
+        - **downloading cryptocurrency data**: This includes explicit requests to download historical data for cryptocurrencies. Examples: "download bitcoin data", "get ETH/USD history", "download cardano on weekly timeframe", "download solana weekly", "download BTC/USDT daily".  If the user request is clearly asking to download cryptocurrency data, you MUST identify it as a crypto download request. You should transition to a separate 'freqtrade flow' to handle this request. Indicate this by setting 'tool_needed: no' and set action to 'crypto_download_requested'.
         - **available data**: Use the 'directory_listing' tool to check the contents of the '{self.data_folder}' folder.
         - **questions about the data itself** (e.g., "average price of BTC"): Use the 'file_read' tool to read the contents of the relevant data files in the '{self.data_folder}' folder and then answer the question based on the data.
 
@@ -56,7 +56,7 @@ class AgentNode(Node):
         tool_params:             # Parameters for the tool (if tool_needed is yes)
           <param_name_1>: <param_value_1>
         reason: <brief reason for the decision>
-        action: <action_indicator> # e.g., 'crypto_download' if request is to download crypto data, otherwise None
+        action: <action_indicator> # e.g., 'crypto_download_requested' if request is to download crypto data, otherwise None
         ```"""
         llm_response_yaml = call_llm(prompt)
         print(f"AgentNode LLM Response (YAML): {llm_response_yaml}")
@@ -79,7 +79,7 @@ class AgentNode(Node):
                 "tool_params": tool_params
             }
             exec_res = tool_request
-        elif action_indicator == "crypto_download":
+        elif action_indicator == "crypto_download_requested":
             exec_res = "crypto_download_requested"
         else:
             llm_prompt_answer = f"User request: {user_input}\n Directly answer the request:"
