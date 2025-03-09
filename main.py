@@ -1,5 +1,14 @@
-from nodes.freqtrade.flow import *
+from freq_assistant.nodes.main_flow.main_input_node import MainInputNode
+from freq_assistant.nodes.main_flow.main_dispatcher_node import MainDispatcherNode
+from lib.pocketflow import Flow
 
-if __name__ == "__main__":
-    download_flow = freqtrade_flow()
-    download_flow.run({})
+if __name__ == '__main__':
+    main_input = MainInputNode()
+    main_dispatcher = MainDispatcherNode()
+
+    main_input - "llm" >> main_dispatcher
+    main_dispatcher - "input" >> main_input
+
+    main_flow = Flow(start=main_input)
+    shared_data = {}
+    main_flow.run(shared_data)
