@@ -95,8 +95,8 @@ class AgentNode(Node):
             Example YAML output for a crypto download request:
             ```yaml
             tool_needed: no
-            tool_name: null
-            tool_params: null
+            tool_name: ""
+            tool_params: ""
             reason: User is asking to download crypto data, triggering crypto download sub-flow.
             action: crypto_download_requested
             ```
@@ -114,8 +114,8 @@ class AgentNode(Node):
             Example YAML output for a direct answer (no tool needed):
             ```yaml
             tool_needed: no
-            tool_name: null
-            tool_params: null
+            tool_name: ""
+            tool_params: ""
             reason: User is asking a question that can be answered directly without tools, or a greeting.
             action: direct_answer_ready
             ```
@@ -123,8 +123,8 @@ class AgentNode(Node):
             Now, based on the user request, output YAML:
             ```yaml
             tool_needed: yes/no
-            tool_name: <tool_name>
-            tool_params: ...
+            tool_name: <tool_name> or ""
+            tool_params: ... or ""
             reason: <decision reason>
             action: <action_indicator> # if crypto download, action MUST be 'crypto_download_requested' or 'tool_needed' or 'direct_answer_ready'
             ```
