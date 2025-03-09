@@ -144,7 +144,7 @@ class AgentNode(Node):
 
         print(f"AgentNode exec finished with result: {exec_res}, Shared: {shared}")
         return exec_res
-
+# simplify code AI!
     def post(self, shared, prep_res, exec_res):
         print(f"AgentNode post started. Shared: {shared}, Prep result: {prep_res}, Exec result: {exec_res}")
         if exec_res == "tool_needed":
