@@ -24,7 +24,7 @@ class MainFlow(Flow):
 
         # AI: Initialize new chat memory nodes
         chat_retrieve_node = ChatRetrieveNode()
-        chat_reply_node = ChatReplyNode() # AI: Removed extra arguments, this is the fix
+        chat_reply_node = ChatReplyNode()
 
         tool_invocation_node = ToolInvocationNode(allowed_paths=allowed_paths)
         tool_result_processor_node = ToolResultProcessorNode()
@@ -32,10 +32,10 @@ class MainFlow(Flow):
         self.freqtrade_flow = freqtrade_flow
 
         # AI: Flow wiring for chat memory
-        # Is this flow correct, I want the agent to loop in conversation mode and use tools when it finds needed. AI!
+        # Is this flow correct, I want the agent to loop in conversation mode and use tools when it finds needed.
         main_input_node >> chat_retrieve_node >> chat_reply_node >> tool_invocation_node >> tool_result_processor_node
         tool_result_processor_node >> ("processing_complete", main_input_node) # AI: Loop back to main_input_node for conversation
-        tool_result_processor_node >> ("default", chat_retrieve_node) # Loop back to chat_retrieve_node for tool processing
+        tool_result_processor_node >> ("default", chat_reply_node) # Corrected loop back to chat_reply_node for tool processing
 
         chat_reply_node >> ("tool_needed", tool_invocation_node) # tool needed
         chat_reply_node >> ("direct_answer_ready", tool_result_processor_node) # answer

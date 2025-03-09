@@ -17,6 +17,6 @@ Please enter your request (e.g., download assets like STOCKS, INDEXES, CRYPTO, F
         logger.info(f"MainInputNode post started. Shared: {shared}, Prep result: {prep_res}, Exec result: {exec_res}")
         action = "default"
         if prep_res.strip().lower() == '/q':
-            action = "quit" # AI: Added 'quit' action
+            action = "quit"
         logger.info(f"MainInputNode post finished. Action: {action}, Shared: {shared}, Prep result: {prep_res}, Exec result: {exec_res}")
         return action

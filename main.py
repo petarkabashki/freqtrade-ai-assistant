@@ -6,7 +6,7 @@ import yaml
 from nodes.main_flow.main_flow import MainFlow
 import logging
 
-logging.basicConfig(level=logging.INFO) # AI: Set basic logging level
+logging.basicConfig(level=logging.INFO)
 
 if __name__ == '__main__':
     with open('config.yaml', 'r') as f:
