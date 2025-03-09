@@ -1,6 +1,6 @@
 from lib.pocketflow import Flow, Node
-from freq_assistant.nodes.main_flow.main_input_node import MainInputNode
-from freq_assistant.nodes.main_flow.main_dispatcher_node import MainDispatcherNode
+from nodes.main_flow.main_input_node import MainInputNode
+from nodes.main_flow.main_dispatcher_node import MainDispatcherNode
 
 class MainFlowNode(Node):
     def exec(self, prep_res, shared):
