@@ -2,7 +2,6 @@ import os
 
 ALLOWED_PATHS = []
 
-# add a _tool suffix to all the function names AI!
 def is_path_allowed(path):
     if not ALLOWED_PATHS:
         return True
@@ -11,7 +10,7 @@ def is_path_allowed(path):
             return True
     return False
 
-def file_read(file_path):
+def file_read_tool(file_path):
     if not is_path_allowed(file_path):
         return {"error": f"Access denied: Reading file '{file_path}' "
                          "is not allowed."}
@@ -22,7 +21,7 @@ def file_read(file_path):
         return {"error": f"Error reading file '{file_path}': {e}"}
 
 
-def file_write(file_path, content):
+def file_write_tool(file_path, content):
     if not is_path_allowed(file_path):
         return {"error": f"Access denied: Writing to file '{file_path}' "
                          "is not allowed."}
@@ -33,7 +32,7 @@ def file_write(file_path, content):
     except Exception as e:
         return {"error": f"Error writing to file '{file_path}': {e}"}
 
-def directory_listing(dir_path):
+def directory_listing_tool(dir_path):
     if not is_path_allowed(dir_path):
         return {"error": f"Access denied: Listing directory '{dir_path}' "
                          "is not allowed."}
