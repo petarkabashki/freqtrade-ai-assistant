@@ -79,6 +79,8 @@ class AgentNode(Node):
         tool_needed = llm_response_data.get("tool_needed")
         tool_name = llm_response_data.get("tool_name")
         tool_params = llm_response_data.get("tool_params", {})
+        if tool_params is None: # AI: Handle None tool_params
+            tool_params = {} # AI: Treat None as empty dict
         action_indicator = llm_response_data.get("action")
         search_query = tool_params.get("query") # Extract search query if google search is used
         shared["tool_request"] = llm_response_data # Store tool request in shared for ToolResultProcessorNode
