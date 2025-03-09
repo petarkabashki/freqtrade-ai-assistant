@@ -24,18 +24,14 @@ class FreqtradeFlow(Flow):
         summary_node = nodes["summary"]
         exit_node = nodes["exit"]
 
-        input_node - "validate_input" >> validation_node
-        input_node - "exit" >> exit_node
-# use this transition format in the main flow AI!
-        validation_node - "confirmation" >> confirmation_node
-        validation_node - "reinput" >> input_node
-
-        confirmation_node - "execute_download" >> download_node
-        confirmation_node - "reinput" >> input_node
-
-        download_node - "summary" >> summary_node
-
-        summary_node - "exit" >> exit_node
-        summary_node - "input" >> input_node
+        input_node >> ("validate_input", validation_node)
+        input_node >> ("exit", exit_node)
+        validation_node >> ("confirmation", confirmation_node)
+        validation_node >> ("reinput", input_node)
+        confirmation_node >> ("execute_download", download_node)
+        confirmation_node >> ("reinput", input_node)
+        download_node >> ("summary", summary_node)
+        summary_node >> ("exit", exit_node)
+        summary_node >> ("input", input_node)
 
         super().__init__(start=input_node) # Pass start node to super constructor
