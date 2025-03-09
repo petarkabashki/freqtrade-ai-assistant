@@ -35,10 +35,13 @@ class MainFlow(Flow):
         freqtrade_flow = FreqtradeFlow()
         self.freqtrade_flow = freqtrade_flow
 
-        chat_retrieve_node >> agent_node >> tool_invocation_node
+        chat_retrieve_node - "continue" >> agent_node
 
+        # these 2 conditional transition should be the other way around. AI! 
         agent_node - "tool_invocation_success" >> agent_node
         agent_node - "tool_invocation_failure" >> agent_node
+        
+        
         agent_node - "direct_answer_ready" >> chat_retrieve_node
         agent_node - "yaml_error" >> chat_retrieve_node
         agent_node - "max_loops_reached" >> chat_retrieve_node
