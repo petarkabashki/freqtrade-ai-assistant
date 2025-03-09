@@ -17,17 +17,17 @@ class GrayLogFormatter(logging.Formatter):
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger() # Get root logger
+logger.handlers = [] # Clear existing handlers to ensure no conflicts
 
 # Create a console handler and set the formatter
 console_handler = logging.StreamHandler()
-formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s') # You can keep your existing format
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s') # Original formatter - not used directly now
 gray_formatter = GrayLogFormatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s') # Create gray formatter
 
 console_handler.setFormatter(gray_formatter) # Set gray formatter to console handler
 
-# Add the console handler to the root logger if it's not already there
-if not any(isinstance(handler, logging.StreamHandler) for handler in logger.handlers):
-    logger.addHandler(console_handler)
+# Add the console handler to the root logger
+logger.addHandler(console_handler)
 
 
 if __name__ == '__main__':
