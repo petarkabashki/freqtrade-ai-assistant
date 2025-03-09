@@ -16,13 +16,13 @@ class AgentNode(Node): # Renamed class to AgentNode
         - What are the parameters needed to execute the tool?
 
         Respond in YAML format:
-        \`\`\`yaml
+        ```yaml
         tool_needed: yes/no
         tool_name: <tool_name>  # e.g., search_google (if tool_needed is yes)
         tool_params:             # Parameters for the tool (if tool_needed is yes)
           <param_name_1>: <param_value_1>
         reason: <brief reason for the decision>
-        \`\`\`"""
+        ```"""
         llm_response_yaml = call_llm(prompt)
         # Parse YAML response (assuming llm_response_yaml is a YAML string)
         import yaml
