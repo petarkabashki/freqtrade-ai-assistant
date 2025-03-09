@@ -8,7 +8,6 @@ from .exit_node import ExitNode
 
 class FreqtradeFlow(Flow):
     def __init__(self):
-        super().__init__()
         nodes = {
             "input": InputNode(),
             "validation": ValidationNode(),
@@ -39,4 +38,4 @@ class FreqtradeFlow(Flow):
         summary_node - "exit" >> exit_node
         summary_node - "input" >> input_node
 
-        self.start = input_node
+        super().__init__(start=input_node) # Pass start node to super constructor
