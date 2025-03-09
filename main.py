@@ -2,6 +2,7 @@ from freq_assistant.nodes.main_flow.main_input_node import MainInputNode
 from freq_assistant.nodes.main_flow.main_dispatcher_node import MainDispatcherNode
 from lib.pocketflow import Flow
 
+#use the main_flow node here AI!
 if __name__ == '__main__':
     main_input = MainInputNode()
     main_dispatcher = MainDispatcherNode()
