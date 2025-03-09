@@ -51,11 +51,29 @@ def get_embedding(text):
     )
     return r.data[0].embedding
 
-def search_index(index, query_embedding, top_k=5):
-    import faiss
-    import numpy as np
-    D, I = index.search(
-        np.array([query_embedding]).astype('float32'),
-        top_k
+# def search_index(index, query_embedding, top_k=5):
+#     import faiss
+#     import numpy as np
+#     D, I = index.search(
+#         np.array([query_embedding]).astype('float32'),
+#         top_k
+#     )
+#     return I, D
+
+
+def call_llm_vision(prompt, image_data):
+    client = openai.OpenAI(api_key="YOUR_API_KEY_HERE")
+    img_base64 = base64.b64encode(image_data).decode('utf-8')
+
+    response = client.chat.completions.create(
+        model="gpt-4o",
+        messages=[{
+            "role": "user",
+            "content": [
+                {"type": "text", "text": prompt},
+                {"type": "image_url",
+                 "image_url": {"url": f"image/png;base64,{img_base64}"}}
+            ]
+        }]
     )
-    return I, D
+    return response.choices[0].message.content
