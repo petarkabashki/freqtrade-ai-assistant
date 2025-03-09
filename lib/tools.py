@@ -90,6 +90,10 @@ def user_input_llm_query(prompt):
     user_query = input(f"{prompt}: ")
     return user_query
 
+def user_output(message):
+    print(message)
+    return {}
+
 
 def get_embedding(text):
     client = openai.OpenAI(api_key="YOUR_API_KEY_HERE")
