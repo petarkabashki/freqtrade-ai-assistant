@@ -51,26 +51,17 @@ def get_embedding(text):
     )
     return r.data[0].embedding
 
-
-# def create_index(embeddings):
-#     dim = len(embeddings[0])
-#     index = faiss.IndexFlatL2(dim)
-#     index.add(np.array(embeddings).astype('float32'))
-#     return index
-
 def search_index(index, query_embedding, top_k=5):
+    import faiss
+    import numpy as np
     D, I = index.search(
-        np.array([query_embedding]).astype('float32'), 
+        np.array([query_embedding]).astype('float32'),
         top_k
     )
     return I, D
 
-# index = create_index(embeddings)
-# search_index(index, query_embedding)
-
-import sqlite3
-
 def execute_sql(query):
+    import sqlite3
     conn = sqlite3.connect("mydb.db")
     cursor = conn.cursor()
     cursor.execute(query)
@@ -84,54 +75,14 @@ def run_code(code_str):
     exec(code_str, env)
     return env
 
-# run_code("print('Hello, world!')")
-
-# import fitz  # PyMuPDF
-
-# def extract_text(pdf_path):
-#     doc = fitz.open(pdf_path)
-#     text = ""
-#     for page in doc:
-#         text += page.get_text()
-#     doc.close()
-#     return text
-
-# extract_text("document.pdf")
-
-# def call_llm_vision(prompt, image_data):
-#     client = OpenAI(api_key=API_KEY)
-#     img_base64 = base64.b64encode(image_data).decode('utf-8')
-
-#     response = client.chat.completions.create(
-#         model="gpt-4o",
-#         messages=[{
-#             "role": "user",
-#             "content": [
-#                 {"type": "text", "text": prompt},
-#                 {"type": "image_url", 
-#                  "image_url": {"url": f"image/png;base64,{img_base64}"}}
-#             ]
-#         }]
-#     )
-
-#     return response.choices[0].message.content
-
-# pdf_document = fitz.open("document.pdf")
-# page_num = 0
-# page = pdf_document[page_num]
-# pix = page.get_pixmap()
-# img_data = pix.tobytes("png")
-
-# call_llm_vision("Extract text from this image", img_data)
-
 def crawl_web(url):
     from bs4 import BeautifulSoup
     html = requests.get(url).text
     soup = BeautifulSoup(html, "html.parser")
     return soup.title.string, soup.get_text()
 
-
 def search_google(query):
+    import requests
     params = {
         "engine": "google",
         "q": query,
@@ -141,15 +92,10 @@ def search_google(query):
     return r.json()
 
 def transcribe_audio(file_path):
+    import openai
     audio_file = open(file_path, "rb")
     transcript = openai.Audio.transcribe("whisper-1", audio_file)
     return transcript["text"]
-
-# def text_to_speech(text):
-#     import pyttsx3
-#     engine = pyttsx3.init()
-#     engine.say(text)
-#     engine.runAndWait()
 
 def send_email(to_address, subject, body, from_address, password):
     import smtplib
@@ -163,3 +109,30 @@ def send_email(to_address, subject, body, from_address, password):
     with smtplib.SMTP_SSL("smtp.gmail.com", 465) as server:
         server.login(from_address, password)
         server.sendmail(from_address, [to_address], msg.as_string())
+
+def file_read(file_path):
+    try:
+        with open(file_path, 'r') as f:
+            return f.read()
+    except FileNotFoundError:
+        return f"Error: File not found at path '{file_path}'"
+
+def file_write(file_path, content"):
+    try:
+        with open(file_path, 'w') as f:
+            f.write(content)
+        return f"Successfully wrote content to file '{file_path}'"
+    except Exception as e:
+        return f"Error writing to file '{file_path}': {e}"
+
+def directory_listing(dir_path):
+    import os
+    try:
+        items = os.listdir(dir_path)
+        return "\n".join(items)
+    except FileNotFoundError:
+        return f"Error: Directory not found at path '{dir_path}'"
+    except NotADirectoryError:
+        return f"Error: '{dir_path}' is not a directory"
+    except Exception as e:
+        return f"Error listing directory '{dir_path}': {e}"
