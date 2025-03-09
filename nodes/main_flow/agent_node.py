@@ -40,11 +40,11 @@ class AgentNode(Node):
         {history_text}
         User request: {user_input}
 
-        You are an AI assistant for financial data analysis using tools. 
+        AI assistant for financial data analysis using tools. 
         Analyze user intent to use tools effectively.
 
         Categories:
-        1. Crypto Download (CRITICAL): Explicit download requests.
+        1. Crypto Download (CRITICAL SUB-FLOW): For cryptocurrency download requests, trigger 'crypto_download_requested' action to use FreqtradeFlow.
         2. General Info Seek: Web search for broad queries.
         3. Check Data: List files in '{self.data_folder}'.
         4. Data Question: Read local data files for answers.
@@ -56,13 +56,13 @@ class AgentNode(Node):
         - user_input: Ask user for info.
         - user_output: Display output.
 
-        Respond in YAML to indicate action and tool.
+        Output YAML to indicate action and tool. For crypto download, use action 'crypto_download_requested'.
         ```yaml
         tool_needed: yes/no
         tool_name: <tool_name> 
         tool_params: ... 
         reason: <decision reason>
-        action: <action_indicator>
+        action: <action_indicator> # if crypto download, action MUST be 'crypto_download_requested'
         ```
         """
         llm_response_yaml = call_llm(prompt)

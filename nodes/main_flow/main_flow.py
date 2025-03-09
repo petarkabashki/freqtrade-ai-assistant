@@ -40,7 +40,8 @@ class MainFlow(Flow):
         agent_node >> ("direct_answer_ready", tool_result_processor_node)
         agent_node >> ("yaml_error", tool_result_processor_node)
         agent_node >> ("max_loops_reached", tool_result_processor_node)
-        agent_node >> ("crypto_download_requested", freqtrade_flow)
+        # Sub-flow transitions
+        agent_node >> ("crypto_download_requested", self.freqtrade_flow) # Route crypto download requests to freqtrade_flow
 
     def get_next_node(self, curr, action):
         nxt = super().get_next_node(curr, action)
