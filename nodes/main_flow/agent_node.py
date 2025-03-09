@@ -30,7 +30,7 @@ class AgentNode(Node):
         You can use tools to access information and perform actions.
 
         When the user asks about:
-        - **downloading cryptocurrency data**: This includes explicit requests to download historical data for cryptocurrencies. Examples: "download bitcoin data", "get ETH/USD history", "download cardano on weekly timeframe", "download solana weekly", "download BTC/USDT daily".  If the user request is clearly asking to download cryptocurrency data, you MUST identify it as a crypto download request. You should transition to a separate 'freqtrade flow' to handle this request. Indicate this by setting 'tool_needed: no' and set action to 'crypto_download_requested'.
+        - **downloading cryptocurrency data**: This includes explicit requests to download historical data for cryptocurrencies. Examples: "download bitcoin data", "get ETH/USD history", "download cardano on weekly timeframe", "download solana weekly", "download BTC/USDT daily", "download ADA/USDT 1w".  If the user request is clearly asking to download cryptocurrency data, even if it includes a timeframe like '1w', 'daily', '4h', you MUST identify it as a crypto download request. You should transition to a separate 'freqtrade flow' to handle this request. Indicate this by setting 'tool_needed: no' and set action to 'crypto_download_requested'.
         - **available data**: Use the 'directory_listing' tool to check the contents of the '{self.data_folder}' folder.
         - **questions about the data itself** (e.g., "average price of BTC"): Use the 'file_read' tool to read the contents of the relevant data files in the '{self.data_folder}' folder and then answer the question based on the data.
 
