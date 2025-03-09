@@ -2,7 +2,7 @@ from openai import OpenAI
 import openai
 import requests
 import os
-import faiss_cpu as faiss # Changed import here
+# import faiss as faiss # Changed import here
 import numpy as np
 import base64
 
@@ -52,11 +52,11 @@ def get_embedding(text):
     return r.data[0].embedding
 
 
-def create_index(embeddings):
-    dim = len(embeddings[0])
-    index = faiss.IndexFlatL2(dim)
-    index.add(np.array(embeddings).astype('float32'))
-    return index
+# def create_index(embeddings):
+#     dim = len(embeddings[0])
+#     index = faiss.IndexFlatL2(dim)
+#     index.add(np.array(embeddings).astype('float32'))
+#     return index
 
 def search_index(index, query_embedding, top_k=5):
     D, I = index.search(
@@ -86,35 +86,35 @@ def run_code(code_str):
 
 # run_code("print('Hello, world!')")
 
-import fitz  # PyMuPDF
+# import fitz  # PyMuPDF
 
-def extract_text(pdf_path):
-    doc = fitz.open(pdf_path)
-    text = ""
-    for page in doc:
-        text += page.get_text()
-    doc.close()
-    return text
+# def extract_text(pdf_path):
+#     doc = fitz.open(pdf_path)
+#     text = ""
+#     for page in doc:
+#         text += page.get_text()
+#     doc.close()
+#     return text
 
 # extract_text("document.pdf")
 
-def call_llm_vision(prompt, image_data):
-    client = OpenAI(api_key=API_KEY)
-    img_base64 = base64.b64encode(image_data).decode('utf-8')
+# def call_llm_vision(prompt, image_data):
+#     client = OpenAI(api_key=API_KEY)
+#     img_base64 = base64.b64encode(image_data).decode('utf-8')
 
-    response = client.chat.completions.create(
-        model="gpt-4o",
-        messages=[{
-            "role": "user",
-            "content": [
-                {"type": "text", "text": prompt},
-                {"type": "image_url", 
-                 "image_url": {"url": f"image/png;base64,{img_base64}"}}
-            ]
-        }]
-    )
+#     response = client.chat.completions.create(
+#         model="gpt-4o",
+#         messages=[{
+#             "role": "user",
+#             "content": [
+#                 {"type": "text", "text": prompt},
+#                 {"type": "image_url", 
+#                  "image_url": {"url": f"image/png;base64,{img_base64}"}}
+#             ]
+#         }]
+#     )
 
-    return response.choices[0].message.content
+#     return response.choices[0].message.content
 
 # pdf_document = fitz.open("document.pdf")
 # page_num = 0
