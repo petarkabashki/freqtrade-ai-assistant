@@ -32,21 +32,16 @@ class MainFlow(Flow):
                                 message_history_limit=message_history_limit)
 
         tool_invocation_node = ToolInvocationNode(allowed_paths=allowed_paths)
-        # tool_result_processor_node = ToolResultProcessorNode() # AI: Remove ToolResultProcessorNode initialization - not needed anymore
         freqtrade_flow = FreqtradeFlow()
         self.freqtrade_flow = freqtrade_flow
 
-        # AI: Flow wiring for chat memory
-        # Is this flow correct, I want the agent to loop in conversation mode and use tools when it finds needed.
-        chat_retrieve_node >> agent_node >> tool_invocation_node # AI: Removed tool_result_processor_node from chain
-        # tool_result_processor_node >> ("processing_complete", main_input_node) # AI: Remove tool_result_processor_node loop back to main_input_node - not needed
-        # tool_result_processor_node >> ("default", chat_retrieve_node) # AI: Remove tool_result_processor_node loop back to chat_retrieve_node - not needed
-
-        agent_node >> ("tool_invocation_success", agent_node) # AI: Loop back to agent_node on tool success - corrected loop to agent_node
-        agent_node >> ("tool_invocation_failure", agent_node) # AI: Loop back to agent_node on tool failure - corrected loop to agent_node
-        agent_node >> ("direct_answer_ready", chat_retrieve_node) # AI: Direct answer loop back to chat_retrieve_node - corrected loop
-        agent_node >> ("yaml_error", chat_retrieve_node) # AI: Yaml error loop back to chat_retrieve_node - corrected loop
-        agent_node >> ("max_loops_reached", chat_retrieve_node) # AI: Max loops reached loop back to chat_retrieve_node - corrected loop
+        chat_retrieve_node >> agent_node >> tool_invocation_node 
+# reformat these like : chat_retrieve_node - "quit" >> None .AI!
+        agent_node >> ("tool_invocation_success", agent_node) 
+        agent_node >> ("tool_invocation_failure", agent_node) 
+        agent_node >> ("direct_answer_ready", chat_retrieve_node)
+        agent_node >> ("yaml_error", chat_retrieve_node) 
+        agent_node >> ("max_loops_reached", chat_retrieve_node)
 
 
         # Sub-flow transitions
