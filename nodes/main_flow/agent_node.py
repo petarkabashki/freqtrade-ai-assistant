@@ -34,8 +34,8 @@ class AgentNode(Node):
         if message_history:
             history_text = "Message History:\n"
             for msg in message_history:
-                history_text += f"- User: {msg['user_input']}\n"
-                history_text += f"- Assistant: {msg['llm_response']}\n"
+                history_text += f"- {msg['role']}: {msg['content']}\n" # AI: Modified history text to use role and content
+
         prompt = f"""
         {history_text}
         User request: {user_input}
@@ -128,7 +128,8 @@ class AgentNode(Node):
             action = "unknown_action"
 
         message_history = shared.get('message_history', [])
-        message_history.append({"user_input": user_input, "llm_response": llm_response})
+        message_history.append({"role": "user", "content": user_input}) # AI: Store user input with role
+        message_history.append({"role": "assistant", "content": llm_response}) # AI: Store assistant response with role
 
         if len(message_history) > self.message_history_limit:
             message_history = message_history[-self.message_history_limit:]
