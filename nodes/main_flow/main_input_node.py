@@ -1,6 +1,6 @@
 from lib.pocketflow import Node
 class MainInputNode(Node):
-    def prep(self, shared):
+    def prep(self, shared): # make sure there are no leading blanks. AI!
         user_input = input("""
                            Welcome to the AI Trading Assistant! 
                            
