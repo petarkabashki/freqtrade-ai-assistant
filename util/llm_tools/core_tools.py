@@ -20,7 +20,7 @@ def search_google_tool(query):
     params = {
         "engine": "google",
         "q": query,
-        "api_key": "YOUR_API_KEY" #  https://serpapi.com/dashboard
+        "api_key": "YOUR_API_KEY" #  load this from the env AI!
     }
     r = requests.get("https://serpapi.com/search", params=params)
     return r.json()
