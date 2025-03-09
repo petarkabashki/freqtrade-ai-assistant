@@ -3,19 +3,21 @@ from nodes.main_flow.agent_node import AgentNode
 from nodes.main_flow.tool_invocation_node import ToolInvocationNode
 from nodes.main_flow.tool_result_processor_node import ToolResultProcessorNode
 from nodes.main_flow.main_input_node import MainInputNode
+from nodes.freqtrade.freqtrade_flow import FreqtradeFlow
 
 class MainFlow(Flow):
     def __init__(self, config):
         agent_config = config.get('agent', {})
         max_tool_loops = agent_config.get('max_tool_loops', 3)
         allowed_paths = agent_config.get('allowed_paths', [])
-        data_folder = config.get('data_folder', 'freq-data') # AI: Get data_folder from config
-        print(f"MainFlow initialized with config: {config}") # AI: Log initialization
+        data_folder = config.get('data_folder', 'freq-data')
+        print(f"MainFlow initialized with config: {config}")
 
         main_input_node = MainInputNode()
-        agent_node = AgentNode(max_tool_loops=max_tool_loops, allowed_paths=allowed_paths, data_folder=data_folder) # AI: Pass data_folder to AgentNode
+        agent_node = AgentNode(max_tool_loops=max_tool_loops, allowed_paths=allowed_paths, data_folder=data_folder)
         tool_invocation_node = ToolInvocationNode(allowed_paths=allowed_paths) # Pass allowed_paths here
         tool_result_processor_node = ToolResultProcessorNode()
+        freqtrade_flow = FreqtradeFlow()
 
         main_input_node >> agent_node >> tool_invocation_node >> tool_result_processor_node
 
@@ -26,6 +28,6 @@ class MainFlow(Flow):
         agent_node >> ("direct_answer_ready", tool_result_processor_node) # if agent provides direct answer, process answer
         agent_node >> ("yaml_error", tool_result_processor_node) # if yaml parsing error, handle error
         agent_node >> ("max_loops_reached", tool_result_processor_node) # if max tool loops reached, handle max loops
-        agent_node >> ("crypto_download_requested", tool_result_processor_node) # AI: Transition for crypto_download_requested
+        agent_node >> ("crypto_download_requested", freqtrade_flow) # Transition for crypto_download_requested
 
         super().__init__(start=main_input_node) # Set start node for the flow

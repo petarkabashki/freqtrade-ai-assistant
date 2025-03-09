@@ -1,4 +1,3 @@
-
 from lib.pocketflow import *
 from .input_node import InputNode
 from .validation_node import ValidationNode
@@ -6,37 +5,38 @@ from .confirmation_node import ConfirmationNode
 from .download_node import DownloadNode
 from .summary_node import SummaryNode
 from .exit_node import ExitNode
-#Make this a FreqTradeFlow(Flow) that implements the stuff class AI!
-def freqtrade_flow():
-    nodes = {
-        "input": InputNode(),
-        "validation": ValidationNode(),
-        "confirmation": ConfirmationNode(),
-        "download": DownloadNode(),
-        "summary": SummaryNode(),
-        "exit": ExitNode(),
-    }
 
-    input_node = nodes["input"]
-    validation_node = nodes["validation"]
-    confirmation_node = nodes["confirmation"]
-    download_node = nodes["download"]
-    summary_node = nodes["summary"]
-    exit_node = nodes["exit"]
+class FreqtradeFlow(Flow):
+    def __init__(self):
+        super().__init__()
+        nodes = {
+            "input": InputNode(),
+            "validation": ValidationNode(),
+            "confirmation": ConfirmationNode(),
+            "download": DownloadNode(),
+            "summary": SummaryNode(),
+            "exit": ExitNode(),
+        }
 
-    input_node - "validate_input" >> validation_node
-    input_node - "exit" >> exit_node
+        input_node = nodes["input"]
+        validation_node = nodes["validation"]
+        confirmation_node = nodes["confirmation"]
+        download_node = nodes["download"]
+        summary_node = nodes["summary"]
+        exit_node = nodes["exit"]
 
-    validation_node - "confirmation" >> confirmation_node
-    validation_node - "reinput" >> input_node
+        input_node - "validate_input" >> validation_node
+        input_node - "exit" >> exit_node
 
-    confirmation_node - "execute_download" >> download_node
-    confirmation_node - "reinput" >> input_node
+        validation_node - "confirmation" >> confirmation_node
+        validation_node - "reinput" >> input_node
 
-    download_node - "summary" >> summary_node
+        confirmation_node - "execute_download" >> download_node
+        confirmation_node - "reinput" >> input_node
 
-    summary_node - "exit" >> exit_node
-    summary_node - "input" >> input_node
+        download_node - "summary" >> summary_node
 
-    flow = Flow(start=input_node)
-    return flow
+        summary_node - "exit" >> exit_node
+        summary_node - "input" >> input_node
+
+        self.start = input_node

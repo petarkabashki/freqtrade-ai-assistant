@@ -6,22 +6,22 @@ import yaml # Import the yaml library
 
 # The agent should call llm to respond to several categories of queries. One is for downloading crypto historical data; another is for downloading stock, indeces, forex, comodities data; another is answering questions about available downloaded historical data for various assets . The folder containing the files of such downloaded data is configurable in the app yaml config and is currently 'freq-data'.
 class AgentNode(Node):
-    def __init__(self, max_tool_loops=3, allowed_paths=None, data_folder="freq-data"): # AI: Added data_folder to constructor
+    def __init__(self, max_tool_loops=3, allowed_paths=None, data_folder="freq-data"):
         super().__init__()
         self.max_tool_loops = max_tool_loops
         self.allowed_paths = allowed_paths if allowed_paths is not None else [] # Store allowed_paths
-        self.data_folder = data_folder # AI: Store data_folder
-        print(f"AgentNode initialized with max_tool_loops={max_tool_loops}, allowed_paths={allowed_paths}, data_folder={data_folder}") # AI: Log initialization
+        self.data_folder = data_folder
+        print(f"AgentNode initialized with max_tool_loops={max_tool_loops}, allowed_paths={allowed_paths}, data_folder={data_folder}")
 
     def prep(self, shared):
-        print(f"AgentNode prep started. Shared: {shared}") # AI: Log prep start
+        print(f"AgentNode prep started. Shared: {shared}")
         shared['tool_loop_count'] = 0 # Initialize loop counter in shared
         prep_res = super().prep(shared)
-        print(f"AgentNode prep finished. Prep result: {prep_res}, Shared: {shared}") # AI: Log prep finish
+        print(f"AgentNode prep finished. Prep result: {prep_res}, Shared: {shared}")
         return prep_res
 
     def exec(self, prep_res, shared):
-        print(f"AgentNode exec started. Prep result: {prep_res}, Shared: {shared}") # AI: Log exec start
+        print(f"AgentNode exec started. Prep result: {prep_res}, Shared: {shared}")
         user_input = prep_res
         prompt = f"""
         User request: {user_input}
@@ -59,19 +59,19 @@ class AgentNode(Node):
         action: <action_indicator> # e.g., 'crypto_download' if request is to download crypto data, otherwise None
         ```"""
         llm_response_yaml = call_llm(prompt)
-        print(f"AgentNode LLM Response (YAML): {llm_response_yaml}") # AI: Log LLM YAML response
+        print(f"AgentNode LLM Response (YAML): {llm_response_yaml}")
         try:
             llm_response_data = yaml.safe_load(llm_response_yaml)
         except yaml.YAMLError as e:
             print(f"Error parsing LLM YAML response: {e}")
             exec_res = "yaml_error"
-            print(f"AgentNode exec finished with result: {exec_res}, Shared: {shared}") # AI: Log exec finish
+            print(f"AgentNode exec finished with result: {exec_res}, Shared: {shared}")
             return exec_res
 
         tool_needed = llm_response_data.get("tool_needed")
         tool_name = llm_response_data.get("tool_name")
         tool_params = llm_response_data.get("tool_params", {})
-        action_indicator = llm_response_data.get("action") # AI: Get action indicator from LLM response
+        action_indicator = llm_response_data.get("action")
 
         if tool_needed == "yes":
             tool_request = { # Create tool request dictionary
@@ -79,20 +79,20 @@ class AgentNode(Node):
                 "tool_params": tool_params
             }
             exec_res = tool_request
-        elif action_indicator == "crypto_download": # AI: Check for crypto_download action
-            exec_res = "crypto_download_requested" # AI: Set exec_res to crypto_download_requested
+        elif action_indicator == "crypto_download":
+            exec_res = "crypto_download_requested"
         else:
             llm_prompt_answer = f"User request: {user_input}\n Directly answer the request:"
             llm_answer = call_llm(llm_prompt_answer)
             shared["llm_answer"] = llm_answer
-            print(f"Direct LLM Answer: {llm_answer}") # AI: Log direct LLM answer
+            print(f"Direct LLM Answer: {llm_answer}")
             exec_res = "answer_directly"
 
-        print(f"AgentNode exec finished with result: {exec_res}, Shared: {shared}") # AI: Log exec finish
+        print(f"AgentNode exec finished with result: {exec_res}, Shared: {shared}")
         return exec_res
 
     def post(self, shared, prep_res, exec_res):
-        print(f"AgentNode post started. Shared: {shared}, Prep result: {prep_res}, Exec result: {exec_res}") # AI: Log post start
+        print(f"AgentNode post started. Shared: {shared}, Prep result: {prep_res}, Exec result: {exec_res}")
         if exec_res == "tool_needed": # Corrected: exec_res will be tool_request dict in "tool_needed" case now
             if shared['tool_loop_count'] < self.max_tool_loops: # Check loop count
                 action = "tool_needed"
@@ -103,12 +103,12 @@ class AgentNode(Node):
             action = "direct_answer_ready"
         elif exec_res == "yaml_error":
             action = "yaml_error"
-        elif exec_res == "crypto_download_requested": # AI: Handle crypto_download_requested action
-            action = "crypto_download_requested" # AI: Set action for crypto download
+        elif exec_res == "crypto_download_requested":
+            action = "crypto_download_requested"
         elif isinstance(exec_res, dict) and "tool_name" in exec_res: # Check if exec_res is a tool request
             action = "tool_needed" # Action indicating a tool is needed
         else:
             action = "default"
 
-        print(f"AgentNode post finished. Action: {action}, Shared: {shared}, Prep result: {prep_res}, Exec result: {exec_res}") # AI: Log post finish
+        print(f"AgentNode post finished. Action: {action}, Shared: {shared}, Prep result: {prep_res}, Exec result: {exec_res}")
         return action

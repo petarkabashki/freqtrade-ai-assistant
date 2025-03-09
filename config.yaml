@@ -2,4 +2,4 @@ agent:
   max_tool_loops: 3
   allowed_paths:
     - freq-data
-data_folder: freq-data # AI: Added data_folder configuration
+data_folder: freq-data
