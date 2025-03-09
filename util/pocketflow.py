@@ -1,3 +1,7 @@
+import logging
+
+logger = logging.getLogger(__name__)
+
 class Node:
     def __init__(self):
         self.successors = {}
@@ -48,19 +52,20 @@ class Flow(Node): # Flow is a special type of Node
         current_node = self.start
         action = "default" # Initial action
 
-        while current_node:
+        while True: # AI: Loop indefinitely for conversation
             self.nodes[current_node.__class__.__name__] = current_node # Track node
-            print(f"\nExecuting Node: {current_node.__class__.__name__}")
+            logger.info(f"\nExecuting Node: {current_node.__class__.__name__}")
             action = current_node.run(shared)
-            print(f"Node {current_node.__class__.__name__} returned action: {action}")
+            logger.info(f"Node {current_node.__class__.__name__} returned action: {action}")
             if action is None:
                 break # No action means stop
             next_node = self.get_next_node(current_node, action)
             if not next_node:
-                break # No next node, stop the flow
-            current_node = next_node # Move to the next node
+                current_node = self.start # AI: If no next node, restart from the start node
+            else:
+                current_node = next_node # Move to the next node
 
-        print(f"Flow execution finished.\n")
+        logger.info(f"Flow execution finished.\n")
         return action
 
     def get_next_node(self, curr, action):
@@ -69,15 +74,15 @@ class Flow(Node): # Flow is a special type of Node
 
 class BatchNode(Node):
     def prep(self, shared):
-        print(f"BatchNode {self.__class__.__name__} prep started")
+        logger.debug(f"BatchNode {self.__class__.__name__} prep started")
         return [] # Expecting a list of items
 
     def exec(self, item):
-        print(f"BatchNode {self.__class__.__name__} exec item: {item}")
+        logger.debug(f"BatchNode {self.__class__.__name__} exec item: {item}")
         return None
 
     def post(self, shared, prep_res, exec_res_list):
-        print(f"BatchNode {self.__class__.__name__} post started with exec_res_list: {exec_res_list}")
+        logger.debug(f"BatchNode {self.__class__.__name__} post started with exec_res_list: {exec_res_list}")
         return "default"
 
     def run(self, shared):

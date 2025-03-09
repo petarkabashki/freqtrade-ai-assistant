@@ -34,7 +34,7 @@ class MainFlow(Flow):
 
         # Loop for tool invocation
         # (AgentNode -> ToolInvocationNode -> ToolResultProcessorNode -> AgentNode)
-        tool_result_processor_node >> ("processing_complete", agent_node)
+        tool_result_processor_node >> ("processing_complete", main_input_node) # AI: Loop back to main_input_node
         tool_result_processor_node >> ("default", agent_node)
         agent_node >> ("tool_needed", tool_invocation_node)
         agent_node >> ("direct_answer_ready", tool_result_processor_node)
