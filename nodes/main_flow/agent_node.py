@@ -124,7 +124,7 @@ class AgentNode(Node):
             ```yaml
             tool_needed: yes/no
             tool_name: <tool_name> or ""
-            tool_params: ... or ""
+            tool_params: <tool_params_in_yaml_dictionary_format> or ""
             reason: <decision reason>
             action: <action_indicator> # if crypto download, action MUST be 'crypto_download_requested' or 'tool_needed' or 'direct_answer_ready'
             ```
@@ -144,6 +144,8 @@ class AgentNode(Node):
             tool_params = llm_response_data.get("tool_params", {})
             if tool_params is None:
                 tool_params = {}
+            if isinstance(tool_params, str): # AI: Handle case where tool_params is a string
+                tool_params = {} # Treat string tool_params as empty dict
             action_indicator = llm_response_data.get("action")
             search_query = tool_params.get("query")
             shared["tool_request"] = llm_response_data
