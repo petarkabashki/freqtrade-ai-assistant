@@ -40,7 +40,7 @@ class AgentNode(Node):
         User request: {user_input}
 
         AI assistant for financial data analysis. 
-        For generic questions, assume a financial topic and use search_google tool to provide information.
+        For generic financial questions, use search_google tool to provide information.
         Effectively use tools based on user intent.
 
         Categories:
@@ -57,7 +57,8 @@ class AgentNode(Node):
         - user_output: Display output to the user.
 
         Output YAML to indicate action and tool. For crypto download, action MUST be 'crypto_download_requested'.
-        For generic financial questions, default to using search_google.
+        For generic financial questions, default to using search_google. If a tool is needed, tool_needed should be 'yes'.
+        If no tool is needed for direct answer, tool_needed should be 'no'.
         ```yaml
         tool_needed: yes/no
         tool_name: <tool_name> 
@@ -93,11 +94,7 @@ class AgentNode(Node):
             exec_res = tool_request
         elif action_indicator == "crypto_download_requested":
             exec_res = "crypto_download_requested"
-        elif tool_name == "search_google":
-            tool_request = {
-                "tool_name": tool_name,
-                "tool_params": tool_params}
-        else:
+        else: # Direct answer if no tool is explicitly needed and not crypto download
             llm_prompt_answer = f"User request: {user_input}\n Directly answer the request:"
             llm_answer = call_llm(llm_prompt_answer)
             shared["llm_answer"] = llm_answer.strip()
@@ -112,19 +109,22 @@ class AgentNode(Node):
         action_map = {
             "answer_directly": "direct_answer_ready",
             "yaml_error": "yaml_error",
-            "crypto_download_requested": "crypto_download_requested"
+            "crypto_download_requested": "crypto_download_requested",
+            "tool_invocation_success": "tool_invocation_success", # Added tool success action
+            "tool_invocation_failure": "tool_invocation_failure"  # Added tool failure action
         }
         user_input = prep_res
         llm_response = shared.get("llm_answer", "")
 
-        if exec_res == "tool_needed":
+        if exec_res == "tool_needed": # This condition is never met, exec_res is tool_request dict when tool is needed
             if shared['tool_loop_count'] < self.max_tool_loops:
-                action = "tool_needed"
+                action = "tool_needed" # Should transition to ToolInvocationNode
             else:
                 logger.warning("Maximum tool loop count reached.")
                 action = "max_loops_reached"
-        elif isinstance(exec_res, dict) and "tool_name" in exec_res:
-            action = "tool_needed"
+        elif isinstance(exec_res, dict) and "tool_name" in exec_res: # Correctly handle tool request dict
+            action = "tool_needed" # Transition to ToolInvocationNode
+            shared['tool_loop_count'] += 1 # Increment loop count when tool is used
         elif exec_res in action_map:
             action = action_map[exec_res]
         else:
