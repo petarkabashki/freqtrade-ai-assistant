@@ -18,11 +18,13 @@ class MainFlow(Flow):
         message_history_limit = agent_config.get('message_history_limit', 5)
         logger.info(f"MainFlow initialized with config: {config}")
 
-        main_input_node = MainInputNode() # AI: Remove MainInputNode initialization
+        # AI: Initialize new chat memory nodes
+        chat_retrieve_node = ChatRetrieveNode() # AI: Initialize ChatRetrieveNode here - moved to be before super().__init__
         super().__init__(start=chat_retrieve_node) # AI: set start to chat_retrieve_node
 
-        # AI: Initialize new chat memory nodes
-        chat_retrieve_node = ChatRetrieveNode()
+        main_input_node = MainInputNode() # AI: Remove MainInputNode initialization
+
+
         chat_reply_node = ChatReplyNode()
         agent_node = AgentNode(max_tool_loops=max_tool_loops,
                                 allowed_paths=allowed_paths,
