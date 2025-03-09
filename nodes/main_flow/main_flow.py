@@ -1,26 +1,24 @@
-from lib.pocketflow import Flow, Node
-from nodes.main_flow.agent_node import AgentNode # Updated import to agent_node and AgentNode
+from lib.pocketflow import Flow
 from nodes.main_flow.main_input_node import MainInputNode
+from nodes.main_flow.agent_node import AgentNode
+from nodes.main_flow.tool_invocation_node import ToolInvocationNode # Import ToolInvocationNode
+from nodes.main_flow.tool_result_processor_node import ToolResultProcessorNode
 
-class MainFlow(Flow): # Changed class name to MainFlow
+class MainFlow(Flow):
     def __init__(self):
-        super().__init__(start=None) # Initialize Flow without start node initially
+        super().__init__(start=None)
         main_input_node = MainInputNode()
-        agent_node = AgentNode() # Updated to AgentNode
+        agent_node = AgentNode()
+        tool_invocation_node = ToolInvocationNode() # Instantiate ToolInvocationNode
+        tool_result_processor_node = ToolResultProcessorNode()
 
-        main_input_node >> agent_node # Updated to agent_node
+        main_input_node >> agent_node
 
-        self.start = main_input_node # Set the start node for the Flow
+        agent_node["tool_needed"] >> tool_invocation_node # Transition to invocation node when tool is needed
+        agent_node["direct_answer_ready"] >> tool_result_processor_node # Example: Direct answer goes to result processor
+        agent_node["yaml_error"] >> tool_result_processor_node # Example: YAML error handling
 
-    # No need for exec method anymore as MainFlowNode is now a Flow itself
-    # def exec(self, prep_res, shared):
-    #     main_input_node = MainInputNode()
-    #     main_dispatcher_node = MainDispatcherNode()
-    #
-    #     main_input_node >> main_dispatcher_node
-    #
-    #     main_flow = Flow(start=main_input_node)
-    #     main_flow.run(shared) # Actually run the flow here
+        tool_invocation_node["invocation_successful"] >> agent_node # Loop back to AgentNode on success
+        tool_invocation_node["invocation_failed"] >> tool_result_processor_node # Example: Handle invocation failure
 
-    def post(self, shared, prep_res, exec_res):
-        return "default" # Or any appropriate action for MainFlowNode itself if needed
+        self.start = main_input_node
