@@ -12,7 +12,7 @@ import base64
 import numpy as np # Added import here
 import yaml
 
-from lib.tools.fs_tools import file_read, file_write, directory_listing, ALLOWED_PATHS # Import file tools
+# from lib.tools.fs_tools import file_read, file_write, directory_listing, ALLOWED_PATHS # Import file tools
 
 
 def search_google_tool(query):
