@@ -1,14 +1,14 @@
 from lib.pocketflow import Flow, Node
-from nodes.main_flow.main_dispatcher_node import MainDispatcherNode
+from nodes.main_flow.agent_node import AgentNode # Updated import to agent_node and AgentNode
 from nodes.main_flow.main_input_node import MainInputNode
 
 class MainFlow(Flow): # Changed class name to MainFlow
     def __init__(self):
         super().__init__(start=None) # Initialize Flow without start node initially
         main_input_node = MainInputNode()
-        main_dispatcher_node = MainDispatcherNode()
+        agent_node = AgentNode() # Updated to AgentNode
 
-        main_input_node >> main_dispatcher_node
+        main_input_node >> agent_node # Updated to agent_node
 
         self.start = main_input_node # Set the start node for the Flow
 
