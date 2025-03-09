@@ -1,55 +1,95 @@
-import warnings, copy, time
+class Node:
+    def __init__(self):
+        self.successors = {}
+        self.cur_retry = 0  # Initialize retry counter
 
-class BaseNode:
-    def __init__(self): self.params,self.successors={},{}
-    def set_params(self,params): self.params=params
-    def add_successor(self,node,action="default"):
-        if action in self.successors: warnings.warn(f"Overwriting successor for action '{action}'")
-        self.successors[action]=node;return node
-    def prep(self,shared): pass
-    def exec(self,prep_res, shared): pass
-    def post(self,shared,prep_res,exec_res): pass
-    def _exec(self,prep_res, shared): return self.exec(prep_res, shared)
-    def _run(self,shared): p=self.prep(shared);e=self._exec(p, shared);return self.post(shared,p,e)
-    def run(self,shared):
-        if self.successors: warnings.warn("Node won't run successors. Use Flow.")
-        return self._run(shared)
-    def __rshift__(self,other): return self.add_successor(other)
-    def __sub__(self,action):
-        if isinstance(action,str): return _ConditionalTransition(self,action)
-        raise TypeError("Action must be a string")
+    def prep(self, shared):
+        print(f"Node {self.__class__.__name__} prep started")
+        return None
 
-class _ConditionalTransition:
-    def __init__(self,src,action): self.src,self.action=src,action
-    def __rshift__(self,tgt): return self.src.add_successor(tgt,self.action)
+    def exec(self, prep_res, shared):
+        print(f"Node {self.__class__.__name__} exec started with prep_res: {prep_res}")
+        return None
 
-class Node(BaseNode):
-    def __init__(self,max_retries=1,wait=0): super().__init__();self.max_retries,self.wait=max_retries,wait
-    def exec_fallback(self,prep_res,exc, shared): raise exc
-    def _exec(self,prep_res, shared):
-        for self.cur_retry in range(self.max_retries):
-            try: return self.exec(prep_res, shared)
-            except Exception as e:
-                if self.cur_retry==self.max_retries-1: return self.exec_fallback(prep_res,e, shared)
-                if self.wait>0: time.sleep(self.wait)
+    def post(self, shared, prep_res, exec_res):
+        print(f"Node {self.__class__.__name__} post started with exec_res: {exec_res}")
+        return "default"  # Default action
+
+    def run(self, shared):
+        prep_result = self.prep(shared)
+        exec_result = self.exec(prep_result, shared)
+        action_result = self.post(shared, prep_result, exec_result)
+        return action_result
+
+    def __rshift__(self, other_node):
+        self.successors["default"] = other_node
+        return other_node
+
+    def __sub__(self, action_name):
+        class ActionLink:
+            def __init__(self, node, action_name):
+                self.node = node
+                self.action_name = action_name
+
+            def __rshift__(self, next_node):
+                self.node.successors[self.action_name] = next_node
+                return next_node
+
+        return ActionLink(self, action_name)
+
+
+class Flow(Node): # Flow is a special type of Node
+    def __init__(self, start):
+        super().__init__()
+        self.start = start
+        self.nodes = {} # Track nodes in the flow for easy access if needed
+
+    def run(self, shared):
+        current_node = self.start
+        action = "default" # Initial action
+
+        while current_node:
+            self.nodes[current_node.__class__.__name__] = current_node # Track node
+            print(f"\nExecuting Node: {current_node.__class__.__name__}")
+            action = current_node.run(shared)
+            print(f"Node {current_node.__class__.__name__} returned action: {action}")
+            if action is None:
+                break # No action means stop
+            next_node = self.get_next_node(current_node, action)
+            if not next_node:
+                break # No next node, stop the flow
+            current_node = next_node # Move to the next node
+
+        print(f"Flow execution finished.\n")
+        return action
+
+    def get_next_node(self, curr, action):
+        return curr.successors.get(action)
+
 
 class BatchNode(Node):
-    def _exec(self,items, shared): return [(super(BatchNode,self)._exec(i, shared)) for i in (items or [])]
+    def prep(self, shared):
+        print(f"BatchNode {self.__class__.__name__} prep started")
+        return [] # Expecting a list of items
 
-class Flow(BaseNode):
-    def __init__(self,start): super().__init__();self.start=start
-    def get_next_node(self,curr,action):
-        nxt=curr.successors.get(action or "default")
-        if not nxt and curr.successors: warnings.warn(f"Flow ends: '{action}' not found in {list(curr.successors)}")
-        return nxt
-    def _orch(self,shared,params=None):
-        curr,p=copy.copy(self.start),(params or {**self.params})
-        while curr: curr.set_params(p);c=curr._run(shared);curr=copy.copy(self.get_next_node(curr,c))
-    def _run(self,shared): pr=self.prep(shared);self._orch(shared);return self.post(shared,pr,None)
-    def exec(self,prep_res, shared): raise RuntimeError("Flow can't exec.")
+    def exec(self, item):
+        print(f"BatchNode {self.__class__.__name__} exec item: {item}")
+        return None
 
-class BatchFlow(Flow):
-    def _run(self,shared):
-        pr=self.prep(shared) or []
-        for bp in pr: self._orch(shared,{**self.params,**bp})
-        return self.post(shared,pr,None)
+    def post(self, shared, prep_res, exec_res_list):
+        print(f"BatchNode {self.__class__.__name__} post started with exec_res_list: {exec_res_list}")
+        return "default"
+
+    def run(self, shared):
+        prep_result = self.prep(shared)
+        exec_results = []
+        if prep_result and isinstance(prep_result, list): # Check if prep_result is a list and not empty
+            for item in prep_result:
+                exec_result = self.exec(item)
+                exec_results.append(exec_result)
+        action_result = self.post(shared, prep_result, exec_results)
+        return action_result
+
+
+class ParameterizedNode(Node): # Define ParameterizedNode here
+    pass
