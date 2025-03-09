@@ -3,20 +3,23 @@ import logging
 logger = logging.getLogger(__name__)
 
 class Node:
+    GRAY_COLOR_CODE = "\033[90m"  # ANSI escape code for gray
+    RESET_COLOR_CODE = "\033[0m"   # ANSI escape code to reset color
+
     def __init__(self):
         self.successors = {}
         self.cur_retry = 0  # Initialize retry counter
 
     def prep(self, shared):
-        print(f"Node {self.__class__.__name__} prep started")
+        print(f"{self.GRAY_COLOR_CODE}Node {self.__class__.__name__} prep started{self.RESET_COLOR_CODE}")
         return None
 
     def exec(self, prep_res, shared):
-        print(f"Node {self.__class__.__name__} exec started with prep_res: {prep_res}")
+        print(f"{self.GRAY_COLOR_CODE}Node {self.__class__.__name__} exec started with prep_res: {prep_res}{self.RESET_COLOR_CODE}")
         return None
 
     def post(self, shared, prep_res, exec_res):
-        print(f"Node {self.__class__.__name__} post started with exec_res: {exec_res}")
+        print(f"{self.GRAY_COLOR_CODE}Node {self.__class__.__name__} post started with exec_res: {exec_res}{self.RESET_COLOR_CODE}")
         return "default"  # Default action
 
     def run(self, shared):
@@ -43,6 +46,9 @@ class Node:
 
 
 class Flow(Node): # Flow is a special type of Node
+    GRAY_COLOR_CODE = "\033[90m"  # ANSI escape code for gray
+    RESET_COLOR_CODE = "\033[0m"   # ANSI escape code to reset color
+
     def __init__(self, start):
         super().__init__()
         self.start = start
@@ -73,16 +79,22 @@ class Flow(Node): # Flow is a special type of Node
 
 
 class BatchNode(Node):
+    GRAY_COLOR_CODE = "\033[90m"  # ANSI escape code for gray
+    RESET_COLOR_CODE = "\033[0m"   # ANSI escape code to reset color
+
     def prep(self, shared):
         logger.debug(f"BatchNode {self.__class__.__name__} prep started")
+        print(f"{self.GRAY_COLOR_CODE}BatchNode {self.__class__.__name__} prep started{self.RESET_COLOR_CODE}")
         return [] # Expecting a list of items
 
     def exec(self, item):
         logger.debug(f"BatchNode {self.__class__.__name__} exec item: {item}")
+        print(f"{self.GRAY_COLOR_CODE}BatchNode {self.__class__.__name__} exec item: {item}{self.RESET_COLOR_CODE}")
         return None
 
     def post(self, shared, prep_res, exec_res_list):
         logger.debug(f"BatchNode {self.__class__.__name__} post started with exec_res_list: {exec_res_list}")
+        print(f"{self.GRAY_COLOR_CODE}BatchNode {self.__class__.__name__} post started with exec_res_list: {exec_res_list}{self.RESET_COLOR_CODE}")
         return "default"
 
     def run(self, shared):
@@ -97,4 +109,6 @@ class BatchNode(Node):
 
 
 class ParameterizedNode(Node): # Define ParameterizedNode here
+    GRAY_COLOR_CODE = "\033[90m"  # ANSI escape code for gray
+    RESET_COLOR_CODE = "\033[0m"   # ANSI escape code to reset color
     pass

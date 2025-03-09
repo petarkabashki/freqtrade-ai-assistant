@@ -4,6 +4,9 @@ from util.llm_tools.core_tools import search_google_tool, user_input_tool, user_
 
 
 class ToolInvocationNode(ParameterizedNode):
+    GRAY_COLOR_CODE = "\033[90m"  # ANSI escape code for gray
+    RESET_COLOR_CODE = "\033[0m"   # ANSI escape code to reset color
+
     def __init__(self, allowed_paths=None):
         super().__init__()
         self.available_tools = self._setup_tools(allowed_paths)
@@ -12,6 +15,7 @@ class ToolInvocationNode(ParameterizedNode):
     def prep(self, shared):
         ALLOWED_PATHS.clear()
         ALLOWED_PATHS.extend(self.allowed_paths)
+        print(f"{self.GRAY_COLOR_CODE}ToolInvocationNode prep started{self.RESET_COLOR_CODE}")
         return super().prep(shared)
 
     def exec(self, prep_res, shared):
@@ -40,17 +44,17 @@ class ToolInvocationNode(ParameterizedNode):
 
         if error:
             self.params["tool_error"] = error
-            print(f"Tool Invocation Error: {error}")
+            print(f"{self.GRAY_COLOR_CODE}Tool Invocation Error: {error}{self.RESET_COLOR_CODE}")
             return "tool_invocation_failure"
         else:
             # self.params["tool_results"] = tool_result # No need to store in params
             shared["tool_results"] = tool_result # Store tool results in shared
-            print(f"Tool '{tool_name}' invoked successfully.")
+            print(f"{self.GRAY_COLOR_CODE}Tool '{tool_name}' invoked successfully.{self.RESET_COLOR_CODE}")
             return "tool_invocation_success"
 
     def post(self, shared, prep_res, exec_res): # Pass exec_res action through
-        print(f"ToolInvocationNode post started. Shared: {shared}, Prep result: {prep_res}, Exec result: {exec_res}")
-        print(f"ToolInvocationNode post finished. Action: {exec_res}, Shared: {shared}, Prep result: {prep_res}, Exec result: {exec_res}") # Return exec_res as action
+        print(f"{self.GRAY_COLOR_CODE}ToolInvocationNode post started. Shared: {shared}, Prep result: {prep_res}, Exec result: {exec_res}{self.RESET_COLOR_CODE}")
+        print(f"{self.GRAY_COLOR_CODE}ToolInvocationNode post finished. Action: {exec_res}, Shared: {shared}, Prep result: {prep_res}, Exec result: {exec_res}{self.RESET_COLOR_CODE}") # Return exec_res as action
         return exec_res # Return the action from exec
 
     def _setup_tools(self, allowed_paths):
