@@ -1,10 +1,11 @@
 from util.pocketflow import Flow
+from nodes.main_flow.agent_node import AgentNode
 from nodes.main_flow.tool_invocation_node import ToolInvocationNode
 from nodes.main_flow.tool_result_processor_node import ToolResultProcessorNode
 from nodes.main_flow.main_input_node import MainInputNode
 from nodes.freqtrade.freqtrade_flow import FreqtradeFlow
-from nodes.main_flow.chat_retrieve_node import ChatRetrieveNode # AI: Import ChatRetrieveNode
-from nodes.main_flow.chat_reply_node import ChatReplyNode # AI: Import ChatReplyNode
+from nodes.main_flow.chat_retrieve_node import ChatRetrieveNode
+from nodes.main_flow.chat_reply_node import ChatReplyNode
 import logging
 
 logger = logging.getLogger(__name__)
@@ -23,7 +24,7 @@ class MainFlow(Flow):
 
         # AI: Initialize new chat memory nodes
         chat_retrieve_node = ChatRetrieveNode()
-        chat_reply_node = ChatReplyNode() # AI: Removed extra arguments
+        chat_reply_node = ChatReplyNode() # AI: Removed extra arguments, this is the fix
 
         tool_invocation_node = ToolInvocationNode(allowed_paths=allowed_paths)
         tool_result_processor_node = ToolResultProcessorNode()
