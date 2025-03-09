@@ -36,6 +36,7 @@ class AgentNode(Node):
             for msg in message_history:
                 history_text += f"- {msg['role']}: {msg['content']}\n" # AI: Modified history text to use role and content
 
+        print(history_text)
         prompt = f"""
         {history_text}
         User request: {user_input}
