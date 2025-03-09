@@ -52,3 +52,14 @@ class ToolInvocationNode(ParameterizedNode):
         print(f"ToolInvocationNode post started. Shared: {shared}, Prep result: {prep_res}, Exec result: {exec_res}")
         print(f"ToolInvocationNode post finished. Action: {exec_res}, Shared: {shared}, Prep result: {prep_res}, Exec result: {exec_res}") # Return exec_res as action
         return exec_res # Return the action from exec
+
+    def _setup_tools(self, allowed_paths):
+        tools = {
+            "file_read": file_read_tool,
+            "file_write": file_write_tool,
+            "directory_listing": directory_listing_tool,
+            "search_google": search_google_tool,
+            "user_input": user_input_tool,
+            "user_output": user_output_tool,
+        }
+        return tools
