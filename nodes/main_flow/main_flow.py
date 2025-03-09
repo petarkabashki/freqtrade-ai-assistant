@@ -26,5 +26,6 @@ class MainFlow(Flow):
         agent_node >> ("direct_answer_ready", tool_result_processor_node) # if agent provides direct answer, process answer
         agent_node >> ("yaml_error", tool_result_processor_node) # if yaml parsing error, handle error
         agent_node >> ("max_loops_reached", tool_result_processor_node) # if max tool loops reached, handle max loops
+        agent_node >> ("crypto_download_requested", tool_result_processor_node) # AI: Transition for crypto_download_requested
 
         super().__init__(start=main_input_node) # Set start node for the flow

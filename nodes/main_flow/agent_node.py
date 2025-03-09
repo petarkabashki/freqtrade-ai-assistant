@@ -26,31 +26,37 @@ class AgentNode(Node):
         prompt = f"""
         User request: {user_input}
 
-        You are an AI assistant designed to help users manage and analyze financial data.
-        You can use tools to access information.
+        You are an AI assistant designed to help users manage and analyze financial data, including cryptocurrency data.
+        You can use tools to access information and perform actions.
 
-        When the user asks about available data, you should check the contents of the '{self.data_folder}' folder using the 'directory_listing' tool.
+        When the user asks about:
+        - **downloading cryptocurrency data**: You should transition to a separate 'freqtrade flow' to handle this request. Indicate this by setting 'tool_needed: no' and include a special action indicator in your response.
+        - **available data**: Use the 'directory_listing' tool to check the contents of the '{self.data_folder}' folder.
+        - **questions about the data itself** (e.g., "average price of BTC"): Use the 'file_read' tool to read the contents of the relevant data files in the '{self.data_folder}' folder and then answer the question based on the data.
 
         Available tools:
         - search_google: for general web search
-        - file_read: to read content from a file
-        - file_write: to write content to a file
-        - directory_listing: to list files and directories in a given path
+        - file_read: to read content from a file in the '{self.data_folder}' folder
+        - file_write: to write content to a file in the '{self.data_folder}' folder
+        - directory_listing: to list files and directories in the '{self.data_folder}' folder
         - user_input: to ask the user a question and get their response to refine the request
         - user_output: to display information to the user
 
         Analyze the user request and determine:
-        - Does it require an external tool? (yes/no)
+        - Does it require an external tool from the 'Available tools' list to answer the user request *directly within this flow*? (yes/no)
+        - If the request is to download cryptocurrency data, indicate this even if no tool from the list is directly used in this flow.
         - If yes, which tool is most appropriate from the 'Available tools' list above?
         - What are the parameters needed to execute the tool?
+        - If the request is to download cryptocurrency data, what is a brief reason for transitioning to the 'freqtrade flow'?
 
         Respond in YAML format:
         ```yaml
         tool_needed: yes/no
-        tool_name: <tool_name>  # e.g., search_google (if tool_needed is yes)
+        tool_name: <tool_name>  # e.g., directory_listing (if tool_needed is yes) or None (if tool_needed is no, but may trigger special flow)
         tool_params:             # Parameters for the tool (if tool_needed is yes)
           <param_name_1>: <param_value_1>
         reason: <brief reason for the decision>
+        action: <action_indicator> # e.g., 'crypto_download' if request is to download crypto data, otherwise None
         ```"""
         llm_response_yaml = call_llm(prompt)
         print(f"AgentNode LLM Response (YAML): {llm_response_yaml}") # AI: Log LLM YAML response
@@ -65,6 +71,7 @@ class AgentNode(Node):
         tool_needed = llm_response_data.get("tool_needed")
         tool_name = llm_response_data.get("tool_name")
         tool_params = llm_response_data.get("tool_params", {})
+        action_indicator = llm_response_data.get("action") # AI: Get action indicator from LLM response
 
         if tool_needed == "yes":
             tool_request = { # Create tool request dictionary
@@ -72,6 +79,8 @@ class AgentNode(Node):
                 "tool_params": tool_params
             }
             exec_res = tool_request
+        elif action_indicator == "crypto_download": # AI: Check for crypto_download action
+            exec_res = "crypto_download_requested" # AI: Set exec_res to crypto_download_requested
         else:
             llm_prompt_answer = f"User request: {user_input}\n Directly answer the request:"
             llm_answer = call_llm(llm_prompt_answer)
@@ -94,6 +103,8 @@ class AgentNode(Node):
             action = "direct_answer_ready"
         elif exec_res == "yaml_error":
             action = "yaml_error"
+        elif exec_res == "crypto_download_requested": # AI: Handle crypto_download_requested action
+            action = "crypto_download_requested" # AI: Set action for crypto download
         elif isinstance(exec_res, dict) and "tool_name" in exec_res: # Check if exec_res is a tool request
             action = "tool_needed" # Action indicating a tool is needed
         else:
