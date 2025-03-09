@@ -36,120 +36,34 @@ class AgentNode(Node):
             for msg in message_history:
                 history_text += f"- User: {msg['user_input']}\n"
                 history_text += f"- Assistant: {msg['llm_response']}\n"
-# make the prompt more consize AI!
         prompt = f"""
         {history_text}
         User request: {user_input}
 
-        You are an AI assistant designed to help users manage and analyze
-        financial data, including cryptocurrency data, stocks, indexes and forex.
-        You can use tools to access information and perform actions.
+        You are an AI assistant for financial data analysis using tools. 
+        Analyze user intent to use tools effectively.
 
-        Analyze the user request to determine the user intent and whether a tool is needed.
+        Categories:
+        1. Crypto Download (CRITICAL): Explicit download requests.
+        2. General Info Seek: Web search for broad queries.
+        3. Check Data: List files in '{self.data_folder}'.
+        4. Data Question: Read local data files for answers.
 
-        Here are the categories of user requests and how to handle them:
+        Tools:
+        - search_google: Web search.
+        - file_read: Read local files.
+        - directory_listing: List directory.
+        - user_input: Ask user for info.
+        - user_output: Display output.
 
-        1. **Cryptocurrency Data Download Request**:
-           - **Category**: **CRITICAL**. Explicit requests to download historical data for cryptocurrencies.
-           - **Keywords**: "download", "get history", "historical data" combined with cryptocurrency symbols (like BTC, ETH, ADA, SOL) and optional timeframes (like "daily", "weekly", "1d", "1w", "4h").
-           - **Examples**:
-             - "download bitcoin data"
-             - "get ETH/USD history"
-             - "download cardano on weekly timeframe"
-             - "download solana weekly"
-             - "download BTC/USDT daily"
-             - "download ADA/USDT 1w"
-             - "get historical data for ETH/BTC 4h"
-             - "download crypto data for SOL/USD"
-           - **Handling**: If the user request **clearly and explicitly** asks to download cryptocurrency data, even with a timeframe, identify it as a crypto download request. Transition to the 'freqtrade flow'. **Do not use tools for crypto download requests in this flow.**
-           - **Response**:
-             ```yaml
-             tool_needed: no
-             tool_name: None
-             tool_params: {{}}
-             reason: "User requested cryptocurrency data download, which is handled by a separate flow."
-             action: crypto_download_requested
-             ```
-
-        2. **General Information Seeking Request**:
-           - **Category**: General questions about financial data, stocks, indexes, forex, or market information that requires up-to-date information.
-           - **Keywords**: Questions like "what is", "current price", "latest news", "population of", etc., related to financial instruments or general knowledge.
-           - **Examples**:
-             - "what is sp500 ?"
-             - "current price of AAPL stock"
-             - "latest news on forex markets"
-             - "what are recent events in crypto market"
-           - **Handling**: Use the 'search_google' tool to answer these requests.
-
-        3. **Check Available Data Request**:
-           - **Category**: User asks about available data or files.
-           - **Keywords**: "available data", "what files are present", "list files in", etc., related to the '{self.data_folder}' folder.
-           - **Handling**: Use the 'directory_listing' tool to check the contents of the '{self.data_folder}' folder.
-
-        4. **Data-Specific Question Request**:
-           - **Category**: Questions about the content of local data files.
-           - **Examples**:
-             - "average price of BTC"
-             - "what is the latest price of ETH from my files"
-           - **Handling**: Use the 'file_read' tool to read relevant data files from the '{self.data_folder}' folder and answer based on the data.
-
-        **Available tools:**
-        - search_google: for general web search
-        - file_read: to read content from a file in the '{self.data_folder}' folder
-        - file_write: to write content to a file in the '{self.data_folder}' folder
-        - directory_listing: to list files and directories in the '{self.data_folder}' folder
-        - user_input: to ask the user a question and get their response to refine the request
-        - user_output: to display information to the user
-
-
-        Analyze the user request and respond in YAML format to indicate the best action.
-
-        For **General Information Seeking Request** (category 2), respond with:
+        Respond in YAML to indicate action and tool.
         ```yaml
-        tool_needed: yes
-        tool_name: search_google
-        tool_params:
-          query: <search_query> # The user query as search term for google search
-        reason: "User is asking for general information and google search is needed."
-        action: tool_needed
+        tool_needed: yes/no
+        tool_name: <tool_name> 
+        tool_params: ... 
+        reason: <decision reason>
+        action: <action_indicator>
         ```
-        For **Check Available Data Request** (category 3), respond with:
-        ```yaml
-        tool_needed: yes
-        tool_name: directory_listing
-        tool_params:
-          dir_path: {self.data_folder}
-        reason: "User is asking to list files in the data directory."
-        action: tool_needed
-        ```
-        For **Data-Specific Question Request** (category 4), respond with:
-        ```yaml
-        tool_needed: yes
-        tool_name: file_read
-        tool_params:
-          file_path: <relevant_file_path> # Determine the relevant file path
-        reason: "User is asking a question about specific data, file read is needed."
-        action: tool_needed
-        ```
-        For **Cryptocurrency Data Download Request** (category 1), respond with:
-        ```yaml
-        tool_needed: no
-        tool_name: None
-        tool_params: {{}}
-        reason: "User requested cryptocurrency data download, which is handled by a separate flow."
-        action: crypto_download_requested
-        ```
-        If **no tool is needed** or for cases not explicitly covered, respond with:
-        ```yaml
-        tool_needed: no
-        tool_name: None
-        tool_params: {{}}
-        reason: "Direct answer from LLM is possible or no tool is needed for this request."
-        action: direct_answer_ready
-        ```
-        In cases of ambiguity or if you need more clarification from the user, use the 'user_input' tool.
-        Remember to always respond in YAML format as shown in the examples.
-        Determine which category best fits the user request and respond accordingly.
         """
         llm_response_yaml = call_llm(prompt)
         logger.info(f"AgentNode LLM Response (YAML): {llm_response_yaml}")
