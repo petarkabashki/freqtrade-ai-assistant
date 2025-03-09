@@ -1,4 +1,4 @@
-from lib.pocketflow import Node
+from util.pocketflow import Node
 class MainInputNode(Node):
     def prep(self, shared):
         user_input = input("""
