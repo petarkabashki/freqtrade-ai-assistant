@@ -4,7 +4,12 @@ from lib.core_tools import search_google_tool, user_input_tool, user_output_tool
 from lib.tools.fs_tools import file_read, file_write, directory_listing # Import file tools
 import yaml # Import the yaml library
 
-# The agent should call llm to respond to several categories of queries. One is for downloading crypto historical data; another is for downloading stock, indeces, forex, comodities data; another is answering questions about available downloaded historical data for various assets . The folder containing the files of such downloaded data is configurable in the app yaml config and is currently 'freq-data'.
+# The agent should call llm to respond to several categories of queries.
+# One is for downloading crypto historical data; another is for downloading
+# stock, indeces, forex, comodities data; another is answering questions
+# about available downloaded historical data for various assets .
+# The folder containing the files of such downloaded data is configurable
+# in the app yaml config and is currently 'freq-data'.
 class AgentNode(Node):
     def __init__(self, max_tool_loops=3, allowed_paths=None, data_folder="freq-data"):
         super().__init__()
@@ -26,11 +31,17 @@ class AgentNode(Node):
         prompt = f"""
         User request: {user_input}
 
-        You are an AI assistant designed to help users manage and analyze financial data, including cryptocurrency data.
+        You are an AI assistant designed to help users manage and analyze
+        financial data, including cryptocurrency data.
         You can use tools to access information and perform actions.
 
         When the user asks about:
-        - **downloading cryptocurrency data**: This is a **CRITICAL** category.  It includes explicit requests to download historical data for cryptocurrencies.  Keywords indicating this intent are "download", "get history", "historical data" combined with cryptocurrency symbols (like BTC, ETH, ADA, SOL) and optional timeframes (like "daily", "weekly", "1d", "1w", "4h").
+        - **downloading cryptocurrency data**: This is a **CRITICAL** category.
+          It includes explicit requests to download historical data for
+          cryptocurrencies. Keywords indicating this intent are "download",
+          "get history", "historical data" combined with cryptocurrency
+          symbols (like BTC, ETH, ADA, SOL) and optional timeframes (like
+          "daily", "weekly", "1d", "1w", "4h").
           **Examples of crypto download requests:**
           - "download bitcoin data"
           - "get ETH/USD history"
@@ -41,27 +52,48 @@ class AgentNode(Node):
           - "get historical data for ETH/BTC 4h"
           - "download crypto data for SOL/USD"
 
-          If the user request **clearly and explicitly** asks to download cryptocurrency data, even if it includes a timeframe, **you MUST identify it as a crypto download request.** You should transition to a separate 'freqtrade flow' to handle this request.  **Do not attempt to use any tools for crypto download requests in this flow.**
+          If the user request **clearly and explicitly** asks to download
+          cryptocurrency data, even if it includes a timeframe, **you MUST
+          identify it as a crypto download request.** You should transition to
+          a separate 'freqtrade flow' to handle this request.  **Do not
+          attempt to use any tools for crypto download requests in this
+          flow.**
 
-          **Indicate a crypto download request by responding with:**  `tool_needed: no` and set `action: crypto_download_requested`.  The `reason` should be: "User requested cryptocurrency data download, which is handled by a separate flow."
+          **Indicate a crypto download request by responding with:**
+          `tool_needed: no` and set `action: crypto_download_requested`.
+          The `reason` should be: "User requested cryptocurrency data
+          download, which is handled by a separate flow."
 
-        - **available data**: If the user asks what data is available or what files are present, use the 'directory_listing' tool to check the contents of the '{self.data_folder}' folder.
-        - **questions about the data itself** (e.g., "average price of BTC", "what is the latest price of ETH"): Use the 'file_read' tool to read the contents of the relevant data files in the '{self.data_folder}' folder and then answer the question based on the data.
+        - **available data**: If the user asks what data is available or what
+          files are present, use the 'directory_listing' tool to check the
+          contents of the '{self.data_folder}' folder.
+        - **questions about the data itself** (e.g., "average price of BTC",
+          "what is the latest price of ETH"): Use the 'file_read' tool to
+          read the contents of the relevant data files in the
+          '{self.data_folder}' folder and then answer the question based on
+          the data.
 
         Available tools:
         - search_google: for general web search
         - file_read: to read content from a file in the '{self.data_folder}' folder
         - file_write: to write content to a file in the '{self.data_folder}' folder
         - directory_listing: to list files and directories in the '{self.data_folder}' folder
-        - user_input: to ask the user a question and get their response to refine the request
+        - user_input: to ask the user a question and get their response to
+          refine the request
         - user_output: to display information to the user
 
         Analyze the user request and determine:
-        - Does the user request fall into the **CRITICAL** category of "downloading cryptocurrency data"? If yes, respond immediately to trigger the 'freqtrade flow'.
-        - For other types of requests: Does it require an external tool from the 'Available tools' list to answer the user request *directly within this flow*? (yes/no)
-        - If yes (for non-crypto-download requests), which tool is most appropriate from the 'Available tools' list above?
+        - Does the user request fall into the **CRITICAL** category of
+          "downloading cryptocurrency data"? If yes, respond immediately to
+          trigger the 'freqtrade flow'.
+        - For other types of requests: Does it require an external tool from
+          the 'Available tools' list to answer the user request *directly
+          within this flow*? (yes/no)
+        - If yes (for non-crypto-download requests), which tool is most
+          appropriate from the 'Available tools' list above?
         - What are the parameters needed to execute the tool?
-        - If the request is to download cryptocurrency data, what is a brief reason for transitioning to the 'freqtrade flow'?
+        - If the request is to download cryptocurrency data, what is a brief
+          reason for transitioning to the 'freqtrade flow'?
 
         Respond in YAML format:
         ```yaml
