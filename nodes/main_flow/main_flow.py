@@ -22,10 +22,10 @@ class MainFlow(Flow):
         main_input_node = MainInputNode()
         super().__init__(start=main_input_node)
 
-        # AI: Initialize new chat memory nodes
+        # Initialize new chat memory nodes
         chat_retrieve_node = ChatRetrieveNode()
         chat_reply_node = ChatReplyNode()
-        agent_node = AgentNode(max_tool_loops=max_tool_loops, # AI: Initialize AgentNode here
+        agent_node = AgentNode(max_tool_loops=max_tool_loops,
                                 allowed_paths=allowed_paths,
                                 data_folder=data_folder,
                                 message_history_limit=message_history_limit)
@@ -35,21 +35,20 @@ class MainFlow(Flow):
         freqtrade_flow = FreqtradeFlow()
         self.freqtrade_flow = freqtrade_flow
 
-        # AI: Flow wiring for chat memory
+        # Flow wiring for chat memory
         # Is this flow correct, I want the agent to loop in conversation mode and use tools when it finds needed.
-        main_input_node >> chat_retrieve_node >> agent_node >> tool_invocation_node >> tool_result_processor_node # AI: Insert AgentNode here
-        tool_result_processor_node >> ("processing_complete", main_input_node) # AI: Loop back to main_input_node for conversation
-        # /ask why is this needed ? AI!
+        main_input_node >> chat_retrieve_node >> agent_node >> tool_invocation_node >> tool_result_processor_node
+        tool_result_processor_node >> ("processing_complete", main_input_node) # Loop back to main_input_node for conversation
         tool_result_processor_node >> ("default", chat_retrieve_node) # Corrected loop back to chat_retrieve_node for tool processing
 
-        agent_node >> ("tool_needed", tool_invocation_node) # tool needed # AI: Corrected node name
-        agent_node >> ("direct_answer_ready", tool_result_processor_node) # answer # AI: Corrected node name
-        agent_node >> ("yaml_error", tool_result_processor_node) # yaml error # AI: Corrected node name
-        agent_node >> ("max_loops_reached", tool_result_processor_node) # max loops # AI: Corrected node name
+        agent_node >> ("tool_needed", tool_invocation_node) # tool needed
+        agent_node >> ("direct_answer_ready", tool_result_processor_node) # answer
+        agent_node >> ("yaml_error", tool_result_processor_node) # yaml error
+        agent_node >> ("max_loops_reached", tool_result_processor_node) # max loops
 
 
         # Sub-flow transitions
-        agent_node >> ("crypto_download_requested", self.freqtrade_flow) # Route crypto download requests to freqtrade_flow # AI: Corrected node name
+        agent_node >> ("crypto_download_requested", self.freqtrade_flow) # Route crypto download requests to freqtrade_flow
         main_input_node - "quit" >> None
 
     def get_next_node(self, curr, action):
