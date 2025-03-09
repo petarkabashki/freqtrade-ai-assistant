@@ -39,6 +39,7 @@ class MainFlow(Flow):
         # Is this flow correct, I want the agent to loop in conversation mode and use tools when it finds needed.
         main_input_node >> chat_retrieve_node >> agent_node >> tool_invocation_node >> tool_result_processor_node # AI: Insert AgentNode here
         tool_result_processor_node >> ("processing_complete", main_input_node) # AI: Loop back to main_input_node for conversation
+        # /ask why is this needed ? AI!
         tool_result_processor_node >> ("default", chat_retrieve_node) # Corrected loop back to chat_retrieve_node for tool processing
 
         agent_node >> ("tool_needed", tool_invocation_node) # tool needed # AI: Corrected node name
