@@ -1,5 +1,7 @@
 agent:
   max_tool_loops: 3
+  max_search_loops: 2
   allowed_paths:
     - freq-data
+  message_history_limit: 5
 data_folder: freq-data

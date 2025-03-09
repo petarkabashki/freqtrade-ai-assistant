@@ -7,17 +7,20 @@ logger = logging.getLogger(__name__)
 
 class AgentNode(Node):
     def __init__(self, max_tool_loops=3, allowed_paths=None,
-                 data_folder="freq-data"):
+                 data_folder="freq-data", message_history_limit=5):
         super().__init__()
         self.max_tool_loops = max_tool_loops
         self.allowed_paths = allowed_paths if allowed_paths is not None else []
         self.data_folder = data_folder
+        self.message_history_limit = message_history_limit
         logger.info(f"AgentNode initialized with max_tool_loops={max_tool_loops}, "
-              f"allowed_paths={allowed_paths}, data_folder={data_folder}")
+              f"allowed_paths={allowed_paths}, data_folder={data_folder}, message_history_limit={message_history_limit}")
 
     def prep(self, shared):
         logger.info(f"AgentNode prep started. Shared: {shared}")
         shared['tool_loop_count'] = 0
+        if 'message_history' not in shared:
+            shared['message_history'] = []
         prep_res = super().prep(shared)
         logger.info(f"AgentNode prep finished. Prep result: {prep_res}, Shared: {shared}")
         return prep_res
@@ -25,7 +28,17 @@ class AgentNode(Node):
     def exec(self, prep_res, shared):
         logger.info(f"AgentNode exec started. Prep result: {prep_res}, Shared: {shared}")
         user_input = prep_res
+        message_history = shared.get('message_history', [])
+
+        history_text = ""
+        if message_history:
+            history_text = "Message History:\n"
+            for msg in message_history:
+                history_text += f"- User: {msg['user_input']}\n"
+                history_text += f"- Assistant: {msg['llm_response']}\n"
+
         prompt = f"""
+        {history_text}
         User request: {user_input}
 
         You are an AI assistant designed to help users manage and analyze
@@ -184,6 +197,8 @@ class AgentNode(Node):
             "yaml_error": "yaml_error",
             "crypto_download_requested": "crypto_download_requested"
         }
+        user_input = prep_res
+        llm_response = shared.get("llm_answer", "")
 
         if exec_res == "tool_needed":
             if shared['tool_loop_count'] < self.max_tool_loops:
@@ -196,7 +211,14 @@ class AgentNode(Node):
         elif exec_res in action_map:
             action = action_map[exec_res]
         else:
-            action = "unknown_action" # Fallback action if none is matched
+            action = "unknown_action"
 
-        print(f"AgentNode post finished. Action: {action}, Shared: {shared}, Prep result: {prep_res}, Exec result: {exec_res}")
+        message_history = shared.get('message_history', [])
+        message_history.append({"user_input": user_input, "llm_response": llm_response})
+
+        if len(message_history) > self.message_history_limit:
+            message_history = message_history[-self.message_history_limit:]
+        shared['message_history'] = message_history
+
+        logger.info(f"AgentNode post finished. Action: {action}, Shared: {shared}, Prep result: {prep_res}, Exec result: {exec_res}")
         return action
