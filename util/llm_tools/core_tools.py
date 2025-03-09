@@ -18,7 +18,7 @@ import os
 
 def search_google_tool(query):
     # https://serpapi.com/search-api
-    api_key = os.environ.get('SERPAPI_API_KEY') # load this from the env AI!
+    api_key = os.environ.get('SERPAPI_API_KEY') #  load this from the env AI!
     if not api_key:
         return {"error": "SERPAPI_API_KEY environment variable not set"}
     params = {
