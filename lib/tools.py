@@ -7,9 +7,10 @@ import subprocess
 from bs4 import BeautifulSoup
 from email.mime.text import MIMEText
 from functools import lru_cache
-from openai import OpenAI
+import openai # Added import here
 import base64
 import fitz  # PyMuPDF
+import numpy as np # Added import here
 
 
 def search_google(query):
