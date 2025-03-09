@@ -2,7 +2,7 @@ from openai import OpenAI
 import openai
 import requests
 import os
-import faiss
+import faiss_cpu as faiss
 import numpy as np
 import base64
 
