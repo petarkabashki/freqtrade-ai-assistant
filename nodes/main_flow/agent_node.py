@@ -52,7 +52,7 @@ class AgentNode(Node):
                 for msg in message_history:
                     history_text += f"- {msg['role']}: {msg['content']}\n"
             prompt = f"""
-            You are an AI assistant designed to process user requests using tools and respond in a helpful way.
+            You are a EXPERT AI assistant designed to process user requests using tools and respond in a helpful way.
             You have access to tools for:
             - Web search (search_google)
             - Reading local files (file_read)
@@ -62,19 +62,20 @@ class AgentNode(Node):
             User request: {user_input}
 
             AI assistant for financial data analysis and general knowledge.
-            For financial data questions, especially about prices or latest information, **you MUST use the search_google tool.**
-            **Only if the user explicitly asks about *local* or *downloaded* data**, then consider using local data tools (file_read, directory_listing).
+            For financial data questions, especially about **prices or CURRENT VALUE**, you **ABSOLUTELY MUST** use the **search_google tool.**
+            **YOU MUST USE search_google for ALL financial queries related to price or value unless local data is explicitly mentioned.**
             Effectively use tools based on user intent.
 
             Categories:
-            1. General Financial Info Seek (PRIMARY - use search_google): For generic financial questions, **especially price inquiries** (e.g., 'what is cardano?', 'explain bitcoin halving', **'what's the price of gold?'**). **You MUST use search_google for financial queries unless local data is explicitly mentioned.**
-            2. Crypto Download (CRITICAL SUB-FLOW): For cryptocurrency download requests (e.g., 'download ETH/USDT data'), trigger 'crypto_download_requested' action for FreqtradeFlow.
-            3. Data Question (Local Data Explicitly Requested): For questions about **local** data (e.g., 'summarize **local** ETHUSDT data', 'analyze **downloaded** BTC data'), use file_read tool to read and process local data files. User must explicitly mention 'local' or 'downloaded' to trigger this category.
-            4. Check Data (Local Data Check): For requests about **locally available** data (e.g., 'list **local** data', 'what **downloaded** data do you have'), use 'directory_listing' tool to list files in '{self.data_folder}'.  User must explicitly mention 'local' or 'downloaded' to trigger this category.
-            5. General Knowledge Question: For general knowledge questions that are not specific to finance but require web search (e.g., 'what is soffix?', 'who won nobel prize 2023'), use 'search_google' tool.
+            1. **Price/Value Financial Info Seek (CRITICAL - MUST use search_google):** For ANY financial questions about price or current value, **like 'what is the price of gold?', 'what's ETH value now?', 'current price of bitcoin'**. For these PRICE related financial questions, **you MUST, without exception, use search_google.**
+            2. General Financial Info Seek (SECONDARY - use search_google): For other generic financial questions, (e.g., 'what is cardano?', 'explain bitcoin halving').  **You MUST use search_google for financial queries unless local data is explicitly mentioned.**
+            3. Crypto Download (CRITICAL SUB-FLOW): For cryptocurrency download requests (e.g., 'download ETH/USDT data'), trigger 'crypto_download_requested' action for FreqtradeFlow.
+            4. Data Question (Local Data Explicitly Requested): For questions about **local** data (e.g., 'summarize **local** ETHUSDT data', 'analyze **downloaded** BTC data'), use file_read tool to read and process local data files. User must explicitly mention 'local' or 'downloaded' to trigger this category.
+            5. Check Data (Local Data Check): For requests about **locally available** data (e.g., 'list **local** data', 'what **downloaded** data do you have'), use 'directory_listing' tool to list files in '{self.data_folder}'.  User must explicitly mention 'local' or 'downloaded' to trigger this category.
+            6. General Knowledge Question: For general knowledge questions that are not specific to finance but require web search (e.g., 'what is soffix?', 'who won nobel prize 2023'), use 'search_google' tool.
 
             Tools:
-            - search_google: Web search for general financial information and general knowledge topics. **You MUST use this tool for financial questions, especially price inquiries, unless local data is explicitly requested.**
+            - search_google: Web search for general financial information and general knowledge topics. **YOU MUST USE THIS TOOL for financial questions, ESPECIALLY PRICE INQUIRIES. This is MANDATORY for price related questions, unless local data is explicitly requested.**
             - file_read: Read content from **local** files in '{self.data_folder}'. Use only when user explicitly asks about local data.
             - directory_listing: List files and directories in '{self.data_folder}'. Use only when user explicitly asks about local data availability.
             - user_input: Ask user for more information or clarification.
@@ -82,17 +83,17 @@ class AgentNode(Node):
 
             Output YAML to indicate action and tool.
             For crypto download requests, action MUST be 'crypto_download_requested'.
-            For general financial or general knowledge questions (unless local data is explicitly requested), **you MUST default to using search_google, especially for price related questions.**
+            For general financial or general knowledge questions (unless local data is explicitly requested), **you MUST default to using search_google, especially for PRICE related questions. For price questions, search_google is not optional, it is REQUIRED.**
             If a tool is needed, tool_needed should be 'yes'.
             If no tool is needed for direct answer, tool_needed should be 'no'.
 
-            Example YAML output for a general financial question **about price** (like 'what's the price of gold'):
+            Example YAML output for a general financial question **ABOUT PRICE** (like 'what's the price of gold'):
             ```yaml
             tool_needed: yes
             tool_name: search_google
             tool_params:
               query: what's the price of gold?
-            reason: User is asking a general financial question about price, using google search.
+            reason: User is asking a CRITICAL financial question about PRICE, MUST use google search.
             action: tool_needed
             ```
 
