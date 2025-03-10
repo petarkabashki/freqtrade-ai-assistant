@@ -16,7 +16,8 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-def search_google_tool(query):
+def search_web_tool(query):
+    """Tool to search google for a query."""
     api_key = os.environ.get('SERPAPI_API_KEY')
     if not api_key:
         return {"error": "SERPAPI_API_KEY environment variable not set"}

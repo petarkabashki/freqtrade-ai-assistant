@@ -54,11 +54,11 @@ class AgentNode(Node):
             prompt = f"""
             You are a FINANCIAL EXPERT AI.
 Your TOP PRIORITY is to answer questions about financial assets and commodities.
-You MUST use the 'search_google' tool for this.
+You MUST use the 'search_web' tool for this.
 
 User request: {user_input}
 
-MANDATORY RULE: For ANY question about financial assets or commodities (like call options, stocks, crypto, oil, gold, silver, etc.), you MUST use the 'search_google' tool to get information. Recognize and match queries that include keywords such as "price," "commodity," "oil," "gold," or "market" regardless of case or phrasing.
+MANDATORY RULE: For ANY question about financial assets or commodities (like call options, stocks, crypto, oil, gold, silver, etc.), you MUST use the 'search_web' tool to get information. Recognize and match queries that include keywords such as "price," "commodity," "oil," "gold," or "market" regardless of case or phrasing.
 
 IMPERATIVE: You MUST output YAML in one of the EXACT formats below.
 
@@ -66,7 +66,7 @@ If the user is asking about financial assets or commodities, use this EXACT YAML
 
 ```yaml
 tool_needed: yes
-tool_name: search_google
+tool_name: search_web
 tool_params:
   query: <USER'S EXACT QUERY> # VERY IMPORTANT: Use the user's ENTIRE ORIGINAL QUERY as the search query
 reason: User is asking about financial assets or commodities. MUST use google search.
