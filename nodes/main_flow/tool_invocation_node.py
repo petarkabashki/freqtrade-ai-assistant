@@ -15,7 +15,7 @@ class ToolInvocationNode(ParameterizedNode):
 
     def prep(self, shared):
         tool_request = shared.get("tool_request", {})
-        logger.info(f"ToolInvocationNode prep started. Tool Request: {tool_request}, Shared: {shared}")
+        logger.info(f"ToolInvocationNode prep started. Tool Request: {tool_request}, Shared keys: {shared.keys()}, Full Shared: {shared}") # <--- ADDED LOGGING HERE
         if not tool_request or not tool_request.get("tool_needed"): # Changed to check for boolean True
             logger.warning("Tool requested but 'tool_needed' is not 'yes' or tool_request is missing.")
             return None  # or raise an exception?
