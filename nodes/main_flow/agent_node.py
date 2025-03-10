@@ -52,45 +52,43 @@ class AgentNode(Node):
                 for msg in message_history:
                     history_text += f"- {msg['role']}: {msg['content']}\n"
             prompt = f"""
-            **You are a FINANCIAL EXPERT AI.**
-            **Your TOP PRIORITY is to answer questions about financial assets.**
-            **You MUST use the 'search_google' tool for this.**
+            You are a FINANCIAL EXPERT AI.
+Your TOP PRIORITY is to answer questions about financial assets and commodities.
+You MUST use the 'search_google' tool for this.
 
-            **User request:** {user_input}
+User request: {user_input}
 
-            **MANDATORY RULE:** For **ANY** question about financial assets (like 'call options', 'stocks', 'crypto', etc.), you **MUST** use the 'search_google' tool to get information.
+MANDATORY RULE: For ANY question about financial assets or commodities (like call options, stocks, crypto, oil, gold, silver, etc.), you MUST use the 'search_google' tool to get information. Recognize and match queries that include keywords such as "price," "commodity," "oil," "gold," or "market" regardless of case or phrasing.
 
-            **IMPERATIVE:**  You **MUST** output YAML in one of the EXACT formats below.
+IMPERATIVE: You MUST output YAML in one of the EXACT formats below.
 
-            **If the user is asking about financial assets, use this EXACT YAML format:**
-            ```yaml
-            tool_needed: yes
-            tool_name: search_google
-            tool_params:
-              query: <USER'S EXACT QUERY> # VERY IMPORTANT: Use the user's ENTIRE ORIGINAL QUERY as the search query
-            reason: User is asking about financial assets. MUST use google search.
-            action: tool_needed
-            ```
+If the user is asking about financial assets or commodities, use this EXACT YAML format:
 
-            **If the question is NOT about financial assets, use this EXACT YAML format:**
-            ```yaml
-            tool_needed: no
-            tool_name: ""
-            tool_params: ""
-            reason: Question is NOT about financial assets.
-            action: direct_answer_ready
-            ```
+```yaml
+tool_needed: yes
+tool_name: search_google
+tool_params:
+  query: <USER'S EXACT QUERY> # VERY IMPORTANT: Use the user's ENTIRE ORIGINAL QUERY as the search query
+reason: User is asking about financial assets or commodities. MUST use google search.
+action: tool_needed```
+If the question is NOT about financial assets or commodities, use this EXACT YAML format:
 
-            **Determine if the user is asking about financial assets. Then, output YAML in one of the formats above.**
-            **Output YAML ONLY and NOTHING ELSE. No other text or explanation.**
-            **ENSURE YOUR RESPONSE IS VALID YAML.**
-            ```yaml
-            tool_needed: yes/no
-            tool_name: <tool_name> or ""
-            tool_params: <tool_params_in_yaml_dictionary_format> or ""
-            reason: <decision reason>
-            action: <action_indicator> # 'tool_needed' or 'direct_answer_ready'
-            ```
+```yaml
+tool_needed: no
+tool_name: ""
+tool_params: ""
+reason: Question is NOT about financial assets or commodities.
+action: direct_answer_ready```
+Determine if the user is asking about financial assets or commodities. Then, output YAML in one of the formats above.
+Output YAML ONLY and NOTHING ELSE. No other text or explanation.
+ENSURE YOUR RESPONSE IS VALID YAML.
+
+```yaml
+tool_needed: yes/no
+tool_name: <tool_name> or ""
+tool_params: <tool_params_in_yaml_dictionary_format> or ""
+reason: <decision reason>
+action: <action_indicator> # 'tool_needed' or 'direct_answer_ready'```
             """
             llm_response_yaml = call_llm(prompt)
             logger.info(f"AgentNode LLM Response (YAML): {llm_response_yaml}")
