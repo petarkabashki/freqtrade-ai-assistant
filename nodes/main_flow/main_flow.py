@@ -39,11 +39,11 @@ class MainFlow(Flow):
         chat_retrieve_node - "quit" >> None # Add quit transition
 
         # these 2 conditional transition should be the other way around.
-        agent_node - "tool_invocation_success" >> agent_node
-        agent_node - "tool_invocation_failure" >> agent_node
+        tool_invocation_node - "tool_invocation_success" >> agent_node
+        # tool_invocation_node - "tool_invocation_failure" >> agent_node
 
 
-        agent_node - "direct_answer_ready" >> chat_retrieve_node # AI: Route direct answers to chat_retrieve_node - changed from chat_reply_node
+        agent_node - "answer_ready" >> chat_retrieve_node # AI: Route direct answers to chat_retrieve_node - changed from chat_reply_node
         agent_node - "yaml_error" >> chat_retrieve_node
         agent_node - "max_loops_reached" >> chat_retrieve_node
 
