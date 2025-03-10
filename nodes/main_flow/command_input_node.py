@@ -35,8 +35,10 @@ class CommandInputNode(Node):
         elif user_command.startswith('delete-shared '):
             path_to_delete = user_command[len('delete-shared '):]
             return "delete_shared", path_to_delete
+        elif user_command in ['?', 'help']: # Added help command check
+            return "help_command" # Indicate help command
         else:
-            print("Unknown command. Available commands: /q, /messages, /shared, /delete-shared <path>")
+            print("Unknown command. Available commands: /q, /messages, /shared, /delete-shared <path>, /?") # Added /? to available commands
             return "unknown_command", None
 
     def exec(self, prep_res, shared):
@@ -67,6 +69,17 @@ class CommandInputNode(Node):
             return {"command": "unknown_command", "command_prefix": self._get_command_prefix(user_command)}
         elif prep_res == "no_command":
             return {"command": "no_command", "command_prefix": self._get_command_prefix(user_command)}
+        elif prep_res == "help_command": # Handle help command
+            help_message = """
+Available commands:
+/q - Quit the application
+/messages - Show message history
+/shared - Show shared store content
+/delete-shared <path> - Delete a path from the shared store (e.g., /delete-shared tool_request.tool_name)
+/? or /help - Show this help message
+            """
+            print(help_message)
+            return {"command": "help_command", "help_message": help_message, "command_prefix": self._get_command_prefix(user_command)} # Return help message in exec_res
         else:
             return {"command": "unknown", "command_prefix": self._get_command_prefix(user_command)}
 
@@ -74,7 +87,7 @@ class CommandInputNode(Node):
         command_prefix = exec_res.get("command_prefix", "")
         if exec_res["command"] == "quit":
             return "quit"
-        elif exec_res["command"] in ["messages_history", "shared_store", "delete_shared_success", "delete_shared_error", "unknown_command", "unknown", "no_command"]:
+        elif exec_res["command"] in ["messages_history", "shared_store", "delete_shared_success", "delete_shared_error", "unknown_command", "unknown", "no_command", "help_command"]: # Added help_command to action list
             if command_prefix == "//":
                 action = "command_input_loop" # Action to loop back to command input for more commands
             else:
