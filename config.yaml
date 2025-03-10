@@ -5,3 +5,6 @@ agent:
     - freq-data
   message_history_limit: 5
 data_folder: freq-data
+llm:
+  provider: openai
+  model: gpt-4o-mini
