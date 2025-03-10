@@ -2,8 +2,8 @@ from util.pocketflow import Node
 from util.call_llm import call_llm
 import yaml
 import logging
-import json # AI: Import json
-from nodes.main_flow.tool_descriptions import tool_descriptions_json # AI: Import tool descriptions json
+import json
+from nodes.main_flow.tool_descriptions import tool_descriptions_json
 
 logger = logging.getLogger(__name__)
 
@@ -18,7 +18,7 @@ class AgentNode(Node):
         self.allowed_paths = allowed_paths if allowed_paths is not None else []
         self.data_folder = data_folder
         self.message_history_limit = message_history_limit
-        self.tool_descriptions = json.loads(tool_descriptions_json) # AI: Load tool descriptions from json
+        self.tool_descriptions = json.loads(tool_descriptions_json)
         logger.info(f"AgentNode initialized with max_tool_loops={max_tool_loops}, "
               f"allowed_paths={allowed_paths}, data_folder={data_folder}, message_history_limit={message_history_limit}")
 
@@ -37,8 +37,6 @@ class AgentNode(Node):
         logger.info(f"AgentNode exec started. Prep result: {prep_res}, Shared: {shared}, Tool Results: {tool_results}")
         user_input = prep_res
         message_history = shared.get('message_history', []) # Get message history from shared
-
-        # message_history.append({"role": "user", "content": user_input}) # Add user input to message history - EXEC START # AI: Removed - User message already added in ChatRetrieveNode
 
         if tool_results: # AI: Check if tool results are available
             llm_prompt_answer_tool_result = f"""
