@@ -151,27 +151,15 @@ action: tool_needed | answer_ready
             "tool_invocation_success": "tool_invocation_success", # Added tool success action
             "tool_invocation_failure": "tool_invocation_failure"  # Added tool failure action
         }
-        # user_input = prep_res # not needed here anymore
-        # llm_response = shared.get("llm_answer", "") # not needed here anymore
-
-        if isinstance(exec_res, dict) and "tool_name" in exec_res: # Condition for tool needed action - now exec_res is tool_request
-            if shared['tool_loop_count'] < self.max_tool_loops:
-                action = "tool_needed" # Transition to ToolInvocationNode
-            else: # Max tool loops reached, provide direct answer
-                logger.warning("Maximum tool loop count reached. Providing direct answer.")
-                action = "max_loops_reached"
-        elif exec_res in action_map:
-            action = action_map[exec_res]
-        else:
-            action = "unknown_action"
-
-        # message_history = shared.get('message_history', []) # get message history - not needed here anymore
-        # message_history.append({"role": "user", "content": user_input}) # add user input to message history - moved to exec
-        # message_history.append({"role": "assistant", "content": llm_response}) # add llm response to message history - moved to exec
-
-        # if len(message_history) > self.message_history_limit: # limit message history - keep limit in post for now
-        #     message_history = message_history[-self.message_history_limit:]
-        # shared['message_history'] = message_history # update shared message history - updated in exec already
-
-        logger.info(f"AgentNode post finished. Action: {action}, Shared: {shared}, Prep result: {prep_res}, Exec result: {exec_res}")
-        return action
++        # Condition for tool needed action - now exec_res is tool_request
++        if isinstance(exec_res, dict) and "tool_name" in exec_res:
++            if shared['tool_loop_count'] < self.max_tool_loops:
++                action = "tool_needed" # Transition to ToolInvocationNode
++            else: # Max tool loops reached, provide direct answer
++                logger.warning("Maximum tool loop count reached. Providing direct answer.")
++                action = "max_loops_reached"
++        elif exec_res in action_map: # Check action map only if not tool needed
+             action = action_map[exec_res]
+         else:
+             action = "unknown_action"
+```
