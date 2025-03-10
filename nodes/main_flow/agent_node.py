@@ -159,6 +159,6 @@ action: tool_needed | answer_ready
                 logger.warning("Maximum tool loop count reached. Providing direct answer.")
                 action = "max_loops_reached"
         elif exec_res in action_map: # Check action map only if not tool needed
-             action = action_map[exec_res]
-         else:
-             action = "unknown_action"
+            action = action_map[exec_res]
+        else:
+            action = "unknown_action"
