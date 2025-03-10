@@ -108,6 +108,12 @@ action: tool_needed | answer_ready
                 tool_params = {}
             if isinstance(tool_params, str): # AI: Handle case where tool_params is a string
                 tool_params = {} # Treat string tool_params as empty dict
+            if isinstance(tool_params, list): # AI: Handle case where tool_params is a list
+                if tool_params:
+                    tool_params = tool_params[0] # Take the first element if it's a list
+                else:
+                    tool_params = {} # or default to empty dict if list is empty
+
             action_indicator = llm_response_data.get("action")
             search_query = tool_params.get("query")
             shared["tool_request"] = llm_response_data
