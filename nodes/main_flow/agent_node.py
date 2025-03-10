@@ -88,7 +88,9 @@ tool_needed: yes/no
 tool_name: <tool_name> or ""
 tool_params: <tool_params_in_yaml_dictionary_format> or ""
 reason: <decision reason>
-action: <action_indicator> # 'tool_needed' or 'direct_answer_ready'```
+action: <action_indicator> # 'tool_needed' or 'direct_answer_ready'
+Always respond in the yaml format above.
+```
             """
             llm_response_yaml = call_llm(prompt)
             logger.info(f"AgentNode LLM Response (YAML): {llm_response_yaml}")

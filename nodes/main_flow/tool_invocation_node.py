@@ -4,10 +4,8 @@ from util.llm_tools import core_tools, fs_tools # corrected import path
 import os
 
 logger = logging.getLogger(__name__)
-
+# don't pass a different action for errors, leave the llm handle that. AI!
 class ToolInvocationNode(ParameterizedNode):
-    GRAY_COLOR_CODE = "\033[90m"  # ANSI escape code for gray
-    RESET_COLOR_CODE = "\033[0m"   # ANSI escape code to reset color
 
     def __init__(self, allowed_paths=None):
         super().__init__()
