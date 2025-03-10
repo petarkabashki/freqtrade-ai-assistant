@@ -49,7 +49,7 @@ class AgentNode(Node):
             llm_answer = call_llm(llm_prompt_answer_tool_result) # AI: Call LLM to answer based on tool results
             shared["llm_answer"] = f"{self.ORANGE_COLOR_CODE}{llm_answer.strip()}{self.RESET_COLOR_CODE}" # Make agent answer orange
             logger.info(f"AgentNode Answer based on Tool Results: {llm_answer.strip()}")
-            exec_res = "answer_ready" # AI: Set action to answer_ready - Corrected action name
+            exec_res = {"action": "answer_ready", "final_answer": llm_answer.strip()} # AI: Set action to answer_ready - Corrected action name, keep exec_res as dict
         else: # AI: If no tool results, proceed with tool/action decision as before
             history_text = ""
             if message_history:
@@ -99,23 +99,14 @@ final_answer: None
                 llm_response_data = yaml.safe_load(llm_response_yaml)
                 if not isinstance(llm_response_data, dict): # Check if yaml.safe_load returned a dict
                     raise yaml.YAMLError("YAML load did not return a dictionary")
+                exec_res = llm_response_data # Assign parsed yaml dict to exec_res
             except yaml.YAMLError as e:
                 logger.error(f"Error parsing LLM YAML response: {e}")
-                exec_res = "yaml_error"
+                exec_res = {"action": "yaml_error"} # Set exec_res to dict with error action
                 logger.info(f"AgentNode exec finished with result: {exec_res}, Shared: {shared}")
                 return exec_res
 
-            exec_res = llm_response_data
 
-                # exec_res = tool_request # Changed to pass tool_request as exec_res
-            # elif action_indicator == "crypto_download_requested":
-            #     exec_res = "crypto_download_requested"
-            # elif action_indicator != "crypto_download_requested": # Modified to elif to avoid overriding tool_needed
-            #     llm_prompt_answer = f"User request: {user_input}\n Directly answer the request:"
-            #     llm_answer = call_llm(llm_prompt_answer)
-            #     shared["llm_answer"] = f"{self.ORANGE_COLOR_CODE}{llm_answer.strip()}{self.RESET_COLOR_CODE}" # Make agent answer orange
-            #     logger.info(f"Direct LLM Answer: {llm_answer.strip()}")
-            #     exec_res = "answer_directly" # AI: Removed unused action name
             logger.info(f"AgentNode exec - exec_res before return: {exec_res}") # AI: Added logging
 
         logger.info(f"AgentNode exec finished with result: {exec_res}, Shared: {shared}")
@@ -131,27 +122,24 @@ final_answer: None
             tool_params = {}
 
         action_indicator = exec_res.get("action")
+        action = "continue" # Default action
 
-        if tool_needed == "yes":
+        if tool_needed == True: # AI: Changed to boolean True
             tool_request = {
                 "tool_name": tool_name,
                 "tool_params": tool_params
             } # tool_params is already a dict
             shared["tool_request"] = tool_request # <---- MOVE THIS LINE UP
-            tool_needed = True # AI: Changed to boolean True
-
-        logger.info(f"AgentNode post finished. Action: {action_indicator}, Shared: {shared}, Prep result: {prep_res}, Exec result: {exec_res}") # <---- LOGGING AFTER SETTING shared["tool_request"]
-
-        if tool_needed == True: # AI: Changed to boolean True
-            # shared["tool_request"] = tool_request # <---- REMOVE THIS LINE - MOVED UP
-            # shared["tool_loop_count"] += 1 # not needed for now, loop count is reset in prep
-            exec_res = "tool_needed"
+            action = "tool_needed" # Set action to tool_needed
         elif action_indicator == "answer_ready":
-            exec_res = "answer_ready"
             shared['message_history'].append({"role": "assistant", "content": exec_res.get("final_answer")}) # add llm response to message history - EXEC END
+            action = "answer_ready" # Set action to answer_ready
 
-        action = exec_res['action']
-        if action not in ["answer_ready", "tool_needed", "continue"]:
-            raise
+
+        logger.info(f"AgentNode post finished. Action: {action}, Shared: {shared}, Prep result: {prep_res}, Exec result: {exec_res}") # <---- LOGGING AFTER SETTING shared["tool_request"]
+
+
+        if action not in ["answer_ready", "tool_needed", "continue", "yaml_error"]: # Added yaml_error to allowed actions
+            raise ValueError(f"Invalid action in AgentNode.post: {action}") # Raise error for invalid action
 
         return action
