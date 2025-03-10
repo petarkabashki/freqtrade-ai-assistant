@@ -32,6 +32,7 @@ class AgentNode(Node):
         return prep_res
 
     def exec(self, prep_res, shared):
+        # user input is the last message in the message history AI!
         user_input = prep_res
         tool_results = shared.get("tool_results", None) # Get tool results from shared
         logger.info(f"AgentNode exec started. Prep result: {prep_res}, Shared: {shared}, Tool Results: {tool_results}")
