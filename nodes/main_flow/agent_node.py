@@ -126,7 +126,7 @@ action: tool_needed | answer_ready
                     "tool_name": tool_name,
                     "tool_params": tool_params
                 }
-                exec_res = tool_request
+                exec_res = "tool_needed" # Changed to "tool_needed"
             elif action_indicator == "crypto_download_requested":
                 exec_res = "crypto_download_requested"
             else: # Direct answer if no tool is explicitly needed and not crypto download
@@ -154,15 +154,15 @@ action: tool_needed | answer_ready
         # user_input = prep_res # not needed here anymore
         # llm_response = shared.get("llm_answer", "") # not needed here anymore
 
-        if exec_res == "tool_needed": # This condition is never met, exec_res is tool_request dict when tool is needed
+        if exec_res == "tool_needed": # Condition for tool needed action
             if shared['tool_loop_count'] < self.max_tool_loops:
-                action = "tool_needed" # Should transition to ToolInvocationNode
+                action = "tool_needed" # Transition to ToolInvocationNode
             else: # Max tool loops reached, provide direct answer
                 logger.warning("Maximum tool loop count reached. Providing direct answer.")
                 action = "max_loops_reached"
-        elif isinstance(exec_res, dict) and "tool_name" in exec_res: # Correctly handle tool request dict
-            action = "tool_needed" # Transition to ToolInvocationNode
-            shared['tool_loop_count'] += 1 # Increment loop count when tool is used
+        elif isinstance(exec_res, dict) and "tool_name" in exec_res: # Correctly handle tool request dict - not needed anymore, handled by "tool_needed" string now
+            action = "tool_needed" # Transition to ToolInvocationNode - not needed anymore, handled by "tool_needed" string now
+            shared['tool_loop_count'] += 1 # Increment loop count when tool is used - not needed anymore, incremented in the "tool_needed" condition now
         elif exec_res in action_map:
             action = action_map[exec_res]
         else:

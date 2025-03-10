@@ -37,6 +37,7 @@ class MainFlow(Flow):
 
         chat_retrieve_node - "continue" >> agent_node >> tool_invocation_node
         chat_retrieve_node - "quit" >> None # Add quit transition
+        agent_node - "tool_needed" >> tool_invocation_node # Explicit transition for tool needed
 
         # these 2 conditional transition should be the other way around.
         tool_invocation_node - "tool_invocation_success" >> agent_node
