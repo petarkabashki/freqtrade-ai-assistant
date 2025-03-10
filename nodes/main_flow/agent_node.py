@@ -52,44 +52,19 @@ class AgentNode(Node):
                 for msg in message_history:
                     history_text += f"- {msg['role']}: {msg['content']}\n"
             prompt = f"""
-            You are a FINANCIAL EXPERT AI.
-Your TOP PRIORITY is to answer questions about financial assets and commodities.
-You MUST use the 'search_web' tool for this.
+            You are a FINANCIAL Research Assistant AI.
+Your TOP PRIORITY is to answer questions about financial assets, commodities and similar, using web search and/or redirecting to subflows.
 
 User request: {user_input}
 
-MANDATORY RULE: For ANY question about financial assets or commodities (like call options, stocks, crypto, oil, gold, silver, etc.), you MUST use the 'search_web' tool to get information. Recognize and match queries that include keywords such as "price," "commodity," "oil," "gold," or "market" regardless of case or phrasing.
-
-IMPERATIVE: You MUST output YAML in one of the EXACT formats below.
-
-If the user is asking about financial assets or commodities, use this EXACT YAML format:
-
+Your response is always in yaml format of the form:
 ```yaml
 tool_needed: yes
 tool_name: search_web
 tool_params:
-  query: <USER'S EXACT QUERY> # VERY IMPORTANT: Use the user's ENTIRE ORIGINAL QUERY as the search query
-reason: User is asking about financial assets or commodities. MUST use google search.
-action: tool_needed```
-If the question is NOT about financial assets or commodities, use this EXACT YAML format:
-
-```yaml
-tool_needed: no
-tool_name: ""
-tool_params: ""
-reason: Question is NOT about financial assets or commodities.
-action: direct_answer_ready```
-Determine if the user is asking about financial assets or commodities. Then, output YAML in one of the formats above.
-Output YAML ONLY and NOTHING ELSE. No other text or explanation.
-ENSURE YOUR RESPONSE IS VALID YAML.
-
-```yaml
-tool_needed: yes/no
-tool_name: <tool_name> or ""
-tool_params: <tool_params_in_yaml_dictionary_format> or ""
-reason: <decision reason>
-action: <action_indicator> # 'tool_needed' or 'direct_answer_ready'
-Always respond in the yaml format above.
+  query: 
+reason: The reason you need to call that tool
+action: tool_needed | answer_ready
 ```
             """
             llm_response_yaml = call_llm(prompt)
@@ -136,7 +111,7 @@ Always respond in the yaml format above.
     def post(self, shared, prep_res, exec_res):
         logger.info(f"AgentNode post started. Shared: {shared}, Prep result: {prep_res}, Exec result: {exec_res}")
         action_map = {
-            "answer_directly": "direct_answer_ready",
+            "answer_directly": "answer_ready",
             "yaml_error": "yaml_error",
             "crypto_download_requested": "crypto_download_requested",
             "tool_invocation_success": "tool_invocation_success", # Added tool success action
