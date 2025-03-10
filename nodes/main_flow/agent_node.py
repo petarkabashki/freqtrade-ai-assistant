@@ -123,7 +123,7 @@ action: tool_needed | answer_ready
                 exec_res = tool_request # Changed to pass tool_request as exec_res
             elif action_indicator == "crypto_download_requested":
                 exec_res = "crypto_download_requested"
-            else: # Direct answer if no tool is explicitly needed and not crypto download
+            elif action_indicator != "crypto_download_requested": # Modified to elif to avoid overriding tool_needed
                 llm_prompt_answer = f"User request: {user_input}\n Directly answer the request:"
                 llm_answer = call_llm(llm_prompt_answer)
                 shared["llm_answer"] = f"{self.ORANGE_COLOR_CODE}{llm_answer.strip()}{self.RESET_COLOR_CODE}" # Make agent answer orange
