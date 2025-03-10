@@ -14,24 +14,21 @@ import os
 import logging
 
 logger = logging.getLogger(__name__)
-
+from serpapi import GoogleSearch
 
 def search_web_tool(query):
     """Tool to search google for a query."""
     api_key = os.environ.get('SERPAPI_API_KEY')
+    
     if not api_key:
         return {"error": "SERPAPI_API_KEY environment variable not set"}
-    params = {
-        "engine": "google",
-        "q": query,
-        "api_key": api_key
-    }
-    r = requests.get("https://serpapi.com/search", params=params)
-    if r.status_code == 200:
-        return r.json()
-    else:
-        logger.error(f"SerpAPI request failed with status code: {r.status_code}")
-        return {"error": f"SerpAPI request failed with status code: {r.status_code}"}
+    
+    search = GoogleSearch({
+    "q": query, 
+    # "location": "Austin,Texas",
+    "api_key": api_key
+    })
+    result = search.get_dict()
 
 
 def execute_sql_tool(query):
