@@ -14,9 +14,11 @@ class CommandInputNode(Node):
             shared['command_input'] = user_command_input.strip().lower() # Store the new command input
             user_command = shared['command_input'] # Update user_command to the new input
 
-        if user_command == '/q':
+        user_command = user_command.lstrip('/') # Remove leading slashes here
+
+        if user_command == 'q':
             return "quit"
-        elif user_command == '/messages':
+        elif user_command == 'messages':
             message_history = shared.get('message_history', [])
             print("\n--- Messages History ---")
             if message_history:
@@ -25,13 +27,13 @@ class CommandInputNode(Node):
                 print("No message history available.")
             print("--- End of History ---\n")
             return "messages_history"
-        elif user_command == '/shared':
+        elif user_command == 'shared':
             print("\n--- Shared Store ---")
             pprint.pprint(shared)
             print("--- End of Shared Store ---\n")
             return "shared_store"
-        elif user_command.startswith('/delete-shared '):
-            path_to_delete = user_command[len('/delete-shared '):]
+        elif user_command.startswith('delete-shared '):
+            path_to_delete = user_command[len('delete-shared '):]
             return "delete_shared", path_to_delete
         else:
             print("Unknown command. Available commands: /q, /messages, /shared, /delete-shared <path>")
