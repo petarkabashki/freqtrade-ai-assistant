@@ -38,7 +38,7 @@ class AgentNode(Node):
         user_input = prep_res
         message_history = shared.get('message_history', []) # Get message history from shared
 
-        message_history.append({"role": "user", "content": user_input}) # Add user input to message history - EXEC START
+        # message_history.append({"role": "user", "content": user_input}) # Add user input to message history - EXEC START # AI: Removed - User message already added in ChatRetrieveNode
 
         if tool_results: # AI: Check if tool results are available
             llm_prompt_answer_tool_result = f"""
