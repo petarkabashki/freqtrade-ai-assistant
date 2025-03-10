@@ -123,26 +123,27 @@ final_answer: None
 
     def post(self, shared, prep_res, exec_res):
         logger.info(f"AgentNode post started. Shared: {shared}, Prep result: {prep_res}, Exec result: {exec_res}")
-    
+
         tool_needed = exec_res.get("tool_needed")
         tool_name = exec_res.get("tool_name")
         tool_params = exec_res.get("tool_params", {})
         if tool_params is None:
             tool_params = {}
-        # Removed list handling for tool_params here
 
         action_indicator = exec_res.get("action")
-        # search_query = tool_params.get("query")
-        # shared["tool_request"] = llm_response_data
 
-        logger.info(f"AgentNode exec - tool_needed: {tool_needed}, action_indicator: {action_indicator}") # AI: Added logging
         if tool_needed == "yes":
             tool_request = {
                 "tool_name": tool_name,
                 "tool_params": tool_params
             } # tool_params is already a dict
-            shared["tool_request"] = tool_request
-            # shared["tool_loop_count"] += 1
+            shared["tool_request"] = tool_request # <---- MOVE THIS LINE UP
+
+        logger.info(f"AgentNode post finished. Action: {action_indicator}, Shared: {shared}, Prep result: {prep_res}, Exec result: {exec_res}") # <---- LOGGING AFTER SETTING shared["tool_request"]
+
+        if tool_needed == "yes":
+            # shared["tool_request"] = tool_request # <---- REMOVE THIS LINE - MOVED UP
+            # shared["tool_loop_count"] += 1 # not needed for now, loop count is reset in prep
             exec_res = "tool_needed"
         elif action_indicator == "answer_ready":
             exec_res = "answer_ready"
@@ -151,7 +152,5 @@ final_answer: None
         action = exec_res['action']
         if action not in ["answer_ready", "tool_needed", "continue"]:
             raise
-        # else: # No default action needed, already handled tool_needed and action_map
-        #     action = "unknown_action" # Removed default unknown action, not needed
-        logger.info(f"AgentNode post finished. Action: {action}, Shared: {shared}, Prep result: {prep_res}, Exec result: {exec_res}")
+
         return action
