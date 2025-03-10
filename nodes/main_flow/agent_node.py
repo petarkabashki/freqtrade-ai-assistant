@@ -86,7 +86,7 @@ Your response is always in yaml format of the form:
 tool_needed: yes
 tool_name: search_web
 tool_params:
-  query: <query to search, MUST be based on user input for clarification searches>
+  query: "{user_input}" # <----- IMPORTANT: Use user_input for the query
 reason: The reason you need to call that tool
 action: tool_needed | answer_ready
 final_answer: None
