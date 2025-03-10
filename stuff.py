@@ -1,4 +1,3 @@
-
 from serpapi import GoogleSearch
 import os
 
@@ -13,4 +12,4 @@ search = GoogleSearch({
 })
 result = search.get_dict()
 
-[r['snippet'] for r in result["organic_results"]] # AI: Return the search result
+[r['snippet'] for r in result["organic_results"]]

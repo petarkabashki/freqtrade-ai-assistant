@@ -32,7 +32,7 @@ class AgentNode(Node):
         return prep_res
 
     def exec(self, prep_res, shared):
-        # user input is the last message in the message history AI!
+        # user input is the last message in the message history
         user_input = prep_res
         tool_results = shared.get("tool_results", None) # Get tool results from shared
         logger.info(f"AgentNode exec started. Prep result: {prep_res}, Shared: {shared}, Tool Results: {tool_results}")
@@ -40,29 +40,29 @@ class AgentNode(Node):
         message_history = shared.get('message_history', []) # Get message history from shared
         tool_loop_count = shared.get('tool_loop_count', 0) # Get tool loop count from shared
 
-        if tool_results: # AI: Check if tool results are available
+        if tool_results: # Check if tool results are available
             llm_prompt_answer_tool_result = f"""
             User request: {user_input}
             Tool results: {tool_results}
             Based on the tool results, provide a concise and informative answer to the user.
             """
-            llm_answer = call_llm(llm_prompt_answer_tool_result) # AI: Call LLM to answer based on tool results
+            llm_answer = call_llm(llm_prompt_answer_tool_result) # Call LLM to answer based on tool results
             shared["llm_answer"] = f"{self.ORANGE_COLOR_CODE}{llm_answer.strip()}{self.RESET_COLOR_CODE}" # Make agent answer orange
             logger.info(f"AgentNode Answer based on Tool Results: {llm_answer.strip()}")
-            exec_res = {"action": "answer_ready", "final_answer": llm_answer.strip()} # AI: Set action to answer_ready - Corrected action name, keep exec_res as dict
-        else: # AI: If no tool results, proceed with tool/action decision as before
+            exec_res = {"action": "answer_ready", "final_answer": llm_answer.strip()} # Set action to answer_ready - Corrected action name, keep exec_res as dict
+        else: # If no tool results, proceed with tool/action decision as before
             history_text = ""
             if message_history:
                 history_text = "Message History:\n"
                 for msg in message_history:
                     history_text += f"- {msg['role']}: {msg['content']}\n"
 
-            tool_descriptions_text = "Available Tools:\n" # AI: Start tool descriptions
-            for tool_name, tool_info in self.tool_descriptions.items(): # AI: Loop through tool descriptions and info
-                description = tool_info["description"] # AI: Get tool description
-                arguments = tool_info["arguments"] # AI: Get tool arguments
-                arguments_text = ", ".join([f"{arg_name}: {arg_desc}" for arg_name, arg_desc in arguments.items()]) # AI: Format arguments
-                tool_descriptions_text += f"- {tool_name}: {description} Arguments: {arguments_text}\n" # AI: Add each tool description with arguments
+            tool_descriptions_text = "Available Tools:\n" # Start tool descriptions
+            for tool_name, tool_info in self.tool_descriptions.items(): # Loop through tool descriptions and info
+                description = tool_info["description"] # Get tool description
+                arguments = tool_info["arguments"] # Get tool arguments
+                arguments_text = ", ".join([f"{arg_name}: {arg_desc}" for arg_name, arg_desc in arguments.items()]) # Format arguments
+                tool_descriptions_text += f"- {tool_name}: {description} Arguments: {arguments_text}\n" # Add each tool description with arguments
 
             prompt = f"""
 You are a FINANCIAL Research Assistant AI.
@@ -115,7 +115,7 @@ final_answer: None
                     logger.info(f"AgentNode: Tool loop count: {shared['tool_loop_count']}, max loops: {self.max_tool_loops}")
 
 
-            logger.info(f"AgentNode exec - exec_res before return: {exec_res}") # AI: Added logging
+            logger.info(f"AgentNode exec - exec_res before return: {exec_res}") # Added logging
 
         logger.info(f"AgentNode exec finished with result: {exec_res}, Shared: {shared}")
         return exec_res
@@ -132,7 +132,7 @@ final_answer: None
         action_indicator = exec_res.get("action")
         action = "continue" # Default action
 
-        if tool_needed == True: # AI: Changed to boolean True
+        if tool_needed == True: # Changed to boolean True
             tool_request = {
                 "tool_name": tool_name,
                 "tool_params": tool_params

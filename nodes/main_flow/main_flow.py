@@ -27,7 +27,7 @@ class MainFlow(Flow):
         # main_input_node = MainInputNode() # Remove MainInputNode initialization
 
 
-        # chat_reply_node = ChatReplyNode() # AI: Remove ChatReplyNode instantiation
+        # chat_reply_node = ChatReplyNode() # Remove ChatReplyNode instantiation
         agent_node = AgentNode(max_tool_loops=max_tool_loops, # Pass max_tool_loops from config
                                 allowed_paths=allowed_paths,
                                 data_folder=data_folder,
@@ -52,11 +52,11 @@ class MainFlow(Flow):
         tool_invocation_node - "tool_invocation_failure" >> agent_node
 
 
-        agent_node - "answer_ready" >> chat_retrieve_node # AI: Route direct answers to chat_retrieve_node - changed from chat_reply_node
+        agent_node - "answer_ready" >> chat_retrieve_node # Route direct answers to chat_retrieve_node - changed from chat_reply_node
         agent_node - "yaml_error" >> chat_retrieve_node
         agent_node - "max_loops_reached" >> chat_retrieve_node
 
-        # chat_reply_node - "continue" >> chat_retrieve_node # AI: Remove ChatReplyNode loop - not needed anymore
+        # chat_reply_node - "continue" >> chat_retrieve_node # Remove ChatReplyNode loop - not needed anymore
 
 
         # Sub-flow transitions
