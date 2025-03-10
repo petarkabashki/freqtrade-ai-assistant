@@ -125,7 +125,7 @@ action: tool_needed | answer_ready
                 tool_request = {
                     "tool_name": tool_name,
                     "tool_params": tool_params
-                }
+                } # tool_params is already a dict, no need to wrap in list
                 exec_res = tool_request # Changed to pass tool_request as exec_res
             elif action_indicator == "crypto_download_requested":
                 exec_res = "crypto_download_requested"
