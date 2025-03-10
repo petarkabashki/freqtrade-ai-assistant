@@ -49,7 +49,7 @@ class AgentNode(Node):
             llm_answer = call_llm(llm_prompt_answer_tool_result) # AI: Call LLM to answer based on tool results
             shared["llm_answer"] = f"{self.ORANGE_COLOR_CODE}{llm_answer.strip()}{self.RESET_COLOR_CODE}" # Make agent answer orange
             logger.info(f"AgentNode Answer based on Tool Results: {llm_answer.strip()}")
-            exec_res = "answer_directly" # AI: Set action to answer directly
+            exec_res = "answer_ready" # AI: Set action to answer_ready - Corrected action name
         else: # AI: If no tool results, proceed with tool/action decision as before
             history_text = ""
             if message_history:
@@ -115,7 +115,7 @@ final_answer: None
             #     llm_answer = call_llm(llm_prompt_answer)
             #     shared["llm_answer"] = f"{self.ORANGE_COLOR_CODE}{llm_answer.strip()}{self.RESET_COLOR_CODE}" # Make agent answer orange
             #     logger.info(f"Direct LLM Answer: {llm_answer.strip()}")
-            #     exec_res = "answer_directly"
+            #     exec_res = "answer_directly" # AI: Removed unused action name
             logger.info(f"AgentNode exec - exec_res before return: {exec_res}") # AI: Added logging
 
         logger.info(f"AgentNode exec finished with result: {exec_res}, Shared: {shared}")
