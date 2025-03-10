@@ -68,8 +68,8 @@ class AgentNode(Node):
 You are a FINANCIAL Research Assistant AI.
 Your TOP PRIORITY is to answer questions about financial assets, commodities, crypto and other assets, using web search and/or redirecting to subflows.
 You can use the web search tool to find more about current asset prices, tickers and similar information to supplement the user's request, and/or to guide further questions you ask the user.
-Keep clarifying and searching the web until you can answer the question.
-
+Use clarifying questions when needed, or search the web and use the search results until you can answer the question.
+Once you are ready with the final answer, put it in 'final_answer'.
 So far the conversation has been:
 {history_text}
 
@@ -90,6 +90,7 @@ tool_params:
   query: <query to search, MUST be based on user input for clarification searches>
 reason: The reason you need to call that tool
 action: tool_needed | answer_ready
+final_answer: None
 ```
             """
             llm_response_yaml = call_llm(prompt)
@@ -103,59 +104,53 @@ action: tool_needed | answer_ready
                 exec_res = "yaml_error"
                 logger.info(f"AgentNode exec finished with result: {exec_res}, Shared: {shared}")
                 return exec_res
+            
+            exec_res = llm_response_data
 
-            tool_needed = llm_response_data.get("tool_needed")
-            tool_name = llm_response_data.get("tool_name")
-            tool_params = llm_response_data.get("tool_params", {})
-            if tool_params is None:
-                tool_params = {}
-            # Removed list handling for tool_params here
-
-            action_indicator = llm_response_data.get("action")
-            search_query = tool_params.get("query")
-            shared["tool_request"] = llm_response_data
-
-            logger.info(f"AgentNode exec - tool_needed: {tool_needed}, action_indicator: {action_indicator}") # AI: Added logging
-            if tool_needed == "yes":
-                tool_request = {
-                    "tool_name": tool_name,
-                    "tool_params": tool_params
-                } # tool_params is already a dict
-                exec_res = tool_request # Changed to pass tool_request as exec_res
-            elif action_indicator == "crypto_download_requested":
-                exec_res = "crypto_download_requested"
-            elif action_indicator != "crypto_download_requested": # Modified to elif to avoid overriding tool_needed
-                llm_prompt_answer = f"User request: {user_input}\n Directly answer the request:"
-                llm_answer = call_llm(llm_prompt_answer)
-                shared["llm_answer"] = f"{self.ORANGE_COLOR_CODE}{llm_answer.strip()}{self.RESET_COLOR_CODE}" # Make agent answer orange
-                logger.info(f"Direct LLM Answer: {llm_answer.strip()}")
-                exec_res = "answer_directly"
+                # exec_res = tool_request # Changed to pass tool_request as exec_res
+            # elif action_indicator == "crypto_download_requested":
+            #     exec_res = "crypto_download_requested"
+            # elif action_indicator != "crypto_download_requested": # Modified to elif to avoid overriding tool_needed
+            #     llm_prompt_answer = f"User request: {user_input}\n Directly answer the request:"
+            #     llm_answer = call_llm(llm_prompt_answer)
+            #     shared["llm_answer"] = f"{self.ORANGE_COLOR_CODE}{llm_answer.strip()}{self.RESET_COLOR_CODE}" # Make agent answer orange
+            #     logger.info(f"Direct LLM Answer: {llm_answer.strip()}")
+            #     exec_res = "answer_directly"
             logger.info(f"AgentNode exec - exec_res before return: {exec_res}") # AI: Added logging
-        message_history = shared.get('message_history', []) # get updated message history
-        llm_response = shared.get("llm_answer", "") # get llm answer
-        message_history.append({"role": "assistant", "content": llm_response}) # add llm response to message history - EXEC END
 
         logger.info(f"AgentNode exec finished with result: {exec_res}, Shared: {shared}")
         return exec_res
 
     def post(self, shared, prep_res, exec_res):
         logger.info(f"AgentNode post started. Shared: {shared}, Prep result: {prep_res}, Exec result: {exec_res}")
-        action_map = {
-            "answer_directly": "answer_ready",
-            "yaml_error": "yaml_error",
-            "crypto_download_requested": "crypto_download_requested",
-            "tool_invocation_success": "tool_invocation_success", # Added tool success action
-            "tool_invocation_failure": "tool_invocation_failure"  # Added tool failure action
-        }
-        # Condition for tool needed action - now exec_res is tool_request
-        if isinstance(exec_res, dict) and "tool_name" in exec_res:
-            if shared['tool_loop_count'] < self.max_tool_loops:
-                action = "tool_needed" # Transition to ToolInvocationNode
-            else: # Max tool loops reached, provide direct answer
-                logger.warning("Maximum tool loop count reached. Providing direct answer.")
-                action = "max_loops_reached"
-        elif exec_res in action_map: # Check action map only if not tool needed
-            action = action_map[exec_res]
+    
+        tool_needed = exec_res.get("tool_needed")
+        tool_name = exec_res.get("tool_name")
+        tool_params = exec_res.get("tool_params", {})
+        if tool_params is None:
+            tool_params = {}
+        # Removed list handling for tool_params here
+
+        action_indicator = exec_res.get("action")
+        # search_query = tool_params.get("query")
+        # shared["tool_request"] = llm_response_data
+
+        logger.info(f"AgentNode exec - tool_needed: {tool_needed}, action_indicator: {action_indicator}") # AI: Added logging
+        if tool_needed == "yes":
+            tool_request = {
+                "tool_name": tool_name,
+                "tool_params": tool_params
+            } # tool_params is already a dict
+            shared["tool_request"] = tool_request
+            # shared["tool_loop_count"] += 1
+            exec_res = "tool_needed"
+        elif action_indicator == "answer_ready":
+            exec_res = "answer_ready"
+            shared['message_history'].append({"role": "assistant", "content": exec_res.get("final_answer")}) # add llm response to message history - EXEC END
+
+        action = exec_res['action']
+        if action not in ["answer_ready", "tool_needed", "continue"]:
+            raise
         # else: # No default action needed, already handled tool_needed and action_map
         #     action = "unknown_action" # Removed default unknown action, not needed
         logger.info(f"AgentNode post finished. Action: {action}, Shared: {shared}, Prep result: {prep_res}, Exec result: {exec_res}")
