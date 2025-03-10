@@ -38,6 +38,8 @@ class AgentNode(Node):
         user_input = prep_res
         message_history = shared.get('message_history', []) # Get message history from shared
 
+        message_history.append({"role": "user", "content": user_input}) # Add user input to message history - EXEC START
+
         if tool_results: # AI: Check if tool results are available
             llm_prompt_answer_tool_result = f"""
             User request: {user_input}
@@ -64,7 +66,7 @@ class AgentNode(Node):
 
             prompt = f"""
 You are a FINANCIAL Research Assistant AI.
-Your TOP PRIORITY is to answer questions about financial assets, commodities, crypto and other assets, using web search and/or redirecting to subflows. 
+Your TOP PRIORITY is to answer questions about financial assets, commodities, crypto and other assets, using web search and/or redirecting to subflows.
 You can use the web search tool to find more about current asset prices, tickers and similar information to supplement the user's request, and/or to guide further questions you ask the user.
 Keep clarifying and searching the web until you can answer the question.
 
@@ -76,7 +78,7 @@ Last user input: {user_input}
 
 
 You can use the following tools:
-{tool_descriptions_text} 
+{tool_descriptions_text}
 
 When using the 'search_web' tool to clarify user intent about assets, commodities, or crypto, make sure to use the user's original input as the query.
 
@@ -133,6 +135,9 @@ action: tool_needed | answer_ready
                 shared["llm_answer"] = f"{self.ORANGE_COLOR_CODE}{llm_answer.strip()}{self.RESET_COLOR_CODE}" # Make agent answer orange
                 logger.info(f"Direct LLM Answer: {llm_answer.strip()}")
                 exec_res = "answer_directly"
+        message_history = shared.get('message_history', []) # get updated message history
+        llm_response = shared.get("llm_answer", "") # get llm answer
+        message_history.append({"role": "assistant", "content": llm_response}) # add llm response to message history - EXEC END
 
         logger.info(f"AgentNode exec finished with result: {exec_res}, Shared: {shared}")
         return exec_res
@@ -146,8 +151,8 @@ action: tool_needed | answer_ready
             "tool_invocation_success": "tool_invocation_success", # Added tool success action
             "tool_invocation_failure": "tool_invocation_failure"  # Added tool failure action
         }
-        user_input = prep_res
-        llm_response = shared.get("llm_answer", "")
+        # user_input = prep_res # not needed here anymore
+        # llm_response = shared.get("llm_answer", "") # not needed here anymore
 
         if exec_res == "tool_needed": # This condition is never met, exec_res is tool_request dict when tool is needed
             if shared['tool_loop_count'] < self.max_tool_loops:
@@ -163,13 +168,13 @@ action: tool_needed | answer_ready
         else:
             action = "unknown_action"
 
-        message_history = shared.get('message_history', [])
-        message_history.append({"role": "user", "content": user_input})
-        message_history.append({"role": "assistant", "content": llm_response})
+        # message_history = shared.get('message_history', []) # get message history - not needed here anymore
+        # message_history.append({"role": "user", "content": user_input}) # add user input to message history - moved to exec
+        # message_history.append({"role": "assistant", "content": llm_response}) # add llm response to message history - moved to exec
 
-        if len(message_history) > self.message_history_limit:
-            message_history = message_history[-self.message_history_limit:]
-        shared['message_history'] = message_history
+        # if len(message_history) > self.message_history_limit: # limit message history - keep limit in post for now
+        #     message_history = message_history[-self.message_history_limit:]
+        # shared['message_history'] = message_history # update shared message history - updated in exec already
 
         logger.info(f"AgentNode post finished. Action: {action}, Shared: {shared}, Prep result: {prep_res}, Exec result: {exec_res}")
         return action

@@ -1,8 +1,6 @@
 from util.pocketflow import Node
+from util.call_llm import get_embedding
 import logging
-from util.llm_tools.core_tools import get_embedding_tool, search_index_tool, create_index_tool
-import numpy as np # Import numpy
-
 
 logger = logging.getLogger(__name__)
 
@@ -17,31 +15,22 @@ class ChatRetrieveNode(Node):
         return user_input
 
     def exec(self, prep_res, shared):
-        if prep_res == "quit": # Check if prep_res is "quit"
-            return "quit" # Return "quit" as exec_res
         user_input = prep_res
-        emb_res = get_embedding_tool(user_input) # Use get_embedding_tool
-        if "error" in emb_res:
-            logger.error(f"Embedding error: {emb_res['error']}")
-            return {"error": "Embedding failed"}
-        emb = emb_res
-        relevant = []
-        if len(shared["history"]) > 8 and shared["memory_index"]:
-            index = shared["memory_index"]
-            search_res = search_index_tool(index, emb, top_k=2) # Use search_index_tool
-            if "error" in search_res:
-                logger.error(f"Vector search error: {search_res['error']}")
-                return {"error": "Vector search failed"}
-            idx, _ = search_res
-            relevant = [shared["history"][i[0]] for i in idx[0]] if idx is not None and len(idx) > 0 and len(idx[0]) > 0 else [] # Handle cases where idx might be None or empty
-        logger.info(f"ChatRetrieveNode exec finished. Prep result: {user_input}, Exec result: {(user_input, relevant)}, Shared: {shared}")
-        return (user_input, relevant)
+        if user_input == "quit": # Handle quit case
+            return "quit"
+
+        logger.info(f"ChatRetrieveNode exec started. Prep result: {prep_res}, Shared: {shared}")
+        embedding = get_embedding(user_input)
+        logger.info(f"ChatRetrieveNode exec finished. Prep result: {prep_res}, Exec result: {(user_input, [])}, Shared: {shared}") # Keep consistent exec result format
+        return user_input, [] # Return user_input and relevant messages (empty for now)
 
     def post(self, shared, prep_res, exec_res):
-        if exec_res == "quit": # Check if exec_res is "quit"
-            return "quit" # Return "quit" action
-        user_input, relevant = exec_res
-        shared["user_input"] = user_input
-        shared["relevant"] = relevant
+        user_input = prep_res
         logger.info(f"ChatRetrieveNode post finished. Action: continue, Shared: {shared}, Prep result: {prep_res}, Exec result: {exec_res}")
-        return "continue"
+        if user_input != "quit":
+            message_history = shared.get('message_history', [])
+            message_history.append({"role": "user", "content": user_input}) # Add user input to message history
+            shared['message_history'] = message_history
+            return "continue"
+        else:
+            return "quit"
