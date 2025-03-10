@@ -1,4 +1,4 @@
-from lib.pocketflow import *
+from util.pocketflow import *
 from .input_node import InputNode
 from .validation_node import ValidationNode
 from .confirmation_node import ConfirmationNode

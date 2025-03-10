@@ -10,3 +10,4 @@
 - Common utilities are under lib folder
 - Tools used by llms are in lib/tools
 - use config.yaml for app configuration values
+- use this form whe defining a trasition from one node(review) to another(payment) based on an action(approved): {review - "approved" >> payment} 

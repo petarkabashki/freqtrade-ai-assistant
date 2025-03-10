@@ -6,5 +6,7 @@ agent:
   message_history_limit: 5
 data_folder: freq-data
 llm:
-  provider: openai
-  model: gpt-4o-mini
+  # provider: openai
+  # model: gpt-4o-mini
+  provider: gemini
+  model: gemini-2.0-flash
