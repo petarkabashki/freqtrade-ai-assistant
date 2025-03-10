@@ -13,8 +13,7 @@ class CommandInputNode(Node):
             message_history = shared.get('message_history', [])
             print("\n--- Message History ---")
             if message_history:
-                for msg in message_history:
-                    print(f"- {msg['role']}: {msg['content']}")
+                pprint.pprint(message_history)
             else:
                 print("No message history available.")
             print("--- End of History ---\n")
