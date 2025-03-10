@@ -78,13 +78,14 @@ Last user input: {user_input}
 You can use the following tools:
 {tool_descriptions_text} 
 
+When using the 'search_web' tool to clarify user intent about assets, commodities, or crypto, make sure to use the user's original input as the query.
+
 Your response is always in yaml format of the form:
 ```yaml
 tool_needed: yes
 tool_name: search_web
 tool_params:
-  - param1:
-  - param2:
+  - query: <query to search, MUST be based on user input for clarification searches>
 reason: The reason you need to call that tool
 action: tool_needed | answer_ready
 ```
