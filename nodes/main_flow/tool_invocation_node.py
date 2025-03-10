@@ -52,7 +52,7 @@ class ToolInvocationNode(ParameterizedNode):
                 tool_result = tool() # Execute tool without parameters
 
             shared["tool_results"] = tool_result # Store tool results in shared
-            logger.info(f"Tool '{tool_name}' execution successful. Result: {tool_result}")
+            # logger.info(f"Tool '{tool_name}' execution successful. Result: {tool_result}")
             exec_res = "tool_invocation_success" # Indicate tool success
         except Exception as e:
             error_message = f"Error executing tool '{tool_name}': {e}"

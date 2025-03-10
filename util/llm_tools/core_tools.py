@@ -26,9 +26,14 @@ def search_web_tool(query):
     search = GoogleSearch({
     "q": query,
     # "location": "Austin,Texas",
-    "api_key": api_key
+    "api_key": api_key,
+    "num": 3,
+    "hl": "en",
+    "gl": "us"
     })
     result = search.get_dict()
+    result = [r['snippet'] for r in result["organic_results"]] # AI: Return the search result
+
     return result # AI: Return the search result
 
 
