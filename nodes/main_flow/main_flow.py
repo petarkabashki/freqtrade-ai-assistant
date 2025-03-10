@@ -40,6 +40,7 @@ class MainFlow(Flow):
         chat_retrieve_node - "continue" >> agent_node
         chat_retrieve_node - "command_input" >> command_input_node # Transition to CommandInputNode for commands
         chat_retrieve_node - "quit" >> None # Quit from chat retrieve node
+        chat_retrieve_node - "command_input_detected" >> command_input_node # Route command input to command node
         command_input_node - "continue_input" >> chat_retrieve_node # Loop back to ChatRetrieveNode after command
         # command_input_node - "quit" >> None # Remove quit transition from command input node - handled in chat_retrieve_node now
 

@@ -9,7 +9,8 @@ class ChatRetrieveNode(Node):
         if user_input.strip().lower() == '/q':
             return "quit" # Indicate quit command
         elif user_input.strip().startswith('/'):
-            return "command_input"  # Indicate command input
+            shared['command_input'] = user_input.strip()  # Store command in shared store
+            return "command_input_detected"  # Indicate command input detected
         logger.info(f"ChatRetrieveNode prep finished. Prep result: {user_input}, Shared: {shared}")
         return user_input
 
@@ -17,7 +18,7 @@ class ChatRetrieveNode(Node):
         logger.info(f"ChatRetrieveNode exec started. Prep result: {prep_res}, Shared: {shared}")
         if prep_res == "quit":
             exec_res = {"input_type": "quit"} # Indicate quit input
-        elif prep_res == "command_input":
+        elif prep_res == "command_input_detected":
             exec_res = {"input_type": "command"} # Indicate command input
         else:
             exec_res = {"user_input": prep_res}
@@ -28,7 +29,7 @@ class ChatRetrieveNode(Node):
         logger.info(f"ChatRetrieveNode post started. Shared: {shared}, Prep result: {prep_res}, Exec result: {exec_res}")
         if prep_res == "quit":
             action = "quit" # Action for quit
-        elif prep_res == "command_input":
+        elif prep_res == "command_input_detected":
             action = "command_input" # Action for command input
         else:
             action = "continue"
