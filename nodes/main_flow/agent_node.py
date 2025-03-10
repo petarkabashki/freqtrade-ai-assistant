@@ -14,7 +14,7 @@ class AgentNode(Node):
     def __init__(self, max_tool_loops=3, allowed_paths=None,
                  data_folder="freq-data", message_history_limit=5):
         super().__init__()
-        self.max_tool_loops = max_tool_loops
+        self.max_tool_loops = max_tool_loops # Set max_tool_loops from constructor
         self.allowed_paths = allowed_paths if allowed_paths is not None else []
         self.data_folder = data_folder
         self.message_history_limit = message_history_limit
@@ -24,7 +24,7 @@ class AgentNode(Node):
 
     def prep(self, shared):
         logger.info(f"AgentNode prep started. Shared: {shared}")
-        shared['tool_loop_count'] = 0
+        shared['tool_loop_count'] = 0 # Initialize tool_loop_count in prep
         if 'message_history' not in shared:
             shared['message_history'] = []
         prep_res = super().prep(shared)
@@ -37,6 +37,7 @@ class AgentNode(Node):
         logger.info(f"AgentNode exec started. Prep result: {prep_res}, Shared: {shared}, Tool Results: {tool_results}")
         user_input = prep_res
         message_history = shared.get('message_history', []) # Get message history from shared
+        tool_loop_count = shared.get('tool_loop_count', 0) # Get tool loop count from shared
 
         if tool_results: # AI: Check if tool results are available
             llm_prompt_answer_tool_result = f"""
@@ -104,6 +105,14 @@ final_answer: None
                 logger.info(f"AgentNode exec finished with result: {exec_res}, Shared: {shared}")
                 return exec_res
 
+            if exec_res.get("tool_needed") == True: # Check if tool is needed
+                shared['tool_loop_count'] = tool_loop_count + 1 # Increment tool loop count
+                if shared['tool_loop_count'] > self.max_tool_loops: # Check if max loops reached
+                    logger.warning(f"AgentNode: Max tool loops reached ({self.max_tool_loops}). Terminating tool invocation.")
+                    exec_res = {"action": "max_loops_reached", "final_answer": "Reached maximum tool invocation loops."} # Set action to max loops reached
+                else:
+                    logger.info(f"AgentNode: Tool loop count: {shared['tool_loop_count']}, max loops: {self.max_tool_loops}")
+
 
             logger.info(f"AgentNode exec - exec_res before return: {exec_res}") # AI: Added logging
 
@@ -132,12 +141,14 @@ final_answer: None
         elif action_indicator == "answer_ready":
             shared['message_history'].append({"role": "assistant", "content": exec_res.get("final_answer")}) # add llm response to message history - EXEC END
             action = "answer_ready" # Set action to answer_ready
+        elif action_indicator == "max_loops_reached": # Handle max loops reached action
+            action = "max_loops_reached" # Set action to max_loops_reached
 
 
         logger.info(f"AgentNode post finished. Action: {action}, Shared: {shared}, Prep result: {prep_res}, Exec result: {exec_res}") # <---- LOGGING AFTER SETTING shared["tool_request"]
 
 
-        if action not in ["answer_ready", "tool_needed", "continue", "yaml_error"]: # Added yaml_error to allowed actions
+        if action not in ["answer_ready", "tool_needed", "continue", "yaml_error", "max_loops_reached"]: # Added max_loops_reached to allowed actions
             raise ValueError(f"Invalid action in AgentNode.post: {action}") # Raise error for invalid action
 
         return action

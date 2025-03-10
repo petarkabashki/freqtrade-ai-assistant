@@ -26,7 +26,7 @@ class MainFlow(Flow):
 
 
         # chat_reply_node = ChatReplyNode() # AI: Remove ChatReplyNode instantiation
-        agent_node = AgentNode(max_tool_loops=max_tool_loops,
+        agent_node = AgentNode(max_tool_loops=max_tool_loops, # Pass max_tool_loops from config
                                 allowed_paths=allowed_paths,
                                 data_folder=data_folder,
                                 message_history_limit=message_history_limit)
