@@ -156,7 +156,7 @@ action: tool_needed | answer_ready
                 action = "max_loops_reached"
         elif exec_res in action_map: # Check action map only if not tool needed
             action = action_map[exec_res]
-        else:
-            action = "unknown_action"
+        # else: # No default action needed, already handled tool_needed and action_map
+        #     action = "unknown_action" # Removed default unknown action, not needed
         logger.info(f"AgentNode post finished. Action: {action}, Shared: {shared}, Prep result: {prep_res}, Exec result: {exec_res}")
         return action
