@@ -52,87 +52,40 @@ class AgentNode(Node):
                 for msg in message_history:
                     history_text += f"- {msg['role']}: {msg['content']}\n"
             prompt = f"""
-            You are a EXPERT AI assistant designed to process user requests using tools and respond in a helpful way.
-            You have access to tools for:
-            - Web search (search_google)
-            - Reading local files (file_read)
-            - Listing directories (directory_listing)
+            You are an EXPERT AI assistant.
+            Your primary goal is to answer user questions, especially about financial data.
+            You have access to the 'search_google' tool for web search.
 
-            {history_text}
+            **IMPORTANT: If the user asks about the PRICE or CURRENT VALUE of ANY financial asset (like 'gold', 'bitcoin', 'ETH'), you MUST use the 'search_google' tool to get the most up-to-date information.**
+
             User request: {user_input}
 
-            AI assistant for financial data analysis and general knowledge.
-            For financial data questions, especially about **prices or CURRENT VALUE**, you **ABSOLUTELY MUST** use the **search_google tool.**
-            **YOU MUST USE search_google for ALL financial queries related to price or value unless local data is explicitly mentioned.**
-            Effectively use tools based on user intent.
-
-            Categories:
-            1. **Price/Value Financial Info Seek (CRITICAL - MUST use search_google):** For ANY financial questions about price or current value, **like 'what is the price of gold?', 'what's ETH value now?', 'current price of bitcoin'**. For these PRICE related financial questions, **you MUST, without exception, use search_google.**
-            2. General Financial Info Seek (SECONDARY - use search_google): For other generic financial questions, (e.g., 'what is cardano?', 'explain bitcoin halving').  **You MUST use search_google for financial queries unless local data is explicitly mentioned.**
-            3. Crypto Download (CRITICAL SUB-FLOW): For cryptocurrency download requests (e.g., 'download ETH/USDT data'), trigger 'crypto_download_requested' action for FreqtradeFlow.
-            4. Data Question (Local Data Explicitly Requested): For questions about **local** data (e.g., 'summarize **local** ETHUSDT data', 'analyze **downloaded** BTC data'), use file_read tool to read and process local data files. User must explicitly mention 'local' or 'downloaded' to trigger this category.
-            5. Check Data (Local Data Check): For requests about **locally available** data (e.g., 'list **local** data', 'what **downloaded** data do you have'), use 'directory_listing' tool to list files in '{self.data_folder}'.  User must explicitly mention 'local' or 'downloaded' to trigger this category.
-            6. General Knowledge Question: For general knowledge questions that are not specific to finance but require web search (e.g., 'what is soffix?', 'who won nobel prize 2023'), use 'search_google' tool.
-
-            Tools:
-            - search_google: Web search for general financial information and general knowledge topics. **YOU MUST USE THIS TOOL for financial questions, ESPECIALLY PRICE INQUIRIES. This is MANDATORY for price related questions, unless local data is explicitly requested.**
-            - file_read: Read content from **local** files in '{self.data_folder}'. Use only when user explicitly asks about local data.
-            - directory_listing: List files and directories in '{self.data_folder}'. Use only when user explicitly asks about local data availability.
-            - user_input: Ask user for more information or clarification.
-            - user_output: Display output to the user.
-
-            Output YAML to indicate action and tool.
-            For crypto download requests, action MUST be 'crypto_download_requested'.
-            For general financial or general knowledge questions (unless local data is explicitly requested), **you MUST default to using search_google, especially for PRICE related questions. For price questions, search_google is not optional, it is REQUIRED.**
-            If a tool is needed, tool_needed should be 'yes'.
-            If no tool is needed for direct answer, tool_needed should be 'no'.
-
-            Example YAML output for a general financial question **ABOUT PRICE** (like 'what's the price of gold'):
+            For price-related questions, use this YAML format:
             ```yaml
             tool_needed: yes
             tool_name: search_google
             tool_params:
-              query: what's the price of gold?
-            reason: User is asking a CRITICAL financial question about PRICE, MUST use google search.
+              query: <user's price query>
+            reason: User asked about price, MUST use google search.
             action: tool_needed
             ```
 
-            Example YAML output for a crypto download request:
+            If the question is NOT price-related and doesn't require a tool, use this YAML format:
             ```yaml
             tool_needed: no
             tool_name: ""
             tool_params: ""
-            reason: User is asking to download crypto data, triggering crypto download sub-flow.
-            action: crypto_download_requested
-            ```
-            ```yaml
-            Example YAML output for a local data check request (user asks about 'local data'):
-            ```yaml
-            tool_needed: yes
-            tool_name: directory_listing
-            tool_params:
-              dir_path: {self.data_folder} # e.g., dir_path: freq-data
-            reason: User is asking to check locally available data, using directory listing tool.
-            action: tool_needed
-            ```
-
-            Example YAML output for a direct answer (no tool needed):
-            ```yaml
-            tool_needed: no
-            tool_name: ""
-            tool_params: ""
-            reason: User is asking a question that can be answered directly without tools, like greetings or simple confirmations.
+            reason: Question does not require a tool, can answer directly.
             action: direct_answer_ready
             ```
 
-
-            Now, based on the user request, output YAML:
+            Based on the user request, output YAML to indicate if a tool is needed and which tool to use:
             ```yaml
             tool_needed: yes/no
             tool_name: <tool_name> or ""
             tool_params: <tool_params_in_yaml_dictionary_format> or ""
             reason: <decision reason>
-            action: <action_indicator> # if crypto download, action MUST be 'crypto_download_requested' or 'tool_needed' or 'direct_answer_ready'
+            action: <action_indicator> # 'tool_needed' or 'direct_answer_ready'
             ```
             """
             llm_response_yaml = call_llm(prompt)
