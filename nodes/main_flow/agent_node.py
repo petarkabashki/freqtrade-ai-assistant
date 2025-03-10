@@ -52,36 +52,35 @@ class AgentNode(Node):
                 for msg in message_history:
                     history_text += f"- {msg['role']}: {msg['content']}\n"
             prompt = f"""
-            You are an EXPERT AI assistant focused on financial data.
-            You MUST use tools to answer user questions.
-            Specifically, you have access to the 'search_google' tool.
+            **URGENT! You are a FINANCIAL EXPERT AI.**
+            **Your ABSOLUTE TOP PRIORITY is to answer questions about PRICES of financial assets.**
+            **You MUST use the 'search_google' tool for this.**
 
-            **CRITICAL INSTRUCTION: If the user asks about the PRICE or CURRENT VALUE of ANY financial asset (like 'gold', 'bitcoin', 'ETH'), you MUST, MUST, MUST use the 'search_google' tool.**
-            **This is MANDATORY and IMPERATIVE. There is NO exception for price questions.**
+            **MANDATORY RULE:** If the user asks about the **PRICE, VALUE, or CURRENT COST** of ANY financial asset (like 'gold', 'bitcoin', 'solana', 'ETH', etc.), you **UNQUESTIONABLY MUST** use the 'search_google' tool.
 
-            User request: {user_input}
+            **User request:** {user_input}
 
-            For ALL PRICE-RELATED questions, use EXACTLY this YAML format:
+            **IMPERATIVE:** For **ANY** question about price, you **MUST** output YAML in this EXACT format:
             ```yaml
             tool_needed: yes
             tool_name: search_google
             tool_params:
-              query: <user's price query> # IMPORTANT: Use the user's EXACT price query here
-            reason: User asked a PRICE question. MUST use google search.
+              query: <USER'S EXACT PRICE QUERY> # VERY IMPORTANT: Use the user's ENTIRE ORIGINAL QUERY as the search query
+            reason: User is ASKING FOR PRICE. MUST use google search.
             action: tool_needed
             ```
 
-            For questions that are NOT price-related (which are unlikely in your financial expert role, but consider this case), use EXACTLY this YAML format:
+            **If the question is NOT about price (this is unlikely for a financial expert, but consider it), use this EXACT YAML format:**
             ```yaml
             tool_needed: no
             tool_name: ""
             tool_params: ""
-            reason: Question is NOT price-related and does not require a tool.
+            reason: Question is NOT price-related.
             action: direct_answer_ready
             ```
 
-            Based on the user request, determine if it's a PRICE question.
-            Then, output YAML in one of the two formats above:
+            **Determine if the user is asking about PRICE. Then, output YAML in one of the formats above.**
+            **Output YAML ONLY. No other text or explanation.**
             ```yaml
             tool_needed: yes/no
             tool_name: <tool_name> or ""
