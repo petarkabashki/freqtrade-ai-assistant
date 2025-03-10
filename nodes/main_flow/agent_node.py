@@ -104,7 +104,7 @@ final_answer: None
                 exec_res = "yaml_error"
                 logger.info(f"AgentNode exec finished with result: {exec_res}, Shared: {shared}")
                 return exec_res
-            
+
             exec_res = llm_response_data
 
                 # exec_res = tool_request # Changed to pass tool_request as exec_res
@@ -138,10 +138,11 @@ final_answer: None
                 "tool_params": tool_params
             } # tool_params is already a dict
             shared["tool_request"] = tool_request # <---- MOVE THIS LINE UP
+            tool_needed = True # AI: Changed to boolean True
 
         logger.info(f"AgentNode post finished. Action: {action_indicator}, Shared: {shared}, Prep result: {prep_res}, Exec result: {exec_res}") # <---- LOGGING AFTER SETTING shared["tool_request"]
 
-        if tool_needed == "yes":
+        if tool_needed == True: # AI: Changed to boolean True
             # shared["tool_request"] = tool_request # <---- REMOVE THIS LINE - MOVED UP
             # shared["tool_loop_count"] += 1 # not needed for now, loop count is reset in prep
             exec_res = "tool_needed"
