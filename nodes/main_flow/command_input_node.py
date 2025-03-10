@@ -8,7 +8,12 @@ class CommandInputNode(Node):
     def prep(self, shared):
         user_command = shared.get('command_input', '').lower() # Get command from shared store
         if not user_command:
-            return "no_command" # Indicate no command was provided
+            user_command_input = input("Enter command (or press Enter to continue): ") # Ask for command if empty
+            if not user_command_input.strip():
+                return "no_command" # Indicate no command was provided if user just presses Enter
+            shared['command_input'] = user_command_input.strip().lower() # Store the new command input
+            user_command = shared['command_input'] # Update user_command to the new input
+
         if user_command == '/q':
             return "quit"
         elif user_command == '/message-history':
