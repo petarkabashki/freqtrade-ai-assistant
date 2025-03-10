@@ -16,6 +16,26 @@ class AgentNode(Node):
         self.allowed_paths = allowed_paths if allowed_paths is not None else []
         self.data_folder = data_folder
         self.message_history_limit = message_history_limit
+        self.tool_descriptions = { # AI: Define tool descriptions here
+            "search_web": "Tool to search the web for information. Input is a query string.",
+            "execute_sql": "Tool to execute SQL queries. Input is a SQL query string.",
+            "run_code": "Tool to execute Python code. Input is a Python code string.",
+            "crawl_web": "Tool to crawl a webpage and extract text. Input is a URL string.",
+            "transcribe_audio": "Tool to transcribe audio from a file. Input is a file path to an audio file.",
+            "send_email": "Tool to send an email. Input is email parameters (to_address, subject, body, from_address, password).",
+            "extract_text_from_pdf": "Tool to extract text from a PDF file. Input is a file path to a PDF file.",
+            "extract_text_from_image_pdf": "Tool to extract text from an image-based PDF file. Input is a file path to a PDF file and page number.",
+            "user_input": "Tool to get user input. Input is a prompt string to display to the user.",
+            "user_output": "Tool to display output to the user. Input is a message string to display.",
+            "get_embedding": "Tool to get embeddings for a text. Input is a text string.",
+            "create_index": "Tool to create an index from embeddings. Input is a list of embeddings.",
+            "search_index": "Tool to search an index with a query embedding. Input is an index and a query embedding.",
+            "call_llm": "Tool to call a Large Language Model with a prompt. Input is a prompt string.",
+            "call_llm_vision": "Tool to call a vision-enabled Large Language Model with a prompt and image data. Input is a prompt string and image data.",
+            "file_read": "Tool to read content from a file. Input is a file path.",
+            "file_write": "Tool to write content to a file. Input is a file path and content string.",
+            "directory_listing": "Tool to list files and directories in a given directory. Input is a directory path."
+        }
         logger.info(f"AgentNode initialized with max_tool_loops={max_tool_loops}, "
               f"allowed_paths={allowed_paths}, data_folder={data_folder}, message_history_limit={message_history_limit}")
 
@@ -51,11 +71,18 @@ class AgentNode(Node):
                 history_text = "Message History:\n"
                 for msg in message_history:
                     history_text += f"- {msg['role']}: {msg['content']}\n"
+
+            tool_descriptions_text = "Available Tools:\n" # AI: Start tool descriptions
+            for tool_name, description in self.tool_descriptions.items(): # AI: Loop through tool descriptions
+                tool_descriptions_text += f"- {tool_name}: {description}\n" # AI: Add each tool description
+
             prompt = f"""
             You are a FINANCIAL Research Assistant AI.
 Your TOP PRIORITY is to answer questions about financial assets, commodities and similar, using web search and/or redirecting to subflows.
 
 User request: {user_input}
+
+{tool_descriptions_text} # AI: Include tool descriptions in prompt
 
 Your response is always in yaml format of the form:
 ```yaml
