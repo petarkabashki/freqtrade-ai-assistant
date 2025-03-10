@@ -35,13 +35,13 @@ class MainFlow(Flow):
         freqtrade_flow = FreqtradeFlow()
         self.freqtrade_flow = freqtrade_flow
 
-        chat_retrieve_node - "continue" >> agent_node >> tool_invocation_node
+        chat_retrieve_node - "continue" >> agent_node
         chat_retrieve_node - "quit" >> None # Add quit transition
         agent_node - "tool_needed" >> tool_invocation_node # Explicit transition for tool needed
 
         # these 2 conditional transition should be the other way around.
         tool_invocation_node - "tool_invocation_success" >> agent_node
-        # tool_invocation_node - "tool_invocation_failure" >> agent_node
+        tool_invocation_node - "tool_invocation_failure" >> agent_node
 
 
         agent_node - "answer_ready" >> chat_retrieve_node # AI: Route direct answers to chat_retrieve_node - changed from chat_reply_node
