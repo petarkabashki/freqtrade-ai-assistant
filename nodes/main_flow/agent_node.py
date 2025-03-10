@@ -87,7 +87,7 @@ Your response is always in yaml format of the form:
 tool_needed: yes
 tool_name: search_web
 tool_params:
-  - query: <query to search, MUST be based on user input for clarification searches>
+  query: <query to search, MUST be based on user input for clarification searches>
 reason: The reason you need to call that tool
 action: tool_needed | answer_ready
 ```
@@ -109,13 +109,7 @@ action: tool_needed | answer_ready
             tool_params = llm_response_data.get("tool_params", {})
             if tool_params is None:
                 tool_params = {}
-            if isinstance(tool_params, str): # AI: Handle case where tool_params is a string
-                tool_params = {} # Treat string tool_params as empty dict
-            if isinstance(tool_params, list): # AI: Handle case where tool_params is a list
-                if tool_params:
-                    tool_params = tool_params[0] # Take the first element if it's a list
-                else:
-                    tool_params = {} # or default to empty dict if list is empty
+            # Removed list handling for tool_params here
 
             action_indicator = llm_response_data.get("action")
             search_query = tool_params.get("query")
@@ -125,7 +119,7 @@ action: tool_needed | answer_ready
                 tool_request = {
                     "tool_name": tool_name,
                     "tool_params": tool_params
-                } # tool_params is already a dict, no need to wrap in list
+                } # tool_params is already a dict
                 exec_res = tool_request # Changed to pass tool_request as exec_res
             elif action_indicator == "crypto_download_requested":
                 exec_res = "crypto_download_requested"
@@ -162,3 +156,5 @@ action: tool_needed | answer_ready
             action = action_map[exec_res]
         else:
             action = "unknown_action"
+        logger.info(f"AgentNode post finished. Action: {action}, Shared: {shared}, Prep result: {prep_res}, Exec result: {exec_res}")
+        return action
