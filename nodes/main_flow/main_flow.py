@@ -4,6 +4,7 @@ from nodes.main_flow.tool_invocation_node import ToolInvocationNode
 # from nodes.main_flow.main_input_node import MainInputNode # Remove MainInputNode import
 from nodes.freqtrade.freqtrade_flow import FreqtradeFlow
 from nodes.main_flow.chat_retrieve_node import ChatRetrieveNode
+from nodes.main_flow.command_input_node import CommandInputNode # Import CommandInputNode
 # from nodes.main_flow.chat_reply_node import ChatReplyNode # AI: Remove ChatReplyNode import
 import logging
 
@@ -20,6 +21,7 @@ class MainFlow(Flow):
 
         # Initialize new chat memory nodes
         chat_retrieve_node = ChatRetrieveNode() # Initialize ChatRetrieveNode here - moved to be before super().__init__
+        command_input_node = CommandInputNode() # Initialize CommandInputNode
         super().__init__(start=chat_retrieve_node) # set start to chat_retrieve_node
 
         # main_input_node = MainInputNode() # Remove MainInputNode initialization
@@ -36,7 +38,10 @@ class MainFlow(Flow):
         self.freqtrade_flow = freqtrade_flow
 
         chat_retrieve_node - "continue" >> agent_node
-        chat_retrieve_node - "quit" >> None # Add quit transition
+        chat_retrieve_node - "command_input" >> command_input_node # Transition to CommandInputNode for commands
+        command_input_node - "continue_input" >> chat_retrieve_node # Loop back to ChatRetrieveNode after command
+        command_input_node - "quit" >> None # Quit from command input
+
         agent_node - "tool_needed" >> tool_invocation_node # Explicit transition for tool needed
 
         # these 2 conditional transition should be the other way around.
