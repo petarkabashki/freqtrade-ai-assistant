@@ -60,7 +60,7 @@ class AgentNode(Node):
 
             **MANDATORY RULE:** For **ANY** question about financial assets (like 'call options', 'stocks', 'crypto', etc.), you **MUST** use the 'search_google' tool to get information.
 
-            **IMPERATIVE:**  Output YAML in one of the EXACT formats below.
+            **IMPERATIVE:**  You **MUST** output YAML in one of the EXACT formats below.
 
             **If the user is asking about financial assets, use this EXACT YAML format:**
             ```yaml
@@ -82,7 +82,8 @@ class AgentNode(Node):
             ```
 
             **Determine if the user is asking about financial assets. Then, output YAML in one of the formats above.**
-            **Output YAML ONLY. No other text or explanation.**
+            **Output YAML ONLY and NOTHING ELSE. No other text or explanation.**
+            **ENSURE YOUR RESPONSE IS VALID YAML.**
             ```yaml
             tool_needed: yes/no
             tool_name: <tool_name> or ""
@@ -95,6 +96,8 @@ class AgentNode(Node):
             logger.info(f"AgentNode LLM Response (YAML): {llm_response_yaml}")
             try:
                 llm_response_data = yaml.safe_load(llm_response_yaml)
+                if not isinstance(llm_response_data, dict): # Check if yaml.safe_load returned a dict
+                    raise yaml.YAMLError("YAML load did not return a dictionary")
             except yaml.YAMLError as e:
                 logger.error(f"Error parsing LLM YAML response: {e}")
                 exec_res = "yaml_error"
