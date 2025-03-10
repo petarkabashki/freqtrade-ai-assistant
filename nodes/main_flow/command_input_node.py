@@ -76,14 +76,18 @@ class CommandInputNode(Node):
             return "quit"
         elif exec_res["command"] in ["messages_history", "shared_store", "delete_shared_success", "delete_shared_error", "unknown_command", "unknown", "no_command"]:
             if command_prefix == "//":
-                return "command_input_loop" # Action to loop back to command input for more commands
+                action = "command_input_loop" # Action to loop back to command input for more commands
             else:
-                return "continue_input" # Action to go back to input for regular input
+                action = "continue_input" # Action to go back to input for regular input
         elif exec_res["command"] == "no_command":
-            return "continue_input"
+            action = "continue_input"
         else:
-            return None # No default action, should not reach here
+            action = None # No default action, should not reach here
 
+        if 'command_input' in shared:
+            del shared['command_input'] # Clear command input from shared store
+
+        return action
     def _get_command_prefix(self, user_command):
         if user_command.startswith('//'):
             return "//"
