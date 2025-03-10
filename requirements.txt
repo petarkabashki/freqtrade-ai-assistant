@@ -1,1 +1,10 @@
 PyMuPDF
+beautifulsoup4
+faiss-cpu  # or faiss-gpu if you have GPU support
+google-generativeai
+numpy
+openai
+python-dotenv
+requests
+serpapi-python
+PyYAML
