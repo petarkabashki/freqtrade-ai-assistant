@@ -151,15 +151,14 @@ action: tool_needed | answer_ready
             "tool_invocation_success": "tool_invocation_success", # Added tool success action
             "tool_invocation_failure": "tool_invocation_failure"  # Added tool failure action
         }
-+        # Condition for tool needed action - now exec_res is tool_request
-+        if isinstance(exec_res, dict) and "tool_name" in exec_res:
-+            if shared['tool_loop_count'] < self.max_tool_loops:
-+                action = "tool_needed" # Transition to ToolInvocationNode
-+            else: # Max tool loops reached, provide direct answer
-+                logger.warning("Maximum tool loop count reached. Providing direct answer.")
-+                action = "max_loops_reached"
-+        elif exec_res in action_map: # Check action map only if not tool needed
+        # Condition for tool needed action - now exec_res is tool_request
+        if isinstance(exec_res, dict) and "tool_name" in exec_res:
+            if shared['tool_loop_count'] < self.max_tool_loops:
+                action = "tool_needed" # Transition to ToolInvocationNode
+            else: # Max tool loops reached, provide direct answer
+                logger.warning("Maximum tool loop count reached. Providing direct answer.")
+                action = "max_loops_reached"
+        elif exec_res in action_map: # Check action map only if not tool needed
              action = action_map[exec_res]
          else:
              action = "unknown_action"
-```
