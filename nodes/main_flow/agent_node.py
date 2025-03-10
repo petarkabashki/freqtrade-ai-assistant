@@ -63,19 +63,28 @@ class AgentNode(Node):
                 tool_descriptions_text += f"- {tool_name}: {description} Arguments: {arguments_text}\n" # AI: Add each tool description with arguments
 
             prompt = f"""
-            You are a FINANCIAL Research Assistant AI.
-Your TOP PRIORITY is to answer questions about financial assets, commodities and similar, using web search and/or redirecting to subflows.
+You are a FINANCIAL Research Assistant AI.
+Your TOP PRIORITY is to answer questions about financial assets, commodities, crypto and other assets, using web search and/or redirecting to subflows. 
+You can use the web search tool to find more about current asset prices, tickers and similar information to supplement the user's request, and/or to guide further questions you ask the user.
+Keep clarifying and searching the web until you can answer the question.
 
-User request: {user_input}
+So far the conversation has been:
+{history_text}
 
-{tool_descriptions_text} # AI: Include tool descriptions in prompt
+
+Last user input: {user_input}
+
+
+You can use the following tools:
+{tool_descriptions_text} 
 
 Your response is always in yaml format of the form:
 ```yaml
 tool_needed: yes
 tool_name: search_web
 tool_params:
-  query: 
+  - param1:
+  - param2:
 reason: The reason you need to call that tool
 action: tool_needed | answer_ready
 ```
