@@ -115,6 +115,7 @@ action: tool_needed | answer_ready
             search_query = tool_params.get("query")
             shared["tool_request"] = llm_response_data
 
+            logger.info(f"AgentNode exec - tool_needed: {tool_needed}, action_indicator: {action_indicator}") # AI: Added logging
             if tool_needed == "yes":
                 tool_request = {
                     "tool_name": tool_name,
@@ -129,6 +130,7 @@ action: tool_needed | answer_ready
                 shared["llm_answer"] = f"{self.ORANGE_COLOR_CODE}{llm_answer.strip()}{self.RESET_COLOR_CODE}" # Make agent answer orange
                 logger.info(f"Direct LLM Answer: {llm_answer.strip()}")
                 exec_res = "answer_directly"
+            logger.info(f"AgentNode exec - exec_res before return: {exec_res}") # AI: Added logging
         message_history = shared.get('message_history', []) # get updated message history
         llm_response = shared.get("llm_answer", "") # get llm answer
         message_history.append({"role": "assistant", "content": llm_response}) # add llm response to message history - EXEC END
