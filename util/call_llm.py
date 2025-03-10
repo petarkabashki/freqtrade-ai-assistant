@@ -11,7 +11,6 @@ load_dotenv()
 
 API_KEY = os.getenv("OPENAI_API_KEY")
 
-# I need a way to use different models and providers, and add gemini, AI!
 def call_llm(prompt):
     client = OpenAI(api_key=API_KEY)
     response = client.chat.completions.create(
