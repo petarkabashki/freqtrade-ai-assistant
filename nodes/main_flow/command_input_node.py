@@ -16,15 +16,15 @@ class CommandInputNode(Node):
 
         if user_command == '/q':
             return "quit"
-        elif user_command == '/message-history':
+        elif user_command == '/messages':
             message_history = shared.get('message_history', [])
-            print("\n--- Message History ---")
+            print("\n--- Messages History ---")
             if message_history:
                 pprint.pprint(message_history)
             else:
                 print("No message history available.")
             print("--- End of History ---\n")
-            return "message_history"
+            return "messages_history"
         elif user_command == '/shared':
             print("\n--- Shared Store ---")
             pprint.pprint(shared)
@@ -34,15 +34,15 @@ class CommandInputNode(Node):
             path_to_delete = user_command[len('/delete-shared '):]
             return "delete_shared", path_to_delete
         else:
-            print("Unknown command. Available commands: /q, /message-history, /shared, /delete-shared <path>")
+            print("Unknown command. Available commands: /q, /messages, /shared, /delete-shared <path>")
             return "unknown_command", None
 
     def exec(self, prep_res, shared):
         user_command = shared.get('command_input', '').lower() # Get command from shared store
         if prep_res == "quit":
             return {"command": "quit", "command_prefix": self._get_command_prefix(user_command)}
-        elif prep_res == "message_history":
-            return {"command": "message_history", "command_prefix": self._get_command_prefix(user_command)}
+        elif prep_res == "messages_history":
+            return {"command": "messages_history", "command_prefix": self._get_command_prefix(user_command)}
         elif prep_res == "shared_store":
             return {"command": "shared_store", "command_prefix": self._get_command_prefix(user_command)}
         elif prep_res[0] == "delete_shared":
@@ -72,7 +72,7 @@ class CommandInputNode(Node):
         command_prefix = exec_res.get("command_prefix", "")
         if exec_res["command"] == "quit":
             return "quit"
-        elif exec_res["command"] in ["message_history", "shared_store", "delete_shared_success", "delete_shared_error", "unknown_command", "unknown", "no_command"]:
+        elif exec_res["command"] in ["messages_history", "shared_store", "delete_shared_success", "delete_shared_error", "unknown_command", "unknown", "no_command"]:
             if command_prefix == "//":
                 return "command_input_loop" # Action to loop back to command input for more commands
             else:
