@@ -6,6 +6,9 @@ import logging
 logger = logging.getLogger(__name__)
 
 class AgentNode(Node):
+    ORANGE_COLOR_CODE = "\033[38;5;208m"  # ANSI escape code for orange
+    RESET_COLOR_CODE = "\033[0m"   # ANSI escape code to reset color
+
     def __init__(self, max_tool_loops=3, allowed_paths=None,
                  data_folder="freq-data", message_history_limit=5):
         super().__init__()
@@ -39,7 +42,7 @@ class AgentNode(Node):
             Based on the tool results, provide a concise and informative answer to the user.
             """
             llm_answer = call_llm(llm_prompt_answer_tool_result) # AI: Call LLM to answer based on tool results
-            shared["llm_answer"] = llm_answer.strip()
+            shared["llm_answer"] = f"{self.ORANGE_COLOR_CODE}{llm_answer.strip()}{self.RESET_COLOR_CODE}" # Make agent answer orange
             logger.info(f"AgentNode Answer based on Tool Results: {llm_answer.strip()}")
             exec_res = "answer_directly" # AI: Set action to answer directly
         else: # AI: If no tool results, proceed with tool/action decision as before
@@ -163,7 +166,7 @@ class AgentNode(Node):
             else: # Direct answer if no tool is explicitly needed and not crypto download
                 llm_prompt_answer = f"User request: {user_input}\n Directly answer the request:"
                 llm_answer = call_llm(llm_prompt_answer)
-                shared["llm_answer"] = llm_answer.strip()
+                shared["llm_answer"] = f"{self.ORANGE_COLOR_CODE}{llm_answer.strip()}{self.RESET_COLOR_CODE}" # Make agent answer orange
                 logger.info(f"Direct LLM Answer: {llm_answer.strip()}")
                 exec_res = "answer_directly"
 
