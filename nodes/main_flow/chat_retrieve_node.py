@@ -1,5 +1,4 @@
 from util.pocketflow import Node
-from util.call_llm import get_embedding
 import logging
 
 logger = logging.getLogger(__name__)
@@ -11,26 +10,35 @@ class ChatRetrieveNode(Node):
         user_input = input("You: ")
         if user_input.strip().lower() == '/q':
             return "quit"  # Return "quit" as prep_res if user input is '/q'
+        if user_input.strip().lower() == '/message-history':
+            message_history = shared.get('message_history', [])
+            print("\n--- Message History ---")
+            if message_history:
+                for msg in message_history:
+                    print(f"- {msg['role']}: {msg['content']}")
+            else:
+                print("No message history available.")
+            print("--- End of History ---\n")
+            return "command_executed"  # Return "command_executed" when command is handled
         logger.info(f"ChatRetrieveNode prep finished. Prep result: {user_input}, Shared: {shared}")
         return user_input
 
     def exec(self, prep_res, shared):
-        user_input = prep_res
-        if user_input == "quit": # Handle quit case
-            return "quit"
-
         logger.info(f"ChatRetrieveNode exec started. Prep result: {prep_res}, Shared: {shared}")
-        embedding = get_embedding(user_input)
-        logger.info(f"ChatRetrieveNode exec finished. Prep result: {prep_res}, Exec result: {(user_input, [])}, Shared: {shared}") # Keep consistent exec result format
-        return user_input, [] # Return user_input and relevant messages (empty for now)
+        if prep_res == "quit" or prep_res == "command_executed": # Handle quit and command_executed directly in prep and post
+            exec_res = {"input_command": prep_res} # or just pass prep_res as exec_res
+        else:
+            exec_res = {"user_input": prep_res}
+        logger.info(f"ChatRetrieveNode exec finished. Exec result: {exec_res}, Shared: {shared}")
+        return exec_res
 
     def post(self, shared, prep_res, exec_res):
-        user_input = prep_res
-        logger.info(f"ChatRetrieveNode post finished. Action: continue, Shared: {shared}, Prep result: {prep_res}, Exec result: {exec_res}")
-        if user_input != "quit":
-            message_history = shared.get('message_history', [])
-            message_history.append({"role": "user", "content": user_input}) # Add user input to message history
-            shared['message_history'] = message_history
-            return "continue"
+        logger.info(f"ChatRetrieveNode post started. Shared: {shared}, Prep result: {prep_res}, Exec result: {exec_res}")
+        if prep_res == "quit":
+            action = "quit" # Correctly set action to quit for '/q' command
+        elif prep_res == "command_executed":
+            action = None # No action needed, loop in input node
         else:
-            return "quit"
+            action = "continue"
+        logger.info(f"ChatRetrieveNode post finished. Action: {action}, Shared: {shared}, Prep result: {prep_res}, Exec result: {exec_res}")
+        return action
