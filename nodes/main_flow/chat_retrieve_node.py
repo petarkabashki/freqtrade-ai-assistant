@@ -6,8 +6,8 @@ logger = logging.getLogger(__name__)
 
 class ChatRetrieveNode(Node):
     def prep(self, shared):
-        shared.setdefault("history", [])
-        shared.setdefault("memory_index", None)
+        # shared.setdefault("history", []) # AI: Removed unused history
+        # shared.setdefault("memory_index", None) # AI: Removed unused memory_index
         user_input = input("You: ")
         if user_input.strip().lower() == '/q':
             return "quit"  # Return "quit" as prep_res if user input is '/q'
