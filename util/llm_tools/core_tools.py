@@ -19,16 +19,17 @@ from serpapi import GoogleSearch
 def search_web_tool(query):
     """Tool to search google for a query."""
     api_key = os.environ.get('SERPAPI_API_KEY')
-    
+
     if not api_key:
         return {"error": "SERPAPI_API_KEY environment variable not set"}
-    
+
     search = GoogleSearch({
-    "q": query, 
+    "q": query,
     # "location": "Austin,Texas",
     "api_key": api_key
     })
     result = search.get_dict()
+    return result # AI: Return the search result
 
 
 def execute_sql_tool(query):
