@@ -1,3 +1,5 @@
+import json
+
 tool_descriptions = {
     "search_web": {
         "description": "Tool to search the web for information.",
@@ -117,3 +119,7 @@ tool_descriptions = {
         }
     }
 }
+
+tool_descriptions_json = json.dumps(tool_descriptions, indent=4)
+
+print(tool_descriptions_json)

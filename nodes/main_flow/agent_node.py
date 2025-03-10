@@ -2,7 +2,8 @@ from util.pocketflow import Node
 from util.call_llm import call_llm
 import yaml
 import logging
-from nodes.main_flow.tool_descriptions import tool_descriptions # AI: Import tool descriptions
+import json # AI: Import json
+from nodes.main_flow.tool_descriptions import tool_descriptions_json # AI: Import tool descriptions json
 
 logger = logging.getLogger(__name__)
 
@@ -17,7 +18,7 @@ class AgentNode(Node):
         self.allowed_paths = allowed_paths if allowed_paths is not None else []
         self.data_folder = data_folder
         self.message_history_limit = message_history_limit
-        self.tool_descriptions = tool_descriptions # AI: Use imported tool descriptions
+        self.tool_descriptions = json.loads(tool_descriptions_json) # AI: Load tool descriptions from json
         logger.info(f"AgentNode initialized with max_tool_loops={max_tool_loops}, "
               f"allowed_paths={allowed_paths}, data_folder={data_folder}, message_history_limit={message_history_limit}")
 
